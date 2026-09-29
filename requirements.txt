@@ -1,0 +1,12 @@
+# Exact versions of the machine that produced the committed results (Python 3.12.7, CUDA 12.4).
+# Install torch for your server's CUDA from https://pytorch.org if cu124 does not match.
+numpy==2.4.6
+pandas==2.3.3
+pyarrow==22.0.0
+scipy==1.18.1
+scikit-learn==1.9.1
+torch==2.6.0
+psutil==7.1.0
+mlxtend==0.25.0
+PyYAML==6.0.2
+matplotlib==3.11.2

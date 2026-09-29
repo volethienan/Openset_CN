@@ -1,0 +1,6 @@
+dataraw/
+__pycache__/
+*.pyc
+exp/logs/
+exp/results_superseded/
+.ipynb_checkpoints/

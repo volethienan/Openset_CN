@@ -1,0 +1,1 @@
+{"classes": ["BENIGN", "DoS GoldenEye", "DoS Hulk", "DoS Slowhttptest", "DoS Slowloris", "FTP-Patator", "Heartbleed", "SSH-Patator"], "labels_used": 0, "mad_threshold": 3.5, "seconds": 564}

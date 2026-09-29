@@ -1,0 +1,1 @@
+{"classes": ["BENIGN", "DoS GoldenEye", "DoS Hulk", "DoS Slowloris", "SSH-BruteForce"], "labels_used": 0, "mad_threshold": 3.5, "seconds": 1693}

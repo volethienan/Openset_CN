@@ -1,0 +1,1 @@
+{"classes": ["BENIGN", "DoS Hulk", "DoS GoldenEye", "FTP-Patator", "DoS Slowloris", "SSH-Patator", "DoS Slowhttptest"], "labels_used": 987990, "seconds": 6322, "timing": {"init_s": 5554.803914070129, "score_flows_per_s": 1230.9221656240827, "update_s_mean": 0.0, "n_updates": 0}, "peak_mem_mb": 4716}

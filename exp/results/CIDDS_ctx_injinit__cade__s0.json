@@ -1,0 +1,1 @@
+{"classes": ["BENIGN", "dos", "pingScan", "portScan"], "labels_used": 0, "mad_threshold": 3.5, "seconds": 319, "timing": {"init_s": 311.5487332344055, "score_flows_per_s": 1321818.704034024, "update_s_mean": 0.0, "n_updates": 0}, "peak_mem_mb": 1497}

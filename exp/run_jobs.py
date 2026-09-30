@@ -8,6 +8,8 @@ from concurrent.futures import ThreadPoolExecutor
 MAX_GPU_PROCS = int(os.environ.get("MAX_GPU_PROCS", 99))   # machine-wide cap on concurrent GPU jobs (memory commit)
 _LAUNCH = threading.Lock()
 GPU_IDS = []                                   # set from --gpu-ids; empty = leave CUDA_VISIBLE_DEVICES untouched
+THREADS = 0                                    # set from --threads; 0 = libraries use every visible core (unchanged)
+_THREAD_VARS = ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS", "NUMEXPR_NUM_THREADS", "VECLIB_MAXIMUM_THREADS")
 _GPU_BUSY = {}
 EXP = os.path.dirname(os.path.abspath(__file__)); RES = os.path.join(EXP, "results"); LOG = os.path.join(EXP, "logs")
 os.makedirs(LOG, exist_ok=True)
@@ -167,6 +169,7 @@ def run(job, seed):
     if running_elsewhere(args): return f"skip {ds} {name} (already running in another process)"
     env = dict(os.environ, EXP_SEED=str(seed)); log = os.path.join(LOG, f"{ds}__{name}__s{seed}.log")
     if pool == "cpu": env["CUDA_VISIBLE_DEVICES"] = ""
+    if THREADS: env.update({v: str(THREADS) for v in _THREAD_VARS})   # cap BLAS/OpenMP/torch threads per job
     if pool == "gpu":
         with _LAUNCH:                                   # check the cap and start the process atomically
             while gpu_procs() >= MAX_GPU_PROCS: time.sleep(60)
@@ -191,7 +194,8 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("rq"); ap.add_argument("--seeds", nargs="+", type=int, default=[0])
     ap.add_argument("--gpu", type=int, default=2); ap.add_argument("--cpu", type=int, default=2); ap.add_argument("--dry", action="store_true")
     ap.add_argument("--gpu-ids", default="", help="comma-separated physical GPU ids, e.g. 0,1")
-    a = ap.parse_args(); GPU_IDS[:] = [g.strip() for g in a.gpu_ids.split(",") if g.strip()]
+    ap.add_argument("--threads", type=int, default=0, help="CPU threads per job (keep (gpu + cpu) x threads <= cores)")
+    a = ap.parse_args(); GPU_IDS[:] = [g.strip() for g in a.gpu_ids.split(",") if g.strip()]; THREADS = a.threads
     GEN = {"rq1": rq1_jobs, "rq2": rq2_jobs, "rq3": rq3_jobs, "rq4": rq4_jobs, "rq5": rq5_jobs, "cad": cad_jobs, "ext": ext_jobs, "ext1": ext1_jobs, "rq2lb": rq2lb_jobs, "noise": noise_jobs,
            "scale": scale_jobs}
     jobs = [(j, s) for rq in a.rq.split("+") for s in a.seeds for j in GEN[rq](s)]

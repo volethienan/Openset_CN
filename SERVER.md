@@ -63,6 +63,8 @@ Cần file LFS cho nhóm `scale`: kiểm tra `ls -lh ../mock/streams/CIC17_full.
 
 ```bash
 cd exp && mkdir -p logs
-CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 MAX_GPU_PROCS=4 python run_jobs.py rq2lb+noise+scale --seeds 0 1 2 3 4 --gpu 4 --cpu 3 > logs/extra3.log 2>&1
+CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 MAX_GPU_PROCS=4 taskset -c 0-23 python run_jobs.py rq2lb+noise+scale --seeds 0 1 2 3 4 --gpu 4 --cpu 2 --threads 4 > logs/extra3.log 2>&1
 ```
+Giới hạn 24 lõi: `taskset -c 0-23` giữ mọi job trong 24 lõi được phép (đổi số lõi theo phần được cấp), còn `--threads 4` giới hạn mỗi job 4 luồng, tức (4 GPU + 2 CPU) × 4 = 24.
+
 Xong thì đẩy kết quả: `git add exp/results && git commit -m "extra experiments" && git push`.

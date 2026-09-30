@@ -17,7 +17,7 @@ def run(ds, method):
     ref = X[rng.choice(tr, min(N_REF, len(tr)), replace=False)]; t0 = time.time()
     if method == "iforest":
         from sklearn.ensemble import IsolationForest
-        m = IsolationForest(n_estimators=100, random_state=seed(), n_jobs=4).fit(ref); f = lambda Z: -m.score_samples(Z)
+        m = IsolationForest(n_estimators=100, random_state=seed(), n_jobs=int(__import__("os").environ.get("OMP_NUM_THREADS", 4))).fit(ref); f = lambda Z: -m.score_samples(Z)
     elif method == "knn":
         from sklearn.neighbors import NearestNeighbors
         nn_ = NearestNeighbors(n_neighbors=5).fit(ref); f = lambda Z: nn_.kneighbors(Z)[0][:, -1]

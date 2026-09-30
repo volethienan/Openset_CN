@@ -67,7 +67,7 @@ class ERNP:
                                                       random_state=0).fit(X, y, sample_weight=w)
         elif self.c["clf"] == "rf":                                   # RQ5: classifier family sensitivity
             from sklearn.ensemble import RandomForestClassifier
-            self.clf = RandomForestClassifier(300, min_samples_leaf=5, n_jobs=4, random_state=0).fit(X, y, sample_weight=w)
+            self.clf = RandomForestClassifier(300, min_samples_leaf=5, n_jobs=int(os.environ.get("OMP_NUM_THREADS", 4)), random_state=0).fit(X, y, sample_weight=w)
         else: raise ValueError(self.c["clf"])
         return self
 

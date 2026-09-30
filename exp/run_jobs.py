@@ -120,13 +120,16 @@ def scale_jobs(seed):
     ds = "CIC17_full"
     return [("cpu", ds, "ernp", ["ernp.py", ds])] + [("gpu", ds, m, ["baselines/sota.py", ds, m]) for m in SOTA5]
 
-def running_elsewhere(args):
-    """True if the same job is already running in another process (e.g. left over from a runner that was restarted)"""
+def running_elsewhere(args, seed=None):
+    """True if the same job (same command AND same EXP_SEED) is already running in another process"""
     try:
         import psutil
         for p in psutil.process_iter(["cmdline"]):
             cl = p.info["cmdline"] or []
-            if len(cl) > len(args) and cl[-len(args):] == args and p.pid != os.getpid(): return True
+            if len(cl) > len(args) and cl[-len(args):] == args and p.pid != os.getpid():
+                try: same_seed = seed is None or p.environ().get("EXP_SEED", "0") == str(seed)
+                except Exception: same_seed = True          # environment unreadable: stay conservative
+                if same_seed: return True
     except Exception: pass
     return False
 
@@ -166,14 +169,14 @@ def run(job, seed):
     pool, ds, name, args = job
     out = os.path.join(RES, f"{ds}__{name}__s{seed}.json")
     if os.path.exists(out): return f"skip {ds} {name}"
-    if running_elsewhere(args): return f"skip {ds} {name} (already running in another process)"
+    if running_elsewhere(args, seed): return f"skip {ds} {name} (already running in another process)"
     env = dict(os.environ, EXP_SEED=str(seed)); log = os.path.join(LOG, f"{ds}__{name}__s{seed}.log")
     if pool == "cpu": env["CUDA_VISIBLE_DEVICES"] = ""
     if THREADS: env.update({v: str(THREADS) for v in _THREAD_VARS})   # cap BLAS/OpenMP/torch threads per job
     if pool == "gpu":
         with _LAUNCH:                                   # check the cap and start the process atomically
             while gpu_procs() >= MAX_GPU_PROCS: time.sleep(60)
-            if os.path.exists(out) or running_elsewhere(args): return f"skip {ds} {name}"
+            if os.path.exists(out) or running_elsewhere(args, seed): return f"skip {ds} {name}"
             dev_id = None
             if GPU_IDS:                             # pin to the least-busy allowed GPU
                 dev_id = min(GPU_IDS, key=lambda g: _GPU_BUSY.get(g, 0)); _GPU_BUSY[dev_id] = _GPU_BUSY.get(dev_id, 0) + 1

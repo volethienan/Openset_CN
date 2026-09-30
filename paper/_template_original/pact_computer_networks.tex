@@ -1,0 +1,714 @@
+% Elsevier CAS double-column template: the layout the journal itself uses,
+% with the ARTICLE INFO / ABSTRACT band and ORCID marks beside the authors.
+\documentclass[a4paper,fleqn]{cas-dc}
+
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{amsmath,amssymb,booktabs,multirow,graphicx,xcolor,float,xspace}
+% The class sets tables and captions in a sans face, and STIX ships none, so
+% LaTeX would fall back to Computer Modern Sans beside STIX serif text.
+% Side margins: the class leaves 18 mm each side on a 210 mm page; 15 mm gives
+% each column about 3 mm more to work with without crowding the trim.
+\setlength{\textwidth}{180mm}
+\setlength{\oddsidemargin}{-10.4mm}
+\setlength{\evensidemargin}{-10.4mm}
+
+\usepackage{fancyhdr}
+\usepackage{microtype}
+% Long hyphenated compounds do not fit the narrow CAS column without a little
+% give in the line breaker.
+\emergencystretch=1em
+\usepackage{tabularx}
+% Weighted, ragged-right X column; the weights in one table sum to its column count,
+% so every table fits its measure by construction rather than by hand-tuned fractions.
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash\hsize=#1\hsize}X}
+% The class asks for a sans face in captions, tables and headings.  One family
+% throughout reads more evenly, so the sans slot is mapped onto the same STIX
+% family as the body text.
+\renewcommand{\sfdefault}{\rmdefault}
+\renewcommand{\ttdefault}{\rmdefault}
+\hypersetup{hidelinks}
+
+\graphicspath{{figures/}}
+\newcommand{\PACT}{PACT\xspace}
+\newcommand{\PCF}{PCF\xspace}
+\newcommand{\FDR}{\mathrm{FDR}}
+\newcommand{\FDP}{\mathrm{FDP}}
+\newcommand{\TPR}{\mathrm{TPR}}
+\newcommand{\AUROC}{\mathrm{AUROC}}
+
+\begin{document}
+
+\let\WriteBookmarks\relax
+\def\floatpagepagefraction{1}
+\def\textpagefraction{.001}
+
+\shorttitle{Prevalence-Aware Alert Certification for Open-Set NIDS}
+\shortauthors{A. Nguyen Thi Dieu et al.}
+
+\title[mode=title]{Prevalence-Aware Alert Certification for Open-Set Network
+Intrusion Detection under Calibration Limits and Distribution Shift}
+
+\author[1]{Anh~Nguyen~Thi~Dieu}
+\ead{anhntd@vhu.edu.vn}
+
+\author[2]{An~Vo~Le~Thien}
+\ead{volethienank16@siu.edu.vn}
+
+\author[3]{Hieu~Le~Ngoc}[orcid=0000-0002-1133-1433]
+\cormark[1]
+\ead{lnhieu@ptit.edu.vn}
+
+\affiliation[1]{organization={Faculty of Information Technology, Van Hien University},
+                city={Ho Chi Minh City},
+                country={Viet Nam}}
+\affiliation[2]{organization={Faculty of Computer Science, The Sai Gon International University},
+                city={Ho Chi Minh City},
+                country={Viet Nam}}
+\affiliation[3]{organization={Faculty of Information Technology 2, Posts and
+                Telecommunications Institute of Technology},
+                city={Ho Chi Minh City},
+                country={Viet Nam}}
+
+\cortext[1]{Corresponding author}
+
+\begin{abstract}
+Machine-learning network intrusion detection systems (NIDS) are compared by the
+area under the receiver-operating-characteristic curve (AUROC), but a security
+operations centre consumes alerts and must know how many are false.
+Conformal inference can bound that fraction; a deployment must also know
+\emph{before} alerting whether the bound is attainable, and withdraw it if the
+assumptions fail. We introduce \PACT, a detector-agnostic alerting layer that
+makes this a deployment contract: it tests attainability from the calibration
+size and the attack prevalence, applies a training-conditional rule whose level
+budget is enforced as an alert cap, and withdraws the certificate when an
+exchangeability audit rejects, reporting a reason-coded certified,
+degraded or refuse state. On ten public flow datasets, eight open-set detectors, 11
+held-out-family rotations and five seeds, attainability proves predictable
+before scoring: on six datasets outside the design, no operating point
+below the requirement reaches usable power, while marginal conformal
+Benjamini--Hochberg exceeds its target in 23 of 24 cells. The certificate is
+keepable: no certified cell contains a calibration draw above its target, for a
+6.2\% power price at the best operating point; doubling the prevalence
+estimate certifies nothing new. The audit refuses all twelve time-ordered
+captures and none of the twelve random ones, and holds its nominal size on an
+exchangeable null (4.5\% at $\alpha=0.05$), so its refusals measure
+non-exchangeability in the benchmarks. The region where all this holds is
+narrow---three of 16 headline cells, none at prevalence $10^{-3}$---and AUROC is
+a weak guide to reaching it.
+\end{abstract}
+
+\begin{keywords}
+open-set intrusion detection \sep conformal prediction \sep false discovery rate
+\sep statistically guaranteed alerting \sep distribution shift
+\sep uncertainty quantification
+\end{keywords}
+
+\maketitle
+
+% Running head: the author line at the top left, the page number centred at the
+% foot, and nothing at all on the opening page.
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\footnotesize A.~Nguyen Thi Dieu et al.}
+\fancyfoot[C]{\footnotesize\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancypagestyle{plain}{\fancyhf{}\renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0pt}}
+\thispagestyle{empty}
+
+\section{Introduction}
+\label{sec:intro}
+
+An intrusion detector can rank unseen attacks well and still issue an untrustworthy alert queue. A security operations centre (SOC) does not consume AUROC; it consumes alerts, and the quantity that determines analyst workload is the false fraction among the alerts that were actually raised. Axelsson showed that this fraction is governed by the base rate of attacks: when intrusions are rare, even a small false-positive rate lets false alarms dominate the queue \cite{axelsson2000baserate}. The open-set setting sharpens the problem. The flows that matter most belong to attack families absent from training, their prevalence is low, the calibration data are finite, and the traffic a detector is calibrated on is always older than the traffic it scores \cite{sommer2010outside}. The central problem is therefore a decision problem: when may a detector score be converted into a statement about the false fraction of the alert queue, and when must the system decline to make one?
+
+Recent open-set NIDS work has improved unknown-class recognition through energy scores, contrastive representation learning, open recognition, metric learning, and incremental adaptation \cite{souza2025efc,wilkie2026closr,du2025ori,docpp2023,renoir2021,zhao2024foss,farrukh2024ais,uddin2024usfad,cevallos2025hero,mnet2024canopen}. Several recent papers make the open-set protocol explicit and separate representation quality from unknown-class evaluation \cite{comnet2025trafficllm,cevallos2025hero}. These methods are, however, evaluated by recognition metrics---AUROC, accuracy, or open-set F1---on randomly split benchmarks. Neither choice says whether an alert queue built from the scores can carry a bound on its false fraction, and evaluation studies in security have shown that random splits, base-rate neglect, and temporal snooping systematically inflate reported performance \cite{arp2022dos,pendlebury2019tesseract,cicids2021case}.
+
+The statistical ingredients for such a bound exist. Conformal inference supplies finite-sample p-values for novelty testing and procedures that control the FDR of the resulting discoveries \cite{vovk2005algorithmic,bates2023outliers,aos2024adaptive,bashari2023derandomized}; calibration-conditional variants hold for the calibration sample actually drawn \cite{vovk2012conditional,bates2023outliers}; and shift-aware procedures relax exchangeability under stated models \cite{jrssb2024covshift,biomet2026weighted,neurips2025nonexchange}. In security, conformal evaluators reject drifting malware samples \cite{jordaney2017transcend,barbero2022transcending}, and ConFID states a finite-sample false-positive-rate guarantee for one-class intrusion detection \cite{farsimadan2026confid}. What is missing for NIDS is the deployment contract that joins these pieces. It needs three parts: a test, run before any alert is emitted, of whether the requested FDR is attainable at the available calibration size and attack prevalence; a guarantee that holds for the single calibration sample a deployment retains; and an explicit refusal when the exchangeability premise fails. Without the first, a SOC can request a target that no procedure can meet. Without the second, the target is met only on average over calibrations the SOC never sees. Without the third, a guarantee earned under a random split is silently carried into traffic that has changed.
+
+This paper takes the unknown-attack alert stream as the estimand. Let $Y_i=1$ denote a flow from an attack family held out as unknown and $Y_i=0$ denote known-class traffic, including benign flows and known attacks; let $A_i=1$ denote an unknown-attack alert. Thus a false discovery is a known-class flow incorrectly placed in the unknown-attack queue. For a stream of $m$ flows, the realised false discovery proportion is
+\begin{equation}
+  \FDP=\frac{\sum_i A_i(1-Y_i)}{\max(1,\sum_i A_i)}.
+\end{equation}
+The target is a statement about $\FDP$ or its expectation for an emitted alert queue, conditional on the calibration protocol, rather than a pointwise claim about the detector score. Section~\ref{sec:problem} states precisely which queue the guarantee covers and which quantity is only measured. We ask four questions.
+
+\begin{enumerate}
+  \item \textbf{RQ1 (attainability):} under what calibration size $n$, target $q$, and unknown-attack prevalence $\pi$ can a finite-sample FDR guarantee exist, and can attainability be predicted before the stream is scored?
+  \item \textbf{RQ2 (keepability):} when a guarantee holds on average over calibration draws, does it hold for the single calibration sample available at deployment, and what power price is required?
+  \item \textbf{RQ3 (detector dependence):} does the ranking quality of a detector, measured by AUROC, determine how much certified power it supports, and can tail resolution or class-conditional calibration enlarge the certified region?
+  \item \textbf{RQ4 (shift):} does an exchangeability audit withdraw the certificate under the shifts that break it, and how often does it refuse when nothing is broken?
+\end{enumerate}
+
+We propose \PACT (\emph{Prevalence-Aware Conformal Triage}), an alerting layer rather than a new detector. It takes detector evidence, converts known-only evidence channels into conformal p-values, fuses them into a stream score, and applies a pre-specified FDR rule \cite{bates2023outliers}. Before the rule can emit a certified queue, a resolution module checks whether $(n,q,\hat\pi)$ can support the requested alert budget and a Dvoretzky--Kiefer--Wolfowitz (DKW)/Smirnov-type two-sample audit checks the exchangeability premise. The output is a reason-coded state: \emph{certified}, \emph{degraded}, or \emph{refuse}. This ordering matters because a detector can improve ranking without making an impossible operating point statistically attainable.
+
+The contributions are threefold and are deliberately separated from detector novelty:
+\begin{enumerate}
+  \item \textbf{Attainability diagnostics.} We define unknown-attack alert certification as a finite-sample FDR problem and turn the finite resolution of conformal p-values into a pre-stream feasibility test: every alert set obeys a computable contamination floor, which puts a clean queue out of reach unless $n+1\ge 1/(q\pi)$ and the target itself out of reach unless $n+1\ge(1-q)/(q\pi)$, while the training-conditional version requires $n\gtrsim\log(L/\delta)/(q\pi)$. The barrier is a finite-calibration counterpart of the base-rate argument \cite{axelsson2000baserate}, it predicts the attainable region out of sample on six datasets that took no part in the design, and changing the testing currency from p-values to e-values does not escape it. The deployment question changes from ``which detector ranks best?'' to ``is the requested alert budget statistically attainable?''
+  \item \textbf{A fail-closed certificate, with its parts measured rather than assumed.} \PACT is a detector-agnostic layer that composes the feasibility test, a training-conditional BH rule whose Bonferroni level budget is enforced as an alert cap, and a two-sample audit of the exchangeability premise; its operational output is a certified, degraded, or refuse state with an auditable reason code rather than an unconditional FDR promise. Each part is then tested against the way it could fail. The conditional rule is kept on every calibration draw of every certified cell across all ten datasets, where the marginal rule it replaces exceeds its own target on up to 36\% of draws. The feasibility test is robust to the estimate it is fed: doubling the prevalence estimate certifies nothing that was not already certified. The audit refuses all twelve time-ordered captures and none of the twelve random ones, and holds its nominal size on an exchangeable null (4.5\% at $\alpha=0.05$), so its residual refusals measure the benchmarks rather than the test.
+  \item \textbf{Evidence that standard evaluation overstates alert reliability.} Across eight detectors and four datasets, AUROC is a weak guide to certified power and a useless one among strong detectors: detectors with AUROC above $0.98$ certify almost nothing on the same dataset where another reaches certified power of $0.95$, and half of the cells whose certificate is valid emit no useful queue because no panel detector separates the unknown families in the required tail region. Under a time-ordered split, the FDR of the same procedure rises several-fold on three of the four datasets where the comparison is possible, and the audit refuses every time-ordered capture on all four; a fixed top-percentile quota, the rule many SOCs use, exceeds the target on 40\% of streams.
+\end{enumerate}
+
+The novelty claim is therefore methodological and operational. The statistical ingredients are known; the contribution is their composition into a NIDS deployment contract and the measurement of where that contract holds and where it fails. \PACT does not claim a new representation-learning objective or a detector-level state of the art: the principal score generator used here is competitive with seven published open-set detectors, but its margin over the strongest one is not statistically resolved. The experiments are designed to expose the contract's failures---at prevalence $10^{-3}$, on a dataset the audit rejects, and under temporal order---and those failures are reported as results, not omitted.
+
+The remainder of the paper is organised as follows. Section~\ref{sec:background} gives the deployment setting and alerting objective. Section~\ref{sec:related} positions the work against open-set NIDS and trustworthy uncertainty quantification. Section~\ref{sec:problem} defines the estimands and statistical limits. Section~\ref{sec:method} describes \PACT. Section~\ref{sec:experiments} gives the protocol and its amendments. Section~\ref{sec:results} reports RQ1--RQ4 and the main ablations. Sections~\ref{sec:discussion} and~\ref{sec:limitations} discuss deployment meaning and threats to validity, followed by the conclusion.
+
+\section{Background and deployment setting}
+\label{sec:background}
+
+\subsection{Operational problem}
+Consider a SOC that receives a continuous stream of network flows from a NIDS trained on benign traffic and a set of known attack families, while the deployment stream may contain new families and variants. The system has two separate decisions. The detector ranks flows by evidence of membership in an unknown class. The alerting layer decides whether the requested FDR budget is statistically supportable for the current calibration size, unknown-attack prevalence estimate, and traffic regime. The second decision can be a refusal. Figure~\ref{fig:overview}, in Section~\ref{sec:method}, summarises the data path and the two gates that implement it.
+
+
+\subsection{Open-set alerting objective}
+Known classes are the attack families available during training and calibration. Unknown classes are attack families held out from both stages and introduced only in the deployment stream. The goal is not to classify every unknown family by name. It is to decide whether a flow belongs in the alert queue and to attach a valid statement about the false fraction of that queue. This formulation lets \PACT wrap different detector families, including open-set classifiers, one-class anomaly detectors, and representation-learning models.
+
+\section{Related work}
+\label{sec:related}
+
+\subsection{Open-set and open-world NIDS}
+Open-set NIDS relax the closed-world assumption that every test class was represented during training. Recent detector papers improve this recognition problem in several ways: energy-based flow scores target unknown classes with a low-complexity decision rule \cite{souza2025efc}; contrastive objectives improve separation between known and zero-day traffic \cite{wilkie2026closr,aaai2023contrastive}; open recognition adds inspection of unknown samples \cite{du2025ori}; and metric learning, reconstruction, semantic augmentation, and one-class objectives model attack families absent from training \cite{docpp2023,renoir2021,patcog2023bridge,patcog2024semantic,uddin2024usfad}. FOSS and AIS-NIDS add fine-grained unknown-class detection and adaptive operation \cite{zhao2024foss,farrukh2024ais}. HERO makes the zero-shot assumption explicit for high-dimensional raw traffic \cite{cevallos2025hero}, while open-world CAN-bus work shows that the same recognition problem arises outside flow-based enterprise benchmarks \cite{mnet2024canopen}. These methods define the relevant detector literature; the evaluated subset is specified in Section~\ref{sec:experiments}. Their estimands remain recognition, AUROC, accuracy, or open-set classification metrics.
+
+The distinction matters operationally. A detector may rank an unknown attack above benign traffic while still producing an alert queue whose false fraction is unbounded at the chosen prevalence. This is the base-rate problem identified by Axelsson \cite{axelsson2000baserate}, and it is one reason why anomaly detectors that perform well in the laboratory struggle in operation \cite{sommer2010outside}. Surveys of NIDS evaluation identify further sources of fragility: benchmark choice, class imbalance, random splitting, and inconsistent treatment of temporal order can change the reported result \cite{almeida2025survey,mohammadi2020survey,khraisat2019survey,csa2024iot}. Arp et al.\ catalogue these pitfalls for machine learning in security, including sampling bias, data snooping, and base-rate neglect \cite{arp2022dos}. TESSERACT shows that temporally inconsistent splits inflate malware-classification results \cite{pendlebury2019tesseract}, and dataset audits of CICIDS2017 found labelling and feature-extraction faults \cite{cicids2021case}. These studies diagnose detection metrics; we carry the diagnosis to alert-level error and make the base rate an explicit input to a feasibility test. TrafficLLM demonstrates how a carefully designed open-set experiment can improve encrypted-traffic recognition, but it still evaluates a recognition task rather than a stream-level certificate \cite{comnet2025trafficllm}. \PACT is designed to sit after any of these detectors, so a future improvement in the ranking function does not invalidate the alert-certification question.
+
+\subsection{Trustworthy uncertainty and conformal testing}
+Bayesian uncertainty quantification and conformal one-class detection have recently been applied to cyber anomaly detection \cite{yang2024trustworthy,farsimadan2026confid,uq2024nids,comnet2025bayesian}. In security, the closest use of conformal inference is Transcend and its successor, which use conformal credibility to reject malware samples under concept drift \cite{jordaney2017transcend,barbero2022transcending}; the decision there is per sample, and no bound is placed on the false fraction of a selected set. The statistical literature provides the foundation: algorithmic conformal prediction formalizes finite-sample validity under exchangeability \cite{vovk2005algorithmic}, conformal p-values support finite-sample novelty testing with BH-type FDR control \cite{bates2023outliers,benjamini1995controlling}, and adaptive novelty detection targets FDR directly \cite{aos2024adaptive}. Dependence-robust and adaptive variants of BH \cite{benjamini2001yekutieli,storey2002direct,biomet2025null}, e-value procedures \cite{wang2022ebh,bashari2023derandomized,biomet2023evalues,biomet2024evalues}, and online FDR rules for sequential discovery \cite{aos2018onlinefdr} provide alternative currencies and settings. Training-conditional validity---a guarantee for the calibration sample actually drawn rather than on average over draws---goes back to Vovk \cite{vovk2012conditional} and is developed for conformal p-values by Bates et al.\ \cite{bates2023outliers}. Localized, weighted, and non-exchangeable conformal procedures relax exchangeability under stated shift models \cite{biomet2023localized,jrssb2025sets,jrssb2024covshift,jrssb2024doubly,neurips2025nonexchange,biomet2026weighted}.
+
+Our gap is therefore not a missing statistical tool but a missing deployment contract. Existing work does not provide, for NIDS, the combination used here: a prevalence-aware pre-check, a single-calibration keepability decision whose level budget is enforced as an alert cap, and a recorded refusal when exchangeability is rejected. The estimand is the false fraction among emitted alerts rather than a per-sample prediction set or rejection. A negative result is therefore part of the method: if $n$, $q$, $\pi$, contamination, or the audit statistic make the certificate unsupported, \PACT must say so.
+
+\subsection{Positioning and remaining gap}
+Table~\ref{tab:relatedposition} makes the distinction between the detector literature and the present contribution explicit. Existing open-set studies improve recognition or representation quality. The present work treats those scores as inputs and studies whether an alert queue can be certified under finite calibration resolution and shift.
+
+\begin{table*}[t]
+\centering
+\caption{Positioning against representative open-set and trustworthy NIDS studies.}
+\label{tab:relatedposition}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{L{0.68}L{1.34}L{0.98}}
+\toprule
+Study family & What the literature optimizes & Missing deployment statement \\
+\midrule
+Energy/contrastive/open-world NIDS & unknown-class recognition, representation separation, open-world inspection & no stream-level bound on the false alert fraction \\
+One-class and Bayesian NIDS & anomaly scores, uncertainty, and adaptive detector operation & no pre-deployment feasibility or refusal rule \\
+Evaluation-pitfall studies & diagnosis of base-rate, split, and temporal bias in detection metrics & no finite-sample alerting rule \\
+Conformal drift rejection in security & per-sample rejection of drifting inputs; one-class FPR guarantee & no FDR on the selected alert set; no prevalence feasibility test \\
+Conformal novelty/FDR work & finite-sample p-values, e-values, and discovery control & no complete SOC contract linking prevalence, keepability, and shift refusal \\
+\textbf{\PACT (this work)} & prevalence gate, alert cap, keepability correction, and exchangeability refusal & \textbf{training-conditional per-window FDR certificate plus explicit refuse state} \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\section{Problem formulation and statistical limits}
+\label{sec:problem}
+
+\subsection{Open-set stream and calibration}
+Let $\mathcal{D}_{\mathrm{cal}}=\{X_j\}_{j=1}^{n}$ contain flows from known classes only. The deployment stream $\mathcal{S}=\{(X_i,Y_i)\}_{i=1}^{m}$ contains a mixture of benign flows, known attacks, and unknown attack families. Here $Y_i=1$ only for a held-out unknown attack, and the unknown-attack prevalence is $\pi=\Pr(Y_i=1)$. The detector produces a scalar nonconformity score $s(X)$, with larger values indicating greater evidence that a flow is outside the known classes. Unknown-family observations are excluded from tuning and calibration.
+
+For a score $s$, the split-conformal p-value is
+\begin{equation}
+ p(x)=\frac{1+\sum_{j=1}^{n}\mathbb{1}\{s(X_j)\ge s(x)\}}{n+1}.
+\end{equation}
+The p-value floor $1/(n+1)$ is a finite-resolution constraint. A procedure that needs a smaller tail probability cannot produce it from the available calibration sample without additional assumptions.
+
+\subsection{Alert-level estimands}
+For an alert set $\mathcal{A}=\{i:A_i=1\}$, we report FDP, FDR $\mathbb{E}[\FDP]$, power $\sum_i A_iY_i/\max(1,\sum_iY_i)$, and the number of alerts per 1,000 flows. The finite-sample guarantees below are stated per window, because BH is applied to each window of $m$ flows. The headline empirical quantity is the \emph{stream} FDP: the false fraction of the union of alerts over all windows of a stream, averaged over streams. This is the quantity an analyst experiences. Controlling each window does not bound it in general, so stream FDP is reported as a measured outcome rather than as a guaranteed one.
+
+\subsection{Resolution and contamination barriers}
+In a deployment window of $m$ flows, the expected number of unknown attacks is $m\pi$. BH rejects the $k$ smallest p-values only if $p_{(k)}\le kq/m$, and every conformal p-value is at least $1/(n+1)$, so any \emph{non-empty} rejection set has at least
+\begin{equation}
+ r_{\min}=\left\lceil \frac{m}{q(n+1)}\right\rceil
+ \label{eq:rmin}
+\end{equation}
+elements. If a window holds $U$ unknown attacks and emits a non-empty queue, that queue has size $R\ge r_{\min}$ and contains at most $U$ true discoveries, so
+\begin{equation}
+ \FDP \;\geq\; 1-\frac{U}{R} \;\geq\; 1-\frac{U}{r_{\min}},
+\label{eq:contam}
+\end{equation}
+the contamination floor, with $U\approx m\pi$ under the controlled prevalence.
+
+Two thresholds follow from Eq.~\eqref{eq:contam}. A queue that could be free of known-class flows at all requires $r_{\min}\le m\pi$, that is, ignoring the rounding,
+\begin{equation}
+ n+1 \geq \frac{1}{q\pi}, \qquad\text{equivalently}\qquad n\geq \frac{1}{q\pi}-1,
+\label{eq:barrier}
+\end{equation}
+while merely meeting the target needs only $\FDP\le q$, which by Eq.~\eqref{eq:contam} holds when $n+1\ge(1-q)/(q\pi)$. The two differ by the factor $1-q$, so Eq.~\eqref{eq:barrier} is the conservative screen; \PACT uses it, which can make the layer refuse earlier than strictly necessary but never certify a target the resolution cannot support. In both forms the window size cancels, because it scales the available unknown attacks and the minimum rejection count alike. These are feasibility diagnostics, not guarantees: they state when no procedure reading the same p-values can deliver a clean queue. Eq.~\eqref{eq:barrier} is the finite-calibration counterpart of the base-rate argument \cite{axelsson2000baserate}: at $\pi=10^{-3}$ and $q=0.10$, it asks for about $10^4$ known-class calibration flows before any correction for training-conditional validity.
+
+\subsection{Keepability and shift}
+Average-over-calibration validity is weaker than the statement needed for the single calibration sample retained at deployment. Following the calibration-conditional construction of Vovk and of Bates et al.\ \cite{vovk2012conditional,bates2023outliers}, for conformal rank $r$ \PACT replaces the nominal rank $r/(n+1)$ by the upper confidence bound
+\begin{equation}
+ \widetilde p_r=F^{-1}_{\mathrm{Beta}(r,n+1-r)}(1-\delta/L),
+ \label{eq:conditionalp}
+\end{equation}
+where $\delta$ is the allowed miss probability and $L$ is the pre-registered maximum number of BH rejection levels; $\widetilde p_r$ is the $1-\delta/L$ quantile of the Beta law that the $r$-th conformal rank follows conditionally on the calibration sample, so the $L$ bounds hold jointly with probability at least $1-\delta$.
+
+For BH to reject the $m\pi$ unknown attacks of a window, the corrected value at rank $m\pi$ must fall below that rank's BH threshold, $m\pi q/m=q\pi$. The corrected values increase with rank, so requiring it already at $r=1$, where $\widetilde p_1=1-(\delta/L)^{1/n}$, gives a necessary condition in closed form,
+\begin{equation}
+ n \geq \frac{\log(\delta/L)}{\log(1-q\pi)}
+ \approx \frac{\log(L/\delta)}{q\pi},
+\label{eq:conditional}
+\end{equation}
+which is the calibration-size screen \PACT applies. Being necessary rather than sufficient, it can pass a cell that still lacks power, which is the gap RQ3 measures.
+The Bonferroni split over $L$ levels covers only the first $L$ BH thresholds, so it is paired with an enforced cap of at most $L$ alerts per window; without the cap the conditional statement would not cover the procedure it accompanies. With $\delta=0.10$ and $L=100$, Eq.~\eqref{eq:conditional} asks for about 3{,}450 calibration flows at $q=0.20$, $\pi=10^{-2}$, and about 34{,}500 at $\pi=10^{-3}$.
+
+Distribution shift invalidates the exchangeability premise. \PACT tests it on a held-out sample of $n_{\mathrm{audit}}$ flows confirmed as known-class during the deployment period; this is the one labelled input the contract requires. For their conformal p-values, the one-sided audit statistic and two-sample threshold are
+\begin{equation}
+ \begin{aligned}
+ D_+&=\sup_{t\in[0,1]}\{\widehat F_p(t)-t\},\\
+ \tau_{\mathrm{DKW}}&=\sqrt{\frac{\log(1/\alpha)}{2}
+ \left(\frac{1}{n}+\frac{1}{n_{\mathrm{audit}}}\right)}.
+ \end{aligned}
+ \label{eq:audit}
+\end{equation}
+The gate refuses when $D_+>\tau_{\mathrm{DKW}}$. The test is one-sided because an excess of small p-values among known flows is exactly the direction that inflates false discoveries. The threshold has the Dvoretzky--Kiefer--Wolfowitz/Smirnov form for a two-sample comparison \cite{massart1990dkw}. Its level is exact only asymptotically, and conformal p-values that share a calibration set are dependent, so its size is measured rather than assumed, and it is compared against a permutation-calibrated threshold that needs no asymptotics (Section~\ref{sec:rq4}). The audit is evidence about the observed known-traffic window, not proof that future traffic is exchangeable.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.94\textwidth]{fig_pact_overview.pdf}
+\caption{Two-phase overview of \PACT, with the symbols defined in Sections~\ref{sec:problem} and~\ref{sec:method}. (a) Known-only training and calibration: any open-set detector supplies the score; the known-only calibration pool is split so that one half fixes the score function and the disjoint half of size $n$ converts it into alert-stage conformal p-values. (b) Deployment and monitoring: the feasibility gate compares $n$ with the marginal requirement $n_{\mathrm{marg}}$ of Eq.~\eqref{eq:barrier} and the training-conditional requirement $n_{\mathrm{cond}}$ of Eq.~\eqref{eq:conditional}; the audit compares $D_+$ with $\tau$ from Eq.~\eqref{eq:audit} on verified known traffic; BH then runs at $q$ on the corrected p-values $\widetilde p_r$ when the state is certified and on the raw p-values when it is degraded, truncated to $L$ alerts per window. Each gate has its own refusal path, and the state travels with the queue in the operator record.}
+\label{fig:overview}
+\end{figure*}
+
+\section{PACT alert certification layer}
+\label{sec:method}
+
+\subsection{Detector-agnostic evidence}
+The proposed layer does not replace a NIDS detector. In the principal implementation, Prototype Conformal Fusion (\PCF) uses a compact prototype encoder and a micro multilayer perceptron to produce embeddings and a base score. Three evidence channels are computed from known-only data: robust Mahalanobis distance (MD), relative Mahalanobis distance (RMD), and one-nearest-neighbour distance (1-NN). The known-only calibration pool is split class-stratified into disjoint score-tuning and alert-calibration halves. On the tuning half, each channel is converted to a conformal rank and non-negative weights $w_k$ are fixed from leave-one-known-class-out proxy AUROC. The resulting Fisher-style quantity is used only as a nonconformity score,
+\begin{equation}
+ S_{\mathrm{F}}(x)=-\sum_{k=1}^{K}w_k\log p^{\mathrm{tune}}_k(x).
+\end{equation}
+The final alert-stage p-value is then recalibrated on the disjoint alert-calibration scores,
+\begin{equation}
+ p_{\mathrm{alert}}(x)=\frac{1+\sum_{j=1}^{n}\mathbb{1}\{S_{\mathrm{F}}(X_j)\geq S_{\mathrm{F}}(x)\}}{n+1}.
+\end{equation}
+The chi-square Fisher reference distribution is not used. Dependence among MD, RMD, and 1-NN therefore affects ranking efficiency, but not the rank-based validity of the final p-value under exchangeability. The complete deployment sequence and operator-visible outputs are summarised in Table~\ref{tab:pactprocedure}.
+
+\begin{table*}[t]
+\centering
+\caption{PACT deployment procedure. Each step has a visible output that is logged and evaluated in a corresponding experiment.}
+\label{tab:pactprocedure}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{L{0.44}L{1.06}L{1.86}L{0.64}}
+\toprule
+Step & Input & Operation and auditable output & State effect \\
+\midrule
+1. Tune score & known-only training and tuning flows & Fit the detector; compute MD, RMD, and 1-NN ranks; fix the leave-one-known-class-out fusion weights without unknown-family data. & fixed score function \\
+2. Recalibrate & disjoint known-only calibration flows & Compute the fused score and convert it to the final alert-stage conformal p-value; retain the calibration size and score provenance. & stream p-values \\
+3. Check resolution & $n$, $q$, $\hat\pi$, $\delta$, $L$ & Evaluate $(n+1)q\hat\pi\geq1$, the contamination diagnostic, and the conditional sizing requirement before emitting alerts. & feasible / degraded \\
+4. Audit validity & held-out known traffic & Compute the DKW exchangeability statistic and compare it with the registered threshold. Record the statistic, threshold, and audit arm. & pass / refuse \\
+5. Select alerts & stream p-values and $q$ & Apply the registered BH rule and enforce the $L$-alert cap; below marginal feasibility, return only a fixed-workload fallback without an FDR claim. & certified / degraded / refuse \\
+6. Record & all previous outputs & Write the reason code, alert count, audit result, and calibration shortfall. Realised FDP and power are appended only in offline labelled evaluation. & audit trail \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\subsection{Conformal BH rule and alert caps}
+For a window of $m$ p-values, \PACT applies BH to the training-conditional bounds in Eq.~\eqref{eq:conditionalp}; marginal conformal BH following Bates et al.\ \cite{bates2023outliers} is retained as a comparator. Other procedure baselines are Benjamini--Yekutieli (BY), Storey-BH, and e-value Benjamini--Hochberg (e-BH). Let $p_{(k)}$ denote the $k$th order statistic. The BH candidate count is
+\begin{equation}
+ \widehat{k}=\max\left\{k:p_{(k)}\leq \frac{kq}{m}\right\}.
+\end{equation}
+The selected set is truncated to the $L$ smallest p-values if BH proposes more than the pre-registered cap. Truncation keeps the emitted queue a subset of the BH rejections, so it cannot increase the number of false discoveries, and it keeps the procedure inside the $L$ levels that the Bonferroni split of $\delta$ actually covers. The resolution barrier of Eq.~\eqref{eq:barrier} decides whether a queue free of known-class flows is reachable at all, and is applied as the conservative screen discussed in Section~\ref{sec:problem}; the contamination floor is reported as a diagnostic rather than used as labelled deployment information.
+
+\subsection{Certificate states}
+The certificate has three states.
+\begin{itemize}
+  \item \textbf{Certified}: the conditional calibration requirement is met, the $L$-alert cap is enforced, and the exchangeability audit does not reject. This state authorizes the training-conditional FDR statement.
+  \item \textbf{Degraded}: marginal resolution is available and the audit does not reject, but the conditional calibration requirement is unmet. The layer may emit a bounded queue carrying only the weaker marginal-over-calibration statement; it must not label that queue training-conditionally certified.
+  \item \textbf{Refuse}: marginal resolution is infeasible or the exchangeability audit rejects. A fixed-workload fallback may be shown to an operator, but the system must attach no FDR claim and must record the refusal reason.
+\end{itemize}
+This fail-closed behaviour is a central output of the method. A refusal is recorded as a valid deployment decision and analysed as false refusal when the stream was in fact exchangeable.
+
+\subsection{Statistical contract and audit record}
+For each capture, the layer receives the calibration size $n$, requested FDR $q$, unknown-prevalence estimate $\hat\pi$, conditional-miss tolerance $\delta$, rejection-level budget $L$, and detector scores. Define $n_{\mathrm{marg}}=1/(q\hat\pi)-1$, $n_{\mathrm{cond}}=\log(\delta/L)/\log(1-q\hat\pi)$, and $a=\mathbb{1}\{D_+\leq\tau_{\mathrm{DKW}}\}$. With tail extrapolation disabled in the primary configuration, the deterministic state is
+\begin{equation}
+ \mathrm{state}=\begin{cases}
+ \mathrm{certified}, & a=1,\ n\geq n_{\mathrm{cond}},\\
+ \mathrm{degraded}, & a=1,\ n_{\mathrm{marg}}\leq n<n_{\mathrm{cond}},\\
+ \mathrm{refuse}, & \text{otherwise}.
+ \end{cases}
+ \label{eq:state}
+\end{equation}
+The audit record contains the inputs, both calibration requirements, DKW statistic and threshold, emitted-alert count, state, and reason code. Realised FDR is an offline outcome, never an input to the deployment state. This separation prevents the evaluation labels from making the certificate circular.
+
+\subsection{Algorithmic workflow and implementation cost}
+The deployment workflow is fixed before the stream is scored: (1) fit the detector on the training split and fix the fusion score on the known-only tuning split; (2) calibrate the fused score on the disjoint known-only alert-calibration split; (3) evaluate the unknown-prevalence resolution and contamination diagnostics; (4) run the held-out-known DKW audit; (5) apply the registered FDR rule only if the state permits it; and (6) log the state, alert count, audit statistic, and calibration shortfall. The detector-specific part is paid once per flow. The certificate checks are paid once per capture or window and therefore do not require a second neural model. The main scaling costs are the calibration reference used by the distance and nearest-neighbour scores and the number of p-values retained for the stream. On the reference GPU, \PCF scoring runs at a median of 0.033\,ms per flow at batch size 4,096 (30,685 flows per second on CICIDS2017 and 30,152 on CSE2018, one seed each), while the feasibility test and the audit are $O(m\log m)$ sorts evaluated once per window. This separation is important for deployment: a heavier detector may improve ranking, but it cannot bypass the resolution or exchangeability gates.
+
+\section{Experimental design}
+\label{sec:experiments}
+
+\subsection{Datasets and locked protocol}
+The study uses ten public flow datasets, listed with the arm each belongs to in Table~\ref{tab:datasets}. The primary arm contains four: CICIDS2017 \cite{sharafaldin2018cicids}, CSE2018 and ToN-IoT in their NetFlow v3 feature versions \cite{sarhan2022netflow,ton2021architecture}, and CICIoMT2024 \cite{ciciomt2024benchmark}. These datasets are deliberately heterogeneous: CICIDS2017 has documented labelling and feature-extraction faults \cite{cicids2021case}; CICIoMT2024 adds multi-protocol Internet-of-Things (IoT) traffic; feature-selection studies show that preprocessing choices can materially change IoT NIDS results \cite{iot2024feature}; and ToN-IoT combines network, operating-system, and telemetry sources \cite{ton2021architecture,ton2020federated}. The dataset choice therefore tests portability, but does not make a claim of production representativeness. Each rotation holds out one attack family as unknown and removes it from training, tuning, and calibration. Families whose flows are statistically inseparable---balanced accuracy below 0.80 for a classifier trained to separate them---are held out together, with the criterion applied identically for every detector. This grouping affects two rotations (the third rotation of CICIDS2017 and of CSE2018). The four datasets supply 11 held-out-family rotations for the eight-method detector panel.
+
+Six further public datasets take no part in the design and are used only to test the attainability claim out of sample: CIDDS-001, HIKARI-2021, InSDN, NF-BoT-IoT-v3, NF-UNSW-NB15-v3 and UNR-IDD. They are processed by the same pipeline, with the same seeds, epochs and known-only split, and only PCF is scored on them. Their alert-calibration sets are smaller than those of the primary four (3,300 to 10,400 flows after the tuning split), so each dataset enters the feasibility test at its own $n$ and the headline size of 12,000 is not available on any of them. The separability audit finds no inseparable family pair in any of the six, so the hold-out grouping affects two of the ten datasets in total. InSDN's held-out family contributes only 614 unknown test flows, so its unknown draws are resampled with replacement; its two certified cells should be read with that in mind.
+
+The NetFlow v3 captures carry flow start times, which allows a time-ordered rotation for CSE2018 and ToN-IoT. Within each family, the earliest 60\% of flows supply training and calibration and the remaining 40\% supply the test stream. The cut is made per family because the public captures stage attacks in separate time blocks, so a single global cut would remove whole classes from one side. Features, scaling, caps, and the held-out family match the primary random rotation, so the two arms differ in the time axis alone. Five fixed seeds (13, 37, 73, 101, and 137) are used throughout. Training uses 30 epochs and batch size 256; the prototype encoder uses square-root inverse-frequency clipping at 4 and a density-reference cap of 65,536. The known-only calibration pool is divided class-stratified 50:50 into score-tuning and final alert-calibration subsets; unknown attack families are absent from both. The same detector scores are reused across prevalence and window sweeps so that alert-quality comparisons do not mix detector retraining with stream mechanics. Random streams contain 40,000 flows and 20 streams per cell; the headline draw study uses $n=12{,}000$, $m=2{,}000$, $\pi=0.01$, and $q\in\{0.10,0.20\}$. Table~\ref{tab:protocol} lists the resulting protocol settings.
+
+\begin{table*}[t]
+\centering
+\caption{The ten datasets. Flow counts are for the rotation used, after capping and stratified sampling; 80\% of the calibration split becomes the alert-calibration set and 20\% the score-tuning set. ``T'' marks an additional time-ordered rotation. The primary arm carries the eight-detector panel and the 11 held-out-family rotations; the extension arm scores PCF on rotation Z1 only and takes no part in the design.}
+\label{tab:datasets}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrrrcl}
+\toprule
+Dataset & Feat. & Train & Calib. & Test & Rot. & Outcome \\
+\midrule
+\multicolumn{7}{l}{\emph{Primary arm} — panel, prevalence, calibration draws, shift}\\
+CICIDS2017 & 77 & 80{,}755 & 16{,}772 & 42{,}020 & 3 & certified, usable \\
+CSE2018 (NF v3) & 49 & 179{,}662 & 38{,}689 & 62{,}637 & 3 + T & certified, usable \\
+CICIoMT2024 & 45 & 236{,}724 & 60{,}049 & 72{,}668 & 2 & refused by audit \\
+ToN-IoT (NF v3) & 49 & 130{,}206 & 27{,}453 & 52{,}251 & 3 + T & certified, no power \\
+\midrule
+\multicolumn{7}{l}{\emph{Extension arm} — attainability out of sample, PCF only}\\
+CIDDS-001 & 14 & 42{,}746 & 8{,}657 & 37{,}127 & 1 & certified, no power \\
+HIKARI-2021 & 81 & 26{,}636 & 5{,}768 & 29{,}159 & 1 & certified, no power \\
+InSDN & 79 & 53{,}688 & 11{,}612 & 36{,}478 & 1 & certified, usable \\
+NF-BoT-IoT-v3 & 49 & 53{,}586 & 11{,}569 & 36{,}460 & 1 + T & certified, no power \\
+NF-UNSW-NB15-v3 & 49 & 70{,}013 & 14{,}888 & 40{,}387 & 1 + T & certified, no power \\
+UNR-IDD & 31 & 19{,}502 & 4{,}211 & 13{,}698 & 1 & degraded \\
+\bottomrule
+\end{tabular}
+\end{table*}
+The detector comparison contains \PCF, CLOSR, EFC, RENOIR-DML, ORI, DOC++, AIS-NIDS, and usfAD. Maximum softmax probability (MSP), energy, out-of-distribution detector for neural networks (ODIN), Mahalanobis, and OpenMax are auxiliary score checks rather than members of the headline eight-method panel, following standard out-of-distribution (OOD) and open-set evaluation practice \cite{hendrycks2017baseline,liang2018odin,vaze2022openset}. The alerting procedures compared are marginal conformal BH \cite{benjamini1995controlling,bates2023outliers}, Benjamini--Yekutieli (BY) \cite{benjamini2001yekutieli}, Storey-BH \cite{storey2002direct}, e-value BH (e-BH) \cite{wang2022ebh}, \PACT with $L\in\{1,5,100\}$, and a fixed top-percentile operator quota (top 5\%, 1\%, and 0.1\% of each window), the rule many SOCs apply in practice. For transparency, Table~\ref{tab:baselines} distinguishes published implementations, adapted implementations, and reimplementations; these categories do not imply identical engineering effort.
+
+\begin{table}[t]
+\centering
+\caption{Training and stream parameters fixed before the main analysis.}
+\label{tab:protocol}
+\small
+\begin{tabularx}{\linewidth}{L{0.62}L{1.38}}
+\toprule
+Item & Registered setting \\
+\midrule
+Training seeds & 13, 37, 73, 101, 137 in the primary arm; 13, 37, 73 in the extension and time-ordered arms \\
+Training budget & 30 epochs; batch size 256; class-balanced PCF weighting \\
+Open-set split & leave one attack family out; unknown families absent from train, calibration, and tuning \\
+Known-only split & class-stratified 50:50 score tuning / alert calibration \\
+Headline stream & 40,000 flows; 20 streams per cell; $m=2{,}000$ window \\
+Unknown-prevalence grid & $\pi\in\{0.25,0.10,0.05,0.01,0.001\}$ \\
+FDR grid & $q\in\{0.05,0.10,0.20\}$; draw study reports $q=0.10,0.20$ \\
+Conditional correction & $\delta=0.10$; $L\in\{1,5,100\}$; primary $L=100$ with matching alert cap \\
+Exchangeability audit & one-sided gate, $\alpha=0.05$; DKW/Smirnov threshold, with a permutation-calibrated threshold as the second arm \\
+Prevalence supplied to the gate & $\hat\pi=\pi$; sensitivity reported at $\hat\pi\in\{\tfrac12\pi,\pi,2\pi\}$ \\
+Primary outcomes & stream FDP/FDR, power, alerts per 1,000 flows, certificate state \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Table~\ref{tab:arms} lists the five experimental arms, so that every result can be traced to the datasets, detectors and seeds that produced it. The 16 \emph{headline cells} used throughout the results are the combinations of the four primary datasets, $q\in\{0.10,0.20\}$ and $\pi\in\{10^{-2},10^{-3}\}$, all at $n=12{,}000$.
+
+\begin{table*}[t]
+\centering
+\caption{The five experimental arms. Only the primary arm carries the detector panel; the others score PCF, and the label-mix and audit-null arms add CLOSR as a second score generator.}
+\label{tab:arms}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{L{0.70}L{0.45}L{0.55}L{0.35}L{2.95}}
+\toprule
+Arm & Datasets & Detectors & Seeds & What it measures \\
+\midrule
+Primary & 4 & 8 & 5 & barrier, contamination floor, calibration draws, panel, tail, Mondrian \\
+Extension & 6 & PCF & 3 & attainability out of sample, each at its own $n$ \\
+Time-ordered & 4 & PCF & 3 & random versus time-ordered calibration \\
+Label-mix & 4 & PCF, CLOSR & 5 & audit detection and false refusal under mix shift \\
+Audit null & 4 & PCF, CLOSR & 5 & size of the audit on an exchangeable null \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+Table~\ref{tab:baselines} records the comparison provenance. This distinction is necessary because published implementations, adapted implementations, and reimplementations do not provide identical replication guarantees.
+
+\begin{table}[t]
+\centering
+\caption{Detector panel and provenance.}
+\label{tab:baselines}
+\scriptsize
+\begin{tabularx}{\linewidth}{L{0.90}L{1.14}L{0.96}}
+\toprule
+Method & Provenance & Role \\
+\midrule
+PCF & developed in this study & score generator \\
+CLOSR, EFC & published or documented adaptation & open-set comparators \\
+RENOIR-DML, DOC++ & adapted published methods & representation comparators \\
+ORI, AIS-NIDS, usfAD & independent reimplementations & open-world/one-class comparators \\
+MSP, Energy, ODIN, Mahalanobis, OpenMax & auxiliary implementations & checks, not headline baselines \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The reference computation used Python 3.12.7, NumPy 2.4.6, SciPy 1.16.2, scikit-learn 1.7.2, and PyTorch 2.6.0 with CUDA 12.4 on one NVIDIA GeForce RTX 3050 6GB laptop GPU and a 12-core CPU. The complete matrix required 108.0 machine-hours, including 35.6 hours for held-out-family rotations.
+
+\subsection{Shift experiments and protocol amendments}
+Three experiments test the audit. The \emph{audit-null} experiment measures its size directly: over all 40 capture--detector pairs and 100 draws each, the audit window is drawn either from the calibration pool, which is exchangeable by construction, or from the capture's own held-out known traffic at the calibration class mix. Both the closed-form threshold of Eq.~\eqref{eq:audit} and a permutation-calibrated threshold (200 re-splits of the pooled samples, $1-\alpha$ quantile) are evaluated on both nulls, and the whole label-mix experiment is repeated with the permutation threshold as a second arm. In the \emph{label-mix} experiment, known-class test flows are re-weighted towards one known class $c$ with magnitude $s\in\{0,0.1,0.25,0.5,0.75,1\}$, so that the deployment mix is $(1-s)$ times the calibration mix plus $s$ times a point mass on $c$. The three known classes with the heaviest upper score tails are used, with 10 repeats per condition. The condition $s=0$ is exchangeable and measures false refusal. For $s>0$, ground truth is whether the uncorrected BH procedure actually exceeds $q$, so the audit is scored against broken guarantees rather than against shift magnitude. In the \emph{temporal} experiment, the time-ordered rotations of CSE2018 and ToN-IoT are compared with their random counterparts over three seeds each, giving six captures per arm. A cross-domain transfer experiment between NetFlow datasets supplies a third shift type.
+
+All settings were fixed in a versioned protocol configuration before the main runs. Three amendments were made after pilot or first-pass results and are recorded with their rationale in the supplementary amendment log: grouping inseparable families into joint hold-out groups; matching the level budget of the conditional correction to the alert cap; and restricting the detector-panel stage to random-split rotations. A sensitivity analysis of the separability threshold (0.70 and 0.90) accompanies the first amendment.
+
+\subsection{Metrics and statistical units}
+The central metrics are aggregate stream FDP/FDR, power, alerts per 1,000 flows, certification state, detection rate of the shift gate, and false-refusal rate. For the detector panel, AUROC is paired with mean rank over deployment rotations. For tail experiments, we report ties at the maximum score and TPR at FPR $10^{-3}$. Seed means are accompanied by seed intervals; detector-panel uncertainty is clustered by rotation, not by individual flows.
+
+\subsection{Statistical analysis}
+Seeds are resampled as whole clusters using 4,000 bootstrap draws and 95\% percentile intervals. For RQ2, the bootstrap is applied to power and the share of calibration draws exceeding $q$; the zero observed exceedance result is reported with the explicit limitation that 0/25 draws has a one-sided 95\% Clopper--Pearson upper bound of approximately 11.3\%, and the draws share five seeds, so the effective sample is smaller still. For RQ3, the primary replication unit is the held-out-family rotation ($N=11$), not the 55 seed--rotation combinations. We use a Friedman omnibus test followed by paired Wilcoxon signed-rank tests with Holm correction; with 11 rotations the smallest attainable two-sided signed-rank p-value is about $0.001$. The association between ranking quality and certified power is quantified by a Spearman rank correlation over the 32 detector--dataset pairs, and separately over the subset with AUROC at least 0.90. For RQ4, resampling is over datasets, yielding wide cluster intervals by construction. No individual flow is treated as an independent statistical replicate.
+
+\subsection{Research-question map}
+Table~\ref{tab:rqmap} maps each question to the experiment and the evidence reported in the corresponding results subsection.
+
+\begin{table}[t]
+\centering
+\caption{Research-question map and evidence.}
+\label{tab:rqmap}
+\scriptsize
+\setlength{\tabcolsep}{2.2pt}
+\begin{tabularx}{\linewidth}{L{0.40}L{1.10}L{1.40}L{1.10}}
+\toprule
+RQ & What is tested & Main metric & Results subsection \\
+\midrule
+RQ1 & Feasibility as $n,q,\pi$ vary & stream FDR, power, barrier hit, contamination floor, e-BH vs.\ BH & Results, RQ1 \\
+RQ2 & Single-calibration keepability & draw exceedance, power price, composite gate & Results, RQ2 \\
+RQ3 & Detector dependence and tail limits & AUROC vs.\ certified power, rank, ties, TPR@$10^{-3}$ & Results, RQ3 \\
+RQ4 & Shift detection and abstention & audit detection, false refusal, random/temporal FDR & Results, RQ4 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Results}
+\label{sec:results}
+
+\subsection{Main findings at a glance}
+Table~\ref{tab:rqanswers} presents the estimand, principal estimate, and scientific answer for every RQ. It deliberately places certificate state beside detector performance: a high AUROC is not treated as evidence of an alert guarantee.
+
+\begin{table*}[t]
+\centering
+\caption{RQ answers, estimands, and quantitative evidence. Each conclusion is bounded by the corresponding protocol and analysis described in the text.}
+\label{tab:rqanswers}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{L{0.28}L{1.08}L{1.16}L{1.48}}
+\toprule
+RQ & Estimand & Principal estimate & Scientific answer \\
+\midrule
+RQ1 & Attainable certified region & 6/16 cells certified, 6 degraded, 4 refused; only 3 certified cells have non-trivial power, all at $\pi=.01$; on 6 unseen datasets (24 cells) no cell outside the certified region reaches usable power and marginal BH exceeds its target in 23/24; state predicted in 13/16 cells from deployable inputs (15/16 with an oracle detector ceiling); floor respected in 340/340 cells; e-BH beats BH in 0/64 & Attainability is largely predictable before scoring; the certified region exists but is small, a certificate does not by itself buy power, and changing the testing currency does not enlarge the region \\
+RQ2 & Single-calibration keepability & CSE2018 $q=.20$: 20\% [4,36] marginal exceedance $\rightarrow$ 0/25 observed; PACT power .934 [.856,.986]; price 6.2\% (55.6\% and 68.5\% in the other two usable cells); no certified cell on the six extension datasets contains a draw above $q$ & Keepability is achievable, at a price ranging from small to prohibitive; only one cell passes the composite gate \\
+RQ3 & Detector dependence & AUROC vs.\ certified power over 32 pairs: $\rho=.48$, $p=.006$; among 14 pairs with AUROC $\geq.90$, 10 certify power $<.05$ and $\rho=.52$, $p=.055$; PCF rank 1.45, $\Delta=-.001$ [$-.097,.070$] & Ranking quality helps but does not determine certifiability; what matters is the upper tail at scale $q\pi$. Tail and Mondrian variants provide no reliable lift \\
+RQ4 & Shift detection and abstention & Random/temporal PACT FDR .033/.586 at $q=.10$; refusals over four datasets 0/12 random, 12/12 temporal; marginal FDR rises under time order on 3 of 4 and falls on the fourth, which has no power in either arm; label-mix detection 90.6\% [68.4,98.1], false refusal 8.0\% [6.7,10.9]; audit size on an exchangeable null 4.5\% vs.\ nominal 5\% & The audit withdraws the certificate when the guarantee breaks; its size is correct, and the refusals above $\alpha$ measure non-exchangeability inside the public captures \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\subsection{RQ1: When is alert certification attainable?}
+\label{sec:rq1}
+Figure~\ref{fig:barrier} shows the prevalence-dependent barrier. Across the prevalence and calibration-size sweeps, 340 cells lay below the resolution barrier of Eq.~\eqref{eq:barrier} and nevertheless emitted at least one alert; in all 340, the observed FDP was at or above the contamination floor of Eq.~\eqref{eq:contam}. Because the floor follows from the p-value resolution, this count is a correctness check of the implementation and of the prevalence construction rather than independent evidence. Its substantive content is that every below-barrier alert queue in the study was contaminated, whatever the detector.
+
+For the 16 headline cells (four datasets, $q\in\{0.10,0.20\}$, $\pi\in\{10^{-2},10^{-3}\}$), each cell was classified before its alerts were inspected. The classification used three inputs: the conditional sizing rule of Eq.~\eqref{eq:conditional}, the exchangeability audit, and a detector ceiling (the power of an oracle threshold on the unknown scores). It matched the measured outcome in 15 of 16 cells. The single miss was CICIDS2017 at $q=0.10$ and $\pi=0.01$, predicted usable but measured with near-zero power. The detector ceiling uses unknown-family labels and cannot be computed in deployment. Without it, the two ToN-IoT cells at $\pi=0.01$ are also misclassified (predicted usable, measured without power), so the deployable inputs alone predict 13 of 16 cells. The sizing rule and the audit are the deployable test; the ceiling explains its remaining failures.
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=0.88\textwidth]{fig_rq1_prevalence_barrier.pdf}
+\caption{RQ1. Training-conditional power across four deployment datasets, computed at the full alert-calibration set (the calibration-draw study in the text uses $n=12{,}000$, hence the small difference for CSE2018). The shaded band shows the range across eight detector scores, the dashed line shows their median, and the highlighted PCF line includes a 95\% seed interval. CICIoMT2024 power is shown for completeness but is not certified, because the exchangeability audit refuses that dataset. Power decreases sharply as unknown-attack prevalence falls, with the feasible region depending on both dataset and detector.}
+\label{fig:barrier}
+\end{figure*}
+
+\textbf{The certified region, and what a certificate does not buy.} Applying the state rule of Eq.~\eqref{eq:state} at $n=12{,}000$ partitions the 16 headline cells into six \emph{certified}, six \emph{degraded}, and four \emph{refused} cells. The four refusals are the CICIoMT2024 cells, where the audit rejects; the six degraded cells are all the $\pi=10^{-3}$ cells of the remaining datasets, where $n$ clears the marginal barrier (4{,}999 and 9{,}999 flows) but not the conditional sizing requirement (34{,}535 and 69{,}074 flows). A certified state, however, only means that the FDR statement is supported; it does not promise that the queue contains anything. Three of the six certified cells emit essentially no alerts: CICIDS2017 at $q=0.10$ (power 0.003) and both ToN-IoT cells (power 0.000), because no detector in the panel separates the unknown families in the tail region that certification requires (Section~\ref{sec:rq3}). This distinction between a valid certificate and a useful one is itself a result, and it is the reason RQ3 asks about the detector rather than about the procedure.
+
+The three certified cells with non-trivial power are CSE2018 at $q=0.10$ and $q=0.20$, and CICIDS2017 at $q=0.20$. Their operating points are:
+\begin{itemize}
+  \item CSE2018, $q=0.10$: FDR $0.036$, power $0.430$;
+  \item CSE2018, $q=0.20$: FDR $0.094$, power $0.934$;
+  \item CICIDS2017, $q=0.20$: FDR $0.072$, power $0.228$.
+\end{itemize}
+No positive claim is made at $\pi=0.001$. The refusals are also justified rather than merely conservative: on the four refused CICIoMT2024 cells, the uncorrected procedure does exceed its target, so the audit withdraws a guarantee that would in fact have been violated. This is the main scientific result of RQ1: the guarantee has an identifiable operating region, that region is predictable before the stream is scored, and it is small when unknown attacks are rare. The evidence supports the barrier and the existence of usable $\pi=0.01$ cases; it does not support a universal guarantee across datasets or prevalence levels.
+
+\textbf{Six datasets the method was never tuned on.} The analysis so far uses four datasets, two of which supply every usable cell, so the obvious objection is that the operating region is an artefact of those two. We therefore repeated the core measurement on six further public datasets that had taken no part in the study: CIDDS-001, HIKARI-2021, InSDN, NF-BoT-IoT-v3, NF-UNSW-NB15-v3 and UNR-IDD. Nothing was re-tuned. Each supplies its own calibration size, from 3{,}300 to 10{,}400 flows, and the conditional requirement therefore predicts a \emph{different} state for each dataset before any of its traffic is scored. Table~\ref{tab:extension} reports the outcome over 24 cells.
+
+Figure~\ref{fig:requirement} places these cells beside the original 16 on one axis: the calibration set measured in units of what the conditional rule demands. Three things follow. First, marginal conformal BH exceeded its own target on at least one calibration draw in 23 of the 24 cells, which is the failure the training-conditional correction exists to prevent. Second, \PACT certified eight cells and \emph{no} certified cell contained a draw above $q$, so the keepability result of RQ2 now holds across ten datasets rather than two. Third, and most usefully for RQ1, no cell outside the certified region reached usable power: the barrier did not merely describe the four original datasets, it predicted the outcome on six it had never seen. The price is equally visible: only two of the 24 cells, both on InSDN, are certified \emph{and} deliver power above 0.1 (0.232 at $q=0.10$ and 0.717 at $q=0.20$), with CIDDS-001 at $q=0.20$ just short (0.086). The certified region is narrow on ten datasets exactly as it was on four.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.86\textwidth]{fig_rq1_requirement.pdf}
+\caption{RQ1. Realised power of every operating cell in the study against its calibration set, expressed as a multiple of the conditional requirement $n_{\mathrm{cond}}$ of Eq.~\eqref{eq:conditional}; the barrier is therefore at $1$ and the shaded half-plane is where a certificate is supported. Circles are the 16 headline cells of the four primary datasets, squares the 24 cells of the six datasets that took no part in the design, triangles the cells below the requirement, and crosses the cells the audit refuses. Among the cells the audit accepts, none below the requirement reaches usable power ($0.1$, dotted line). The refused cells do emit alerts, but their realised FDP is far above target, which is why the audit withdraws them.}
+\label{fig:requirement}
+\end{figure*}
+
+\begin{table*}[t]
+\centering
+\caption{Extension to six datasets that took no part in the design, at unknown-attack prevalence $\pi=10^{-2}$ and $L=100$. Each dataset is used at its own calibration size, so the conditional requirement predicts a different state for each. ``Draws $>q$'' is the share of the five calibration draws whose stream exceeded the target.}
+\label{tab:extension}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrlrrrrr}
+\toprule
+Dataset & $n$ & $q$ & predicted state & marginal FDR & marginal draws $>q$ & \PACT FDR & \PACT power & \PACT draws $>q$ \\
+\midrule
+NF-BoT-IoT-v3 & 9,100 & 0.10 & certified & 0.339 & 60\% & 0.000 & 0.000 & 0\% \\
+NF-BoT-IoT-v3 & 9,100 & 0.20 & certified & 0.672 & 67\% & 0.000 & 0.000 & 0\% \\
+CIDDS-001 & 6,100 & 0.10 & degraded & 0.186 & 73\% & 0.000 & 0.000 & 0\% \\
+CIDDS-001 & 6,100 & 0.20 & certified & 0.252 & 67\% & 0.047 & 0.086 & 0\% \\
+HIKARI-2021 & 4,300 & 0.10 & degraded & 0.329 & 33\% & 0.000 & 0.000 & 0\% \\
+HIKARI-2021 & 4,300 & 0.20 & certified & 0.437 & 60\% & 0.000 & 0.000 & 0\% \\
+InSDN & 9,200 & 0.10 & certified & 0.083 & 33\% & 0.003 & 0.232 & 0\% \\
+InSDN & 9,200 & 0.20 & certified & 0.190 & 67\% & 0.074 & 0.717 & 0\% \\
+UNR-IDD & 3,300 & 0.10 & degraded & 0.094 & 33\% & 0.000 & 0.000 & 0\% \\
+UNR-IDD & 3,300 & 0.20 & degraded & 0.143 & 33\% & 0.018 & 0.004 & 0\% \\
+NF-UNSW-NB15-v3 & 10,400 & 0.10 & certified & 0.436 & 67\% & 0.000 & 0.000 & 0\% \\
+NF-UNSW-NB15-v3 & 10,400 & 0.20 & certified & 0.840 & 100\% & 0.000 & 0.000 & 0\% \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\textbf{How wrong may the prevalence estimate be?} The gate is fed $\hat\pi$, not $\pi$, so the state it returns is only as good as that estimate. The conditional requirement is monotone in $q\hat\pi$, so the estimate at which a given calibration set starts to certify has a closed form that does not involve the true prevalence,
+\begin{equation}
+ \hat\pi^{\star}=\frac{1-(\delta/L)^{1/n}}{q},
+ \label{eq:pihat}
+\end{equation}
+and dividing it by the prevalence the stream actually has gives the factor by which an operator must misjudge before the state changes. At $n=12{,}000$, $\delta=0.10$ and $L=100$, $\hat\pi^{\star}=5.75\times10^{-3}$ at $q=0.10$ and $2.88\times10^{-3}$ at $q=0.20$. Two consequences follow for this grid. At $\pi=10^{-2}$ the certificate survives any underestimate down to $0.58\pi$ ($q=0.10$) or $0.29\pi$ ($q=0.20$); below that the state falls back to degraded, which withdraws the training-conditional claim rather than issuing a wrong one. At $\pi=10^{-3}$ an operator would have to overestimate prevalence by $5.75\times$ ($q=0.10$) or $2.88\times$ ($q=0.20$) before the gate wrongly certifies. Across the 16 headline cells, supplying twice the true prevalence certifies nothing that was not already certified (0/16), while supplying half of it downgrades three certified cells. Estimation error is therefore dangerous only in the optimistic direction and only beyond a factor the table makes explicit; the failure mode of an underestimate is lost power, not a false guarantee.
+
+Changing the testing currency does not enlarge the region. e-value BH never exceeded the power of conformal BH in the 64 pre-specified comparisons. This is expected, because conformal e-values inherit the same calibration resolution, and it rules out the alternative explanation that the barrier is an artefact of using p-values.
+
+\paragraph{Answer to RQ1.} Attainability is governed by $n$, $q$, and $\pi$ and is predictable before alert emission in 13 of 16 headline cells from deployable inputs alone. The region is narrow, and a certificate is necessary but not sufficient for a useful queue: six cells are certified, but only the three at $\pi=0.01$ on CSE2018 and CICIDS2017 emit alerts with non-trivial power, and no cell at $\pi=0.001$ is certified at all. The scientific answer is conditional feasibility, not universal certification.
+
+\subsection{RQ2: Does marginal control survive one calibration draw?}
+Figure~\ref{fig:keepability} visualises the trade-off between stream FDR and detection power. Here $L$ is the maximum number of BH rejection levels covered by the Bonferroni correction and the enforced per-window alert cap. Across calibration draws, the conditional \PACT rule reduces observed exceedance relative to marginal procedures. On CSE2018 at $q=0.20$, the marginal stream exceeds the target on 20\% [4\%, 36\%] of draws, whereas \PACT with $L=100$ has 0/25 observed exceedances and power $0.934$ [0.856, 0.986], a 6.2\% power price. At $q=0.10$, marginal exceedance is 36\% [4\%, 72\%] and \PACT again has no observed exceedance, but power falls to $0.430$ [0.228, 0.579], a 55.6\% price. On CICIDS2017 at $q=0.20$, marginal exceedance is 4\% [0\%, 12\%], while \PACT has no observed exceedance and power $0.228$ [0.020, 0.460], a 68.5\% price. Only the CSE2018 $q=0.20$ cell satisfies the pre-specified composite gate requiring zero observed exceedance and power price at most 15\%. Smaller level budgets ($L=1,5$) recover power at the cost of covering fewer rejection levels. BY remains valid under arbitrary dependence but loses most of the power, and Storey-BH behaves like marginal BH.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.88\textwidth]{fig_rq1_rq2_keepability.pdf}
+\caption{RQ2. Stream FDR and detection power for the calibration procedures on CSE2018 at $\pi=0.01$ and $n=12{,}000$, for $q=0.10$ (top) and $q=0.20$ (bottom); bars show the mean and 95\% seed interval over 25 calibration draws. The dashed line is the requested target; $L$ is the maximum number of BH rejection levels covered by the conditional correction and alert cap. Conditional PACT has no observed exceedance in these draws, but the stronger single-calibration statement can consume substantial power.}
+\label{fig:keepability}
+\end{figure*}
+
+\paragraph{Answer to RQ2.} A single-calibration certificate can be kept at deployment, but the price is operating-point dependent. The CSE2018 $q=0.20$ cell is the only pre-specified operating point that simultaneously has zero observed exceedance and a power price below 15\%. Because the study contains 25 calibration-draw observations, zero observed exceedances still has a one-sided 95\% upper bound of approximately 11.3\%; it should therefore be read as evidence of keepability, not as proof of a zero exceedance probability.
+
+\subsection{RQ3: Does detector ranking quality determine certifiability?}
+\label{sec:rq3}
+Figure~\ref{fig:panel}(b) plots each detector's unknown AUROC against its certified (training-conditional) power at $\pi=0.01$ on each dataset's primary rotation. Over the 32 detector--dataset pairs the two are positively but only moderately rank-correlated (Spearman $\rho=0.48$, $p=0.006$), so ranking quality is not irrelevant. It is, however, not usable in the regime where a practitioner chooses between competitive detectors: among the 14 pairs with AUROC of at least 0.90 the association is no longer significant ($\rho=0.52$, $p=0.055$), and ten of those 14 certify power below 0.05. On CSE2018, EFC (AUROC 0.984) and ORI (0.991) certify almost nothing (0.000 and 0.029), whereas PCF (1.000) certifies 0.953. On CICIDS2017 the order reverses: DOC++, fourth of eight by AUROC (0.929), has the highest certified power (0.346), above PCF (AUROC 0.998, power 0.193). On ToN-IoT no detector certifies usable power, although PCF's AUROC is 0.947. The reason is structural. At $\pi=0.01$ and $q=0.20$, certification requires unknown attacks to receive p-values near $q\pi=2\times10^{-3}$, so what matters is separation in the extreme upper tail of the known-score distribution. AUROC averages over the whole ranking and hides exactly this region.
+
+Ranking quality itself is reported in Figure~\ref{fig:panel}(a). Across 11 detector rotations, the PCF score has mean AUROC $0.926$ and mean rank $1.45$, and it ranks first in 10. The Friedman test rejects equal ranks ($p=6.07\times10^{-4}$), but Holm-corrected rotation-level comparisons separate PCF only from ORI, EFC, and DOC++; the comparisons with usfAD, RENOIR-DML, AIS-NIDS, and CLOSR remain undecided ($p_{\mathrm{Holm}}=0.1289$). The mean margin against the strongest other method per rotation is $-0.001$ AUROC with a rotation-cluster interval $[-0.097,0.070]$. The panel therefore supports competitive ranking, not a state-of-the-art claim. The detector is a source of evidence for the alert layer; it is not the statistical guarantee itself. The certification layer is applied unchanged to all eight detectors in Figures~\ref{fig:barrier} and~\ref{fig:panel}(b), which is the evidence for the claim that it is detector-agnostic: the barrier, the cap, and the audit behave identically whichever score is supplied, and only the power changes.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.88\textwidth]{fig_rq3_detector_panel.pdf}
+\caption{RQ3. (a) Detector-panel AUROC over 11 rotations and five seeds; PCF is competitive, but the uncertainty interval overlaps the strongest comparator. (b) Unknown AUROC against certified power at $\pi=0.01$ for the eight detectors on each dataset's primary rotation (full alert-calibration set); the dotted line marks AUROC $=0.90$. High AUROC is not sufficient for certified power, and among the detectors above the line it does not order them.}
+\label{fig:panel}
+\end{figure*}
+
+Figure~\ref{fig:tail} shows that the tail ablation removes score ties at the maximum but produces no reliable power gain. True-positive rate (TPR) at false-positive rate (FPR) $10^{-3}$ changes from 0.719 to 0.721 on CICIDS2017, from 0.0034 to 0.0033 on CICIoMT2024, from 0.981 to 0.985 on CSE2018, and from 0.041 to 0.038 on ToN-IoT. All changes lie within the pre-specified seed intervals. Mondrian calibration by predicted class, port class, or protocol is also negative overall. Splitting the calibration set moves each group further below its own resolution barrier, and pooled power falls on the positive CSE2018 operating point (0.977 to 0.560 for predicted-class grouping). Across all groupings, a group with zero pooled power was lifted once, in a single seed of one ToN-IoT grouping.
+
+The hold-out grouping of statistically inseparable families is not a knife-edge choice. The pair that drives it on CSE2018, \textsc{dos\_attacks\_slowhttptest} and \textsc{ftp\_bruteforce}, has balanced accuracy $0.505$, that is, chance level, far below the 0.80 criterion. Lowering the threshold to 0.70 leaves only that pair grouped; raising it to 0.90 additionally absorbs \textsc{brute\_force\_xss} into the CSE2018 web-attack group. On ToN-IoT no pair falls below 0.80 at any of the three thresholds, so no grouping is applied there. These results do not support the stronger claim that class-conditional calibration or tail extension materially improves alert power in the present panel.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.88\textwidth]{fig_rq3_tail_lift.pdf}
+\caption{RQ3. Tail extension removes ties at the maximum score, but TPR at FPR $10^{-3}$ does not improve consistently across datasets. The negative result localizes the limitation to resolution and calibration rather than to score ties alone.}
+\label{fig:tail}
+\end{figure*}
+
+\paragraph{Answer to RQ3.} Detector choice matters a great deal for certified power, but AUROC only partly tracks it ($\rho=0.48$ over all pairs) and stops tracking it among strong detectors, where ten of fourteen high-AUROC pairs certify almost nothing. What matters is separation in the upper tail at the scale $q\pi$. PCF is competitive in ranking (AUROC $0.926$, rotation-level mean rank $1.45$) but not significantly superior to the strongest comparator. Tail extension removes ceiling ties without a reliable TPR gain, and the evaluated Mondrian variants do not enlarge the certified region. Detector-side tail separability is therefore necessary but insufficient for alert certification.
+
+\subsection{RQ4: Does the audit withdraw under temporal shift?}
+\label{sec:rq4}
+In the label-mix experiment, the audit refused 90.6\% [68.4\%, 98.1\%] of the 2,580 conditions in which the uncorrected procedure exceeded $q$. On exchangeable traffic it refused 8.0\% [6.7\%, 10.9\%], above its nominal level $\alpha=0.05$. Per-dataset detection/false-refusal rates are 59.8\%/10.3\% for CICIDS2017, 93.5\%/6.7\% for CSE2018, and 93.3\%/7.0\% for ToN-IoT. On CICIoMT2024 detection is 98.7\%, and false refusal is undefined because the audit already refuses the unshifted partition. \textbf{The excess is not a miscalibrated threshold.} The natural explanation for a refusal rate above $\alpha$ is the threshold itself: Eq.~\eqref{eq:audit} is exact only asymptotically, and conformal p-values that share a calibration sample are dependent. We tested that explanation by replacing the closed-form threshold with one calibrated on the scores themselves. Under exchangeability the labels \emph{calibration} and \emph{audit} are uninformative, so pooling the two samples and re-splitting them at the same sizes draws from the null distribution of $D_+$; its $1-\alpha$ quantile over 200 permutations is a threshold that needs no asymptotics and is unaffected by ties. Re-running the entire label-mix experiment with it changes almost nothing: detection stays at 90.6\%, false refusal moves from 8.0\% to 8.4\%, and the fire rate on shifted-but-intact conditions from 76.5\% to 76.6\%. The hypothesis is therefore rejected, and the excess has to be explained by the traffic rather than by the test.
+
+\textbf{The test holds its size; the captures are not exchangeable.} To separate the two explanations directly, we ran the audit on two nulls over all 40 capture--detector pairs, 100 draws each. Drawing the audit window from the calibration pool itself is exchangeable by construction, and there the gate fires on 4.5\% of draws with the closed-form threshold and 5.2\% with the permutation threshold: both at the nominal $\alpha=0.05$, so the test is calibrated. Drawing the same window from the capture's own held-out known traffic---the deployment setting, at the same class mix---raises the rate to 28.1\% and 28.7\%. The per-dataset breakdown locates it: CSE2018 (4.4\%) and CICIDS2017 (5.4\%) stay at the nominal level, ToN-IoT rises to 8.5\%, and CICIoMT2024 reaches 94.1\%. The residual refusals are therefore not a defect of the gate but a measurement of the benchmarks: within a single public capture, the calibration split and the held-out known traffic are not exchangeable, severely so for CICIoMT2024. This is an independent justification of the refusals reported above, and a caution for any conformal method calibrated on these datasets. Figure~\ref{fig:auditsize} shows both nulls and the per-dataset breakdown.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.90\textwidth]{fig_rq4_audit_size.pdf}
+\caption{RQ4. (a) How often the gate fires when nothing is wrong. Drawing the audit window from the calibration pool is exchangeable by construction, and there both thresholds sit at the nominal $\alpha=0.05$; drawing it from the capture's own held-out known traffic raises the rate six-fold, and the permutation threshold does not change that. (b) The same two rates per dataset: CSE2018 and CICIDS2017 stay at the nominal level, while CICIoMT2024 reaches 94.1\%, which is what a capture whose calibration and test halves are not exchangeable looks like from inside the gate.}
+\label{fig:auditsize}
+\end{figure*}
+
+CICIDS2017 is the weak case: there the shifts break the guarantee through small changes in the upper tail, which a Kolmogorov-type statistic detects poorly. In the cross-domain transfer experiment, the audit refused every broken condition with a false-refusal rate of 4.3\%. These results are consistent with evidence that NIDS performance degrades under distribution shift \cite{guerra2023shift}. The interval width is material because only four dataset clusters contribute to the aggregate.
+
+The audit is also conservative in the other direction: it fired on 76.5\% of conditions whose mix had shifted but whose guarantee still held. Whether refusing then helps the operator depends on how noisy the ungated queue was. On broken conditions, gating changed false alarms per 1,000 flows from 110.0 to 2.4 on CICIoMT2024 and from 1.31 to 0.41 on CSE2018, but from 0.62 to 0.81 on CICIDS2017 and from 0.13 to 2.12 on ToN-IoT, where the fixed fallback workload emits more false alarms than the broken procedure did. Fail-closed operation is therefore not free: on quiet streams the cost of a refusal is set by the fallback size, which is a policy choice rather than a property of the audit.
+
+Figure~\ref{fig:shift} shows the temporal contrast. On CSE2018, the random split has audit violation 0.0049 versus a threshold of 0.0107, and random FDR is 0.095 for marginal BH and 0.033 for \PACT. Under temporal order, audit violation rises to 0.142 against a threshold of 0.0111, and FDR rises to 0.684 and 0.586 respectively; the training-conditional correction offers no protection once exchangeability fails. On ToN-IoT, the violation rises from 0.0073 to 0.177 (thresholds 0.0113 and 0.0104), and marginal BH FDR rises from 0.087 to 0.891, while \PACT emits no alerts in either arm. Over the two datasets and three seeds, the audit refuses 0/6 random captures and 6/6 time-ordered ones. A fixed top-0.1\% operator quota exceeds $q$ on 40\% of CSE2018 streams at $\pi=10^{-2}$ and has FDP 0.497 at $\pi=10^{-3}$: a quota fixes the workload, but not the error, and gives no indication of when it is wrong.
+
+\textbf{Does the temporal result replicate?} Two of the extension datasets, NF-BoT-IoT-v3 and NF-UNSW-NB15-v3, also carry flow start times, so the same rebuild is available for them at a calibration size both arms of a dataset can supply (9,000 and 10,000 respectively). The audit behaves exactly as on the primary pair: it refuses 6 of 6 time-ordered captures and 0 of 6 random ones, the violation rising from 0.0091 to 0.4205 on NF-BoT-IoT-v3 and from 0.0024 to 0.0278 on NF-UNSW-NB15-v3 against thresholds of 0.011--0.017. Across four datasets the refusal behaviour is therefore 12/12 under time order and 0/12 under random splits.
+
+The alerting comparison replicates on one of the two and reverses on the other, and we report both. On NF-BoT-IoT-v3 the pattern matches CSE2018: the FDR of marginal BH rises from 0.343 to 0.947 and the share of draws above target from 60\% to 100\%, while \PACT moves from 0.000 with no exceeding draw to 0.291 with 40\% of draws above target. On NF-UNSW-NB15-v3 the marginal FDR \emph{falls} under time order, from 0.449 to 0.224. That dataset has no usable power in either arm (0.000 at every draw for both procedures), so its alert stream is nearly all false discoveries whichever split is used and the contrast carries little information about the size of the optimism. The honest reading is that random-split optimism is a demonstrated phenomenon on three of the four datasets where it can be measured, not a law; what holds on all four is that the audit withdraws the certificate whenever the calibration sample is older than the scored traffic.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.88\textwidth]{fig_rq4_temporal_shift.pdf}
+\caption{RQ4. (a) The exchangeability audit separates random and temporal deployment on both CSE2018 and ToN-IoT; bars show the mean audit violation over three seeds and horizontal marks the per-capture threshold. (b) On CSE2018, both marginal BH and PACT exceed the $q=0.10$ alert target under temporal order; PACT therefore refuses the temporal captures rather than emitting a certificate.}
+\label{fig:shift}
+\end{figure*}
+
+\paragraph{Answer to RQ4.} The exchangeability gate detects the deployment failure represented by the temporal arm: over four datasets it refuses all twelve time-ordered captures and none of the twelve random ones. It also withdraws 90.6\% of label-mix conditions that broke the guarantee, and it holds its nominal size on an exchangeable null (4.5\% against $\alpha=0.05$), so the refusals above $\alpha$ measure the benchmarks rather than the test. The remaining limits are real: detection is only 59.8\% on CICIDS2017, the gate fires on three quarters of shifted conditions whose guarantee still held, and four dataset clusters are a thin basis for the aggregate rates.
+
+\subsection{Ablation and integrity checks}
+Replacing the trained encoder by the identity map (single seed, primary rotation) lowers AUROC by 0.003 on CSE2018, 0.035 on CICIDS2017, and 0.137 on ToN-IoT. On CICIoMT2024 the raw-feature score falls below chance (0.242), so the apparent cost there (0.656) mainly reflects a mis-oriented raw score rather than a property of the encoder. Replacing the curvature component changes AUROC by $-0.0003$, removing the evidential training term by $+0.0000$ ($p=0.997$), and adding the 1-NN channel gains $+0.0021$ on CSE2018. The trained encoder and the distance fusion therefore carry PCF's ranking performance; the evidential and curvature components contribute nothing measurable, and no claim is made for them.
+
+Independent integrity checks find no observation-identifier overlap between partitions. In CSE2018, 10,505 of 223,507 distinct feature vectors (4.7\%) carry conflicting family labels, and ToN-IoT contains 75 duplicate-feature collisions. Float32 scores have Spearman correlation at least 0.9996 with the reference scores and p99 relative error below 0.06\% for CICIDS2017 and 0.46\% for CSE2018. These checks support the reported split integrity and numerical consistency; they do not substitute for replication on new traffic.
+
+% Result figures are placed explicitly in the Results section; do not force
+% the next section onto a fresh page when usable space remains.
+
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{How the four RQs form one argument}
+The results support a reliability argument rather than a detector leaderboard. RQ1 establishes that alert certification has a measurable operating region: calibration size, target FDR, and unknown-attack prevalence determine whether the p-value resolution can support a non-trivial alert set, and they do so before any traffic is scored. RQ1 also separates two things that are easily conflated: six of the 16 cells earn a valid certificate, but only three of them produce a queue worth reading, because validity is set by calibration resolution while power is set by the detector's tail. RQ2 then asks a stronger question and shows that marginal validity across calibration draws is not enough for deployment; a single retained calibration sample requires a keepability correction whose power cost can be small (6.2\% at CSE2018, $q=0.20$) or prohibitive (55.6\% at $q=0.10$). RQ3 prevents a convenient but incorrect explanation of these results: choosing the detector with the best AUROC does not reliably enter the certified region, because certification depends on the extreme upper tail rather than on the average ranking, and no detector removes the calibration-resolution or exchangeability constraints. RQ4 closes the argument by demonstrating that a certificate valid under a random split must be withdrawn under the tested temporal shift, and that an audit can do so automatically at a measurable false-refusal cost.
+
+This sequence also explains the negative findings. The absence of a positive cell at $\pi=0.001$, the failure of e-BH to beat conformal BH in 64 comparisons, and the inconsistent tail/Mondrian gains are not implementation footnotes. They delimit the mechanism: detector tail separability is necessary for power, but calibration resolution and deployment validity determine whether an alert-level statement can be made.
+
+\subsection{Consequences for NIDS evaluation}
+Three reporting practices follow from the results. First, an evaluation that claims operational relevance should report alert-level error at a stated prevalence and calibration size, not only AUROC; Figure~\ref{fig:panel}(b) shows that the two agree only loosely, and not at all among the detectors a practitioner would shortlist. Second, when the data carry timestamps, a time-ordered split should be reported next to the random one: the random split understated the FDR of the same procedure seven-fold on CSE2018 and threefold on NF-BoT-IoT-v3, and although the direction reversed on a dataset with no usable power in either arm, an evaluation that never builds the time-ordered arm cannot know which case it is in. Third, a finite-sample guarantee should state which calibration draw it refers to, because marginal control failed on up to 36\% of draws. These practices extend the recommendations of Arp et al.\ and of TESSERACT \cite{arp2022dos,pendlebury2019tesseract} from detection metrics to the alert queue.
+
+\subsection{Relation to open-set NIDS and conformal novelty detection}
+Recent open-set NIDS methods improve unknown-class recognition using stronger representations, contrastive learning, energy functions, and open-world adaptation \cite{souza2025efc,wilkie2026closr,du2025ori,zhao2024foss,cevallos2025hero}. \PACT is complementary to that line of work because it consumes a detector score rather than replacing the detector. Its empirical contribution is therefore not a new AUROC maximum; the rotation interval $[-0.097,0.070]$ explicitly rules out that interpretation.
+
+The closest guarantee in the NIDS literature is ConFID, which states a finite-sample false-positive rate (FPR) for one-class zero-day detection \cite{farsimadan2026confid}. It is not a competitor on the same estimand, and the difference is quantitative rather than terminological. An FPR guarantee at level $\alpha$ bounds the probability that a known-class flow is alerted; in a window of $m=2{,}000$ flows at $\pi=10^{-2}$ it therefore permits about $\alpha\cdot1{,}980$ false alerts against at most 20 true ones, so the realised FDP is near $\alpha\cdot1{,}980/(\alpha\cdot1{,}980+\mathrm{TP})$. Holding FDP at $0.20$ with every unknown attack detected already requires $\alpha\le0.0025$, and the requirement tightens linearly as $\pi$ falls. A per-flow error rate chosen without reference to the base rate thus says nothing about the queue, which is the same argument that produces the barrier of Eq.~\eqref{eq:barrier}. Running the two side by side would compare a bound on $\Pr(\text{alert}\mid\text{known})$ with a bound on $\mathbb{E}[\FDP]$, so we report the estimand gap instead of a misleading head-to-head number.
+
+The statistical contribution is closest to conformal novelty detection and FDR control \cite{bates2023outliers,aos2024adaptive,bashari2023derandomized}, and in security to conformal drift rejection \cite{jordaney2017transcend,barbero2022transcending}, which decides per sample rather than bounding the false fraction of a selected set. The additional NIDS-specific elements are the prevalence-resolution screening rule, contamination diagnostic, training-conditional keepability experiment, and exchangeability refusal policy. Together they turn a testing procedure into an operator-visible contract. The contract remains conditional: when a gate fails, \PACT reports the unsupported assumption rather than transferring a random-split guarantee to temporal traffic.
+
+\subsection{Operational interpretation}
+For deployment, the certificate should accompany the alert queue and report target $q$, unknown-prevalence estimate, calibration size, certificate state, audit statistic, emitted-alert count, and the reason for degradation or refusal. Because a certified state bounds error but says nothing about yield, the record should be read together with the emitted-alert count: a certified queue that is empty is a statement that the detector cannot separate unknown attacks at the requested operating point, not a statement that the traffic is clean. The alternative interface, a fixed quota, carries none of this information: the top-0.1\% operator baseline exceeds the target on 40\% of CSE2018 streams and reaches FDP 0.497 at $\pi=10^{-3}$, with nothing to signal that it is wrong. The fail-closed state is therefore part of the interface, not an exception hidden from the operator. The refusal path needs one policy decision from the SOC, because the fixed fallback workload can emit more false alarms than the broken procedure it replaces (Section~\ref{sec:rq4}); its size should follow analyst capacity rather than the audit.
+
+The method can wrap an existing open-set classifier, one-class detector, or representation model. The per-flow cost remains in the underlying detector and score computation; the feasibility and validity checks operate once per capture or registered window. The main operational burden is the input the audit needs: a stream of verified known-class flows from the deployment period. A negative verification (``this flow is not an attack'') is cheaper per flow than family labelling, and Eq.~\eqref{eq:conditional} states how many such flows a requested target requires, which turns the question ``can we trust this queue?'' into a labelling budget. Production use would additionally require a policy for updating $\hat\pi$, refreshing calibration data after a refusal, and escalating repeated refusals to an analyst.
+
+\section{Limitations and threats to validity}
+\label{sec:limitations}
+\begin{itemize}
+  \item \textbf{External validity.} Public testbeds use staged attack order and heterogeneous labelling conventions. Results should be replicated on production or continuously collected traffic.
+  \item \textbf{Exchangeability.} The audit is a diagnostic gate: it cannot rule out a future shift that is not represented in the audit window. Its size is now measured rather than assumed (4.5\% against a nominal 5\% on an exchangeable null), and a permutation-calibrated threshold changes neither its size nor its behaviour under shift, so the refusals above $\alpha$ in the label-mix experiment are attributed to the benchmarks themselves. That attribution rests on public captures; on production traffic the split between calibration and scored traffic would have to be re-examined.
+  \item \textbf{Target estimand.} The certificate concerns discovery of attack families held out as unknown. A known attack placed in the unknown queue counts as a false discovery, so the result is neither a guarantee for all operational IDS errors nor a claim about known-attack classification. The finite-sample guarantee is per window; stream-level FDP over the union of windows is reported empirically.
+  \item \textbf{Oracle inputs.} Unknown-attack prevalence is controlled in the experiment and supplied to the feasibility test as $\hat\pi=\pi$. Section~\ref{sec:rq1} quantifies what a wrong estimate costs through Eq.~\eqref{eq:pihat}, but it does not evaluate an actual prevalence estimator, whose error would itself have to be bounded before the factors quoted there can be claimed in deployment. The 15/16 prediction accuracy of RQ1 also uses an oracle detector ceiling; the deployable test predicts 13 of 16 cells.
+  \item \textbf{Labels.} Conflicting family labels in CSE2018 and collisions in ToN-IoT may perturb detector and audit results.
+  \item \textbf{Yield is not certified.} The certificate bounds the false fraction of the emitted queue; it does not promise that the queue is non-empty, and three of the six certified cells emit essentially nothing. A companion power estimate would need unknown-family labels, which a deployment does not have.
+  \item \textbf{Scale of the positive evidence.} Over ten datasets, the usable part of the certified region consists of five cells on three datasets (CSE2018, CICIDS2017, InSDN), and the temporal comparison uses the four datasets whose captures carry timestamps, three seeds each. On one of those four the random-split optimism does not appear, and that dataset has no usable power in either arm. These results demonstrate that the region exists, that its boundary is predictable out of sample, and where it fails; they are not population estimates, and one of the three datasets reaches its power through resampled unknown flows.
+  \item \textbf{Protocol amendments.} Three amendments were made after first-pass results (Section~\ref{sec:experiments}). They are disclosed with their rationale, and the separability grouping is accompanied by a threshold sensitivity analysis.
+  \item \textbf{Baseline provenance.} The panel mixes published implementations, documented adaptations, and independent reimplementations. Provenance is reported, but the comparison is not a claim of identical engineering effort.
+  \item \textbf{Statistical power.} The number of deployment captures is small for some RQ4 cells. Aggregate rates are therefore reported with their per-dataset breakdown and should not be interpreted as precise population estimates.
+  \item \textbf{Scope of guarantee.} The certificate is conditional on known-only calibration, the registered stream construction, the $L$-alert cap, and the assumptions stated in Section~\ref{sec:problem}. Adaptive window selection, repeated score tuning on deployment feedback, and arbitrary analyst intervention are not covered.
+\end{itemize}
+
+\section{Conclusion}
+\label{sec:conclusion}
+We studied when an open-set NIDS can issue statistically trustworthy unknown-attack alerts. \PACT converts detector evidence to alert-stage conformal p-values on a disjoint calibration split, applies an FDR rule only within finite-resolution and training-conditional limits, and fails closed when the exchangeability audit rejects. The experiments show both a certified positive region and clear failure regions. The certified region is small: six of 16 headline cells are certified, none at $\pi=0.001$, and only three of the six emit alerts with non-trivial power. On six datasets held out of the design entirely, the same requirement predicts the state of every cell, no cell outside the certified region reaches usable power, and no certified cell contains a calibration draw above its target. At CSE2018 with $q=0.20$ and $\pi=0.01$, the certified stream FDR is 0.094 with a 6.2\% power price. AUROC is a weak guide to which detectors reach the region, and no guide at all among strong ones: ten of fourteen detector--dataset pairs with AUROC of at least 0.90 certify almost nothing. In the temporal-shift comparison at $q=0.10$, FDR of the same procedure rises from 0.033 to 0.586, and the audit refuses every time-ordered capture on all four datasets that carry timestamps while refusing none of the random ones; on an exchangeable null it fires at 4.5\% against a nominal 5\%, so the refusals it adds elsewhere are a property of the benchmarks rather than of the test. The eight-method, 11-rotation detector panel supports competitive ranking but not universal state-of-the-art performance. The resulting claim is deliberately conditional: training-conditional alerting is supported only for the measured operating region, registered alert cap, and exchangeability conditions, and withholding a certificate is part of reliable NIDS operation. NIDS evaluations should accordingly report alert-level error at a stated prevalence, under temporal order, and with the certificate state, before their alerts are called trustworthy.
+
+\section*{CRediT authorship contribution statement}
+
+\textbf{Anh Nguyen Thi Dieu:} Investigation, Data curation, Formal analysis, Validation, Writing -- original draft, Writing -- review \& editing.
+
+\textbf{An Vo Le Thien:} Conceptualization, Methodology, Software, Investigation, Data curation, Formal analysis, Validation, Visualization, Writing -- original draft, Writing -- review \& editing.
+
+\textbf{Hieu Le Ngoc:} Supervision, Project administration, Validation, Writing -- review \& editing.
+
+\section*{Declaration of competing interest}
+The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.
+
+\section*{Data and code availability}
+
+
+The ten datasets used in this study are publicly available and remain subject to the licences of their original providers; no raw traffic data are redistributed. The implementation, versioned protocol configuration and amendment log, derived score captures and evaluation records, and scripts used to reproduce all tables and figures are available at \url{https://github.com/occbuu/cyber-drift-3}. A versioned archival release with a persistent DOI will also be provided upon publication. An anonymised archive is available to reviewers upon request.
+
+All quantitative results reported in this paper are generated directly from the archived evaluation pipeline. One script regenerates all tables from the stored evaluation records, while a second independently verifies every numerical value reported in the manuscript against those records. At the time of submission, all 54 reported quantitative values pass this consistency check. The archive additionally records the software environment and package versions, GPU configuration, commit hash, wall-clock cost of each experimental stage, and a content hash for each data split, enabling each reported result to be traced to its corresponding experimental artefacts.
+
+\section*{Declaration of generative AI and AI-assisted technologies in the manuscript preparation process}
+% Name every tool used; the wording follows the Elsevier policy template.
+During the preparation of this work the authors used Claude (Anthropic) in order to assist with analysis scripts and language editing. After using this tool, the authors reviewed and edited the content as needed and take full responsibility for the content of the published article.
+
+\bibliographystyle{cas-model2-names}
+\bibliography{references,references_recent,references_added}
+
+\end{document}

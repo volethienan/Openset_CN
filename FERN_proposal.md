@@ -1,6 +1,11 @@
 # FERN: Factorized Evidence-Retracted Novelty
 *Đề xuất cơ chế mới trên nhánh `improve-ernp` (01/10/2026). Mọi chẩn đoán dưới đây chỉ dùng dữ liệu phát triển: seed 0–1. Seed 2–4 và CIC17 được giữ lại để kiểm tra cuối.*
 
+> **Cập nhật sau kiểm tra thử (mock) trên seed 0–1, ngày 01/10/2026: KHÔNG ĐẠT, chưa đưa lên server.**
+> - `exp/diagnose_coverage.py`: sau khi tính cả bằng chứng đã xác nhận, chỉ 5% báo động giả trên CIC18/CIDDS là "mới về giá trị biên". Vì vậy kênh biên của FERN gần như không có tác dụng ở hai dataset này.
+> - Trên ToN, khoảng 90% báo động giả rơi vào những ngày chưa thể có bằng chứng: ngày stream đầu tiên và thứ hai, và ngày 29/04 với một chế độ benign hoàn toàn mới. Mọi cơ chế học từ bằng chứng theo thứ tự nhân quả đều không sửa được những ngày này.
+> - Biến thể "rút lại có hình dạng theo bằng chứng" (`--retraction shaped`) cho kết quả trên ToN: F1 0,627 → 0,650, MCC 0,194 → 0,250. Nhưng F1 trên CIC18 giảm 0,904 → 0,893. Không đủ để thắng OWAD về MCC trên ToN (0,357) hay SSF về F1 trên CIDDS (0,989).
+
 ---
 
 ## 1. ERNP thua ở đâu, và vì sao (chẩn đoán có số liệu)

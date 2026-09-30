@@ -32,6 +32,7 @@ class ERNP:
         self.conf = None                       # trusted benign evidence E_t (retraction centres)
         self.eps = None
         self.clf = None
+        self.dsum, self.dn = None, 0            # evidence-shaped retraction: accumulated squared displacements
 
     # ---------------- novelty prior q_0 ----------------
     def sample_prior(self, P):
@@ -51,10 +52,26 @@ class ERNP:
     def retained(self, Q):
         if self.conf is None or not len(self.conf) or self.c["retraction"] == "none" or not len(Q):
             return np.ones(len(Q))
+        if self.c["retraction"] == "shaped":   # kernel stretched along the drift directions the evidence revealed
+            w = self.shape_w(); d = NearestNeighbors(n_neighbors=1).fit(self.conf * w).kneighbors(Q * w)[0][:, 0]
+            return 1.0 - np.exp(-d ** 2 / (2 * self.eps ** 2))
         d = NearestNeighbors(n_neighbors=1).fit(self.conf).kneighbors(Q)[0][:, 0]
         if self.c["retraction"] == "soft": return 1.0 - np.exp(-d ** 2 / (2 * self.eps ** 2))
         if self.c["retraction"] == "hard": return (d > self.eps).astype(float)
         raise ValueError(self.c["retraction"])
+
+    def shape_w(self):
+        """diagonal metric Sigma_t = eps^2 I + diag(E[delta^2]); returns per-feature scaling eps / sqrt(eps^2 + v_j)"""
+        if not self.dn: return np.ones(self.conf.shape[1], np.float32)
+        v = self.dsum / self.dn; return (self.eps / np.sqrt(self.eps ** 2 + v)).astype(np.float32)
+
+    def observe(self, G, P):
+        """displacement of newly confirmed benign flows G from the trusted benign evidence P they were confirmed against"""
+        if self.c["retraction"] != "shaped" or not len(G): return
+        G = G[self.rng.choice(len(G), min(2000, len(G)), replace=False)]
+        nn = P[NearestNeighbors(n_neighbors=1).fit(P).kneighbors(G)[1][:, 0]]
+        d2 = ((G - nn) ** 2).astype(np.float64)
+        self.dsum = d2.sum(0) if self.dsum is None else self.dsum + d2.sum(0); self.dn += len(G)
 
     def fit(self, P, A):
         Q = self.sample_prior(P); n_gen = max(len(Q), 1)
@@ -113,6 +130,7 @@ def run(ds, **cfg):
             if c["label_noise"] > 0 and nrng.random() < c["label_noise"]: is_ben = not is_ben   # analyst error
             (addP if is_ben else addA).append(grp)
         if addP:
+            m.observe(np.vstack(addP), P[-2 * c["n_pos_max"]:])
             P = np.vstack([P] + addP); m.conf = np.vstack(([m.conf] if m.conf is not None else []) + addP)
         if addA: A = np.vstack([A] + addA)
         t0 = time.time(); m.fit(P[-2 * c["n_pos_max"]:], A[-4 * c["n_known_max"]:]); t_fit.append(time.time() - t0)

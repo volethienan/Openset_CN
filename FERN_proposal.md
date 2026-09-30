@@ -6,6 +6,11 @@
 > - Trên ToN, khoảng 90% báo động giả rơi vào những ngày chưa thể có bằng chứng: ngày stream đầu tiên và thứ hai, và ngày 29/04 với một chế độ benign hoàn toàn mới. Mọi cơ chế học từ bằng chứng theo thứ tự nhân quả đều không sửa được những ngày này.
 > - Biến thể "rút lại có hình dạng theo bằng chứng" (`--retraction shaped`) cho kết quả trên ToN: F1 0,627 → 0,650, MCC 0,194 → 0,250. Nhưng F1 trên CIC18 giảm 0,904 → 0,893. Không đủ để thắng OWAD về MCC trên ToN (0,357) hay SSF về F1 trên CIDDS (0,989).
 
+> **Hướng B (học trước trôi dạt từ anchor), cũng KHÔNG ĐẠT.**
+> - `exp/diagnose_anchor_drift.py`: anchor của ToN có trôi dạt (FPR nửa sau 9,3%), nhưng các flow trôi dạt đó phủ được 0% báo động giả của hai ngày stream đầu.
+> - `exp/diagnose_drift_directions.py`: hướng trôi dạt trong anchor ToN không khớp với hướng trôi dạt trong stream (cos 0,38, không trùng đặc trưng nào trong top 5). Hướng trôi dạt anchor lại giống hướng tấn công zero-day hơn (cos 0,60). Học hình dạng trôi dạt từ anchor vì thế sẽ rút lại prior theo hướng tấn công, tức là có hại.
+> - Kết luận: báo động giả những ngày đầu trên ToN không suy ra được từ bất kỳ dữ liệu có nhãn nào có sẵn tại thời điểm đó, cả về vị trí lẫn hướng. Cách giảm duy nhất là có nhãn sớm hơn trong ngày (cadence theo giờ: F1 0,729).
+
 ---
 
 ## 1. ERNP thua ở đâu, và vì sao (chẩn đoán có số liệu)

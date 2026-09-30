@@ -1,0 +1,15 @@
+\begin{tabular}{lccccc}
+\toprule
+Variant ($\Delta$F1 vs. ERNP) & CIDDS-001 & NF-ToN-IoT-v3 & CIC-IDS2017$^\dagger$ & CSE-CIC-IDS2018 & Mean\\
+\midrule
+No novelty prior (GBM+AL) & -0.195 & +0.054 & -0.284 & -0.730 & -0.289\\
+Uniform prior (Sipple) & -0.209 & +0.084 & -0.262 & -0.757 & -0.286\\
+Product-of-marginals prior & -0.105 & +0.068 & -0.267 & -0.747 & -0.263\\
+No retraction & -0.006 & +0.035 & -0.004 & -0.093 & -0.017\\
+Hard retraction & -0.004 & +0.014 & -0.000 & -0.013 & -0.001\\
+Representative-only evidence & -0.007 & -0.121 & +0.002 & -0.009 & -0.034\\
+Per-flow features only & -0.003 & -0.285 & -0.033 & -0.025 & -0.086\\
+No online labels & -0.028 & -0.345 & +0.000 & -0.098 & -0.118\\
+Self-evidence (counterfactual) & -0.008 & -0.502 & +0.002 & -0.027 & -0.134\\
+\bottomrule
+\end{tabular}

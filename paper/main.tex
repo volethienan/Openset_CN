@@ -1,0 +1,432 @@
+\documentclass[preprint,12pt]{elsarticle}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs,multirow,graphicx}
+\usepackage{algorithm,algpseudocode}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xcolor}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathcal{E}}
+\journal{Computer Networks}
+\input{tables/macros.tex}
+
+\begin{document}
+\begin{frontmatter}
+
+\title{Adapting Network Intrusion Detectors Only Through Trusted Evidence:\\ Evidence-Retracted Novelty Priors for Label-Efficient Zero-Day Detection}
+
+\author[aff1]{Vo Le Thien An\corref{cor1}}
+\ead{volethienan5214@gmail.com}
+\cortext[cor1]{Corresponding author.}
+\affiliation[aff1]{organization={[Affiliation to be completed]},
+            city={[City]}, country={[Country]}}
+
+\begin{abstract}
+Network intrusion detection systems (NIDS) deployed in production must detect attack families never seen during training, tolerate benign traffic drift, and adapt with a small analyst labelling budget. Detectors that adapt by absorbing the traffic they accept are exposed to slow poisoning, and continual learners that resist it typically depend on hundreds of labels per day. We propose ERNP (Evidence-Retracted Novelty Prior), a detector whose only adaptation channel is the retraction of a structured novelty prior where analyst-confirmed benign evidence exists. ERNP estimates a density ratio between benign evidence and the union of attack evidence and a prior obtained by partially swapping features between benign flows. Unlabelled traffic never enters the model. We prove that retraction is local and bounded by analyst errors, and that detection far from confirmed evidence is preserved up to a computable factor. On four temporally split benchmarks (CIDDS-001, NF-ToN-IoT-v3, CIC-IDS2017, CSE-CIC-IDS2018; five seeds) under a causal protocol, ERNP attains the best mean rank against five recent detectors (SSF, OWAD, CADE, Trident, MemStream) with a mean F1 of 0.867 versus 0.671 for the strongest baseline. With 25 labels per day it outperforms SSF using 200--400 labels per day, and a counterfactual that feeds ERNP its own verdicts instead of analyst evidence collapses from 0.74 to 0.07 zero-day payload recall under controlled poisoning. We also report where ERNP does not win: it is on par with CADE on unsampled CIC-IDS2017 and degrades when the analyst mislabels 10\% or more of the queried alert groups.
+\end{abstract}
+
+\begin{keyword}
+Network intrusion detection \sep zero-day attacks \sep concept drift \sep poisoning \sep active learning \sep density-ratio estimation
+\end{keyword}
+\end{frontmatter}
+
+%======================================================================
+\section{Introduction}\label{sec:intro}
+%======================================================================
+Machine-learning NIDS are trained on the traffic of a past period, but operate on a stream in which new attack families appear, benign behaviour drifts, and security analysts can inspect only a small fraction of the alerts~\cite{sommer2010outside,arp2022dos}. Three requirements follow. A deployed detector must (i) raise alerts on attack families absent from its training data (\emph{zero-day} detection), (ii) adapt to benign drift so that the false-positive rate (FPR) stays within the analysts' capacity, and (iii) do so with a small daily labelling budget.
+
+Adaptation is where these requirements collide. Streaming detectors such as MemStream~\cite{bhatia2022memstream} and Kitsune~\cite{mirsky2018kitsune} update their model of normality with the traffic they accept. This handles benign drift without labels, but it also lets an adversary move the model: traffic that drifts slowly from benign towards malicious is accepted at every step and eventually becomes normal (``frog boiling''). The vulnerability has been analysed for centroid and PCA-based detectors~\cite{kloft2012security,rubinstein2009antidote}. Label-driven continual learners such as SSF~\cite{zhang2025ssf} and OWAD~\cite{han2023owad} avoid absorbing unlabelled traffic, but they re-train on hundreds of analyst labels per adaptation window. Drift detectors such as CADE~\cite{yang2021cade} and open-set classifiers such as Trident~\cite{zhao2024trident} rank novel samples well, but they do not adapt to benign drift, which shows up as a high FPR at a fixed operating point (Section~\ref{sec:rq1}).
+
+This paper is built on a simple observation. A detector that separates benign traffic from an explicit model of \emph{novelty} can adapt in the opposite direction to the usual one. Instead of \emph{enlarging} its model of normality with accepted traffic, it can \emph{shrink} its model of novelty, and only where an analyst has confirmed that the traffic is benign. We call the resulting detector ERNP (Evidence-Retracted Novelty Prior). ERNP trains a classifier to separate benign evidence from attack evidence and from a structured novelty prior, i.e., synthetic flows obtained by swapping a random subset of features between benign flows. Each day, alerts are grouped and the analyst labels one representative per group. Groups confirmed benign retract the prior mass in their neighbourhood, and groups confirmed malicious are added to the attack evidence. The unlabelled stream never enters the model.
+
+\paragraph{Contributions}
+\begin{enumerate}
+\item \textbf{Adaptation through trusted evidence only.} We formulate NIDS adaptation as the retraction of a novelty prior by analyst-confirmed benign evidence (Section~\ref{sec:method}). This makes the detector invariant to the volume and duration of unlabelled traffic. We prove that retraction is local and that its corruption is bounded by the number of analyst errors (Proposition~\ref{prop:p1}), that local false alarms vanish where benign evidence accumulates (Proposition~\ref{prop:p2}), and that detection far from benign evidence is preserved up to a computable factor (Proposition~\ref{prop:p3}).
+\item \textbf{A structured novelty prior} that keeps benign marginals and breaks cross-feature dependencies. It improves F1 by 0.26--0.29 on average over the uniform negative sampling of Sipple~\cite{sipple2020negative} and over a product-of-marginals prior (Section~\ref{sec:rq4}).
+\item \textbf{A fidelity-checked comparison} against five recent detectors (SSF, OWAD, CADE, Trident, MemStream) on four temporally split benchmarks, under a causal protocol at a common 1\% FPR operating point. The official implementations reproduce the published results of CADE and OWAD on the authors' own data. We add each baseline's best configuration, classical references, a GBM+active-learning ablation, an IP-novelty leakage check, and an unsampled-scale check (Sections~\ref{sec:setup}--\ref{sec:results}).
+\item \textbf{Evidence for label efficiency and robustness.} ERNP with 25 labels per day outperforms SSF with 200--400 labels per day (Section~\ref{sec:rq3}). A counterfactual that replaces analyst evidence by ERNP's own verdicts isolates the mechanism: under controlled poisoning, zero-day payload recall drops from 0.74 to 0.07 (Section~\ref{sec:rq2}). We also report the settings where ERNP does not win (Section~\ref{sec:discussion}).
+\end{enumerate}
+Code, data streams, per-run outputs and the scripts that generate every table are publicly released (Section~\ref{sec:availability}).
+
+%======================================================================
+\section{Related work}\label{sec:related}
+%======================================================================
+\paragraph{Zero-day and open-world NIDS}
+Sommer and Paxson~\cite{sommer2010outside} identified the closed-world assumption as a central obstacle for anomaly-based NIDS. Recent work has followed several directions:
+\begin{itemize}
+\item CADE~\cite{yang2021cade} learns a contrastive latent space and flags samples far from every known class by a median-absolute-deviation rule.
+\item Trident~\cite{zhao2024trident} trains one autoencoder per known class and uses extreme-value thresholds to reject unknown traffic.
+\item FOSS~\cite{zhao2024foss} targets fine-grained unknown classes under variable legitimate traffic. Its public repository does not contain the core implementation, so we could not include it.
+\end{itemize}
+These methods are strong rankers of novelty but do not adapt their notion of normality on the stream.
+
+\paragraph{Adaptation under drift}
+The adaptive methods differ in what they learn from:
+\begin{itemize}
+\item MemStream~\cite{bhatia2022memstream} keeps a memory of accepted samples.
+\item Kitsune~\cite{mirsky2018kitsune} trains an ensemble of autoencoders online on the traffic it sees.
+\item OWAD~\cite{han2023owad} detects normality shift with a calibrated permutation test, explains it, and fine-tunes the detector on a labelled subset.
+\item SSF~\cite{zhang2025ssf} performs continual learning with strategic selection of new samples and forgetting of old ones, with a per-window label budget and pseudo-labels.
+\end{itemize}
+Temporal evaluation is essential to assess such methods~\cite{pendlebury2019tesseract,arp2022dos}. We therefore adopt a temporal zero-day protocol and a causal predict-then-learn order.
+
+\paragraph{Poisoning of self-updating detectors}
+Online detectors that learn from the data they accept can be steered by an adversary who injects traffic that is accepted at each step. Kloft and Laskov~\cite{kloft2012security} analysed this ``boiling-frog'' scenario for online centroid detectors. Rubinstein et al.~\cite{rubinstein2009antidote} demonstrated it for PCA-based traffic anomaly detection. Biggio et al.~\cite{biggio2012poisoning} studied poisoning of supervised learners. ERNP sidesteps this class of attacks structurally: its model changes only through analyst-confirmed evidence.
+
+\paragraph{Anomaly detection as classification against a reference distribution}
+Steinwart et al.~\cite{steinwart2005classification} cast anomaly detection as classification between data and a reference measure. Hempstalk et al.~\cite{hempstalk2008oneclass} combined a reference density with a class-probability estimator. Noise-contrastive estimation~\cite{gutmann2010nce} and the density-ratio literature~\cite{sugiyama2012density} show that a probabilistic classifier between data and noise recovers their density ratio. Sipple~\cite{sipple2020negative} used uniform negative sampling with a classifier to detect device failures. ERNP builds on this principle in two ways. Its reference (novelty) distribution is \emph{structured}, so the classifier focuses on violations of cross-feature dependencies rather than on the empty corners of the feature space. The reference is also \emph{not static}: it is retracted over time by trusted evidence. Neither the uniform prior nor a product of marginals provides the first property, and the ablation in Section~\ref{sec:rq4} measures the difference.
+
+\paragraph{Learning from analyst feedback}
+Active learning~\cite{settles2009active} and active anomaly discovery (AAD)~\cite{das2016aad,das2020expert} incorporate expert labels into an anomaly detector. AAD re-weights the components of an ensemble detector on a static dataset so that expert-confirmed anomalies rank higher. ERNP differs in the object that is updated and in the setting. It updates the \emph{novelty distribution} against which normality is contrasted, and it does so on a drifting stream. Its update rule can only \emph{remove} prior mass around confirmed benign traffic, which is what yields the non-absorption guarantee of Proposition~\ref{prop:p1}. The closest feedback-driven alternative that shares our classifier, features and labelling budget (GBM trained on benign and attack evidence with the same alert-group labelling but no novelty prior, ``GBM+AL'') is reported as a baseline in Table~\ref{tab:rq1}.
+
+\begin{table}[t]
+\centering\small
+\caption{Positioning. \checkmark: property holds by design; $\circ$: partially; --: no.}\label{tab:positioning}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+Method & Zero-day & Adapts to & Unlabelled traffic & Label use\\
+ & detection & benign drift & cannot move model & \\
+\midrule
+MemStream, Kitsune & \checkmark & \checkmark & -- & none\\
+CADE, Trident & \checkmark & -- & \checkmark & training only\\
+OWAD & \checkmark & \checkmark & $\circ$ (fine-tunes on shift) & per shift\\
+SSF & $\circ$ (supervised) & \checkmark & $\circ$ (pseudo-labels) & per window\\
+AAD & \checkmark & -- (static data) & \checkmark & per query\\
+Negative sampling~\cite{sipple2020negative} & \checkmark & -- & \checkmark & none\\
+\textbf{ERNP} & \checkmark & \checkmark & \checkmark & per alert group\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+%======================================================================
+\section{Problem formulation and threat model}\label{sec:problem}
+%======================================================================
+A stream of flow records $x\in\R^d$ arrives in periods $t=0,1,\dots$ (days, unless stated otherwise). The first period(s) form the \emph{anchor}: benign flows and the attack families observed in it are labelled, and we call these families \emph{known}. Every attack family whose first occurrence is after the anchor is \emph{zero-day}. In each subsequent period the detector must decide on every flow \emph{before} it receives any label for that period (causal protocol). After the period, an analyst labels at most $B$ items chosen by the detector.
+
+\paragraph{Threat model}
+The adversary controls the content, volume and timing of traffic from hosts it has compromised. It may inject arbitrarily many unlabelled flows over arbitrarily long periods, including traffic that drifts slowly from a host's normal behaviour towards an attack payload. It does not control the analyst's labels. We relax this last assumption in Section~\ref{sec:noise} and in Proposition~\ref{prop:p1}(iii), where analyst errors are allowed.
+
+%======================================================================
+\section{ERNP: Evidence-Retracted Novelty Prior}\label{sec:method}
+%======================================================================
+\subsection{Density-ratio detector}
+Let $P_t$ be the benign evidence at period $t$: benign anchor flows plus flows of alert groups the analyst confirmed benign. Let $A_t$ be the attack evidence: known-attack anchor flows plus flows of groups confirmed malicious. Let $q_t$ be the novelty prior (Section~\ref{sec:prior}). ERNP fits a probabilistic classifier $g_t$ with weighted log-loss
+\begin{equation}
+\min_g\; \tfrac12\,\mathbb{E}_{P_t}[\ell(g(x),0)] + \tfrac12\,\mathbb{E}_{A_t}[\ell(g(x),1)] + \tfrac12\,\mathbb{E}_{q_0}\!\left[r_t(x)\,\ell(g(x),1)\right],\label{eq:loss}
+\end{equation}
+where $r_t(x)\in[0,1]$ is the fraction of prior mass retained at $x$ (Section~\ref{sec:retraction}) and $q_t=q_0 r_t$. Retraction \emph{removes} mass and never renormalises it.
+
+The population minimiser is the posterior $\eta_t(x)=\frac{a_t(x)+q_0(x)r_t(x)}{b_t(x)+a_t(x)+q_0(x)r_t(x)}$, where $b_t,a_t$ are the densities of $P_t,A_t$. The alert score is its logit:
+\begin{equation}
+s_t(x)=\log\frac{a_t(x)+q_0(x)\,r_t(x)}{b_t(x)},\qquad \text{alert iff } s_t(x)>\tau,\label{eq:score}
+\end{equation}
+i.e., a log density ratio between ``attack or novel'' and ``benign''. This is the noise-contrastive view of anomaly detection~\cite{steinwart2005classification,gutmann2010nce}. We use histogram gradient-boosted trees~\cite{friedman2001gbm,pedregosa2011sklearn} (300 iterations, learning rate 0.1). The threshold $\tau$ is fixed at 1\% FPR on a held-out part of the anchor benign flows and is never re-tuned.
+
+\subsection{Structured novelty prior}\label{sec:prior}
+A uniform reference in a box around the data~\cite{sipple2020negative} puts most of its mass far from any traffic, where no attack lives either. We instead build $q_0$ from the benign evidence itself. For a benign flow $x$ and a donor benign flow $x'$ drawn uniformly, each feature $j$ is replaced by $x'_j$ independently with probability $\rho$:
+\begin{equation}
+\tilde x_j = \begin{cases} x'_j & \text{w.p. } \rho\\ x_j & \text{otherwise.}\end{cases}
+\end{equation}
+The prior preserves every benign marginal but breaks the joint structure of a random subset of features. Examples are a port bucket of one service combined with the byte count and fan-out of another, or a context count incompatible with the flow's own size. Attack traffic typically lives in exactly such inconsistent combinations. We use $\rho=0.3$ and $|q_0|=|P_0|$ samples. Section~\ref{sec:rq4} compares against the uniform prior and a full product of marginals ($\rho\to$ independent donors for all features).
+
+\subsection{Evidence-gated retraction}\label{sec:retraction}
+Let $\E_t$ be the set of flows the analyst has confirmed benign up to period $t$ (the flows of confirmed benign alert groups). The retained prior fraction is
+\begin{equation}
+r_t(x) = 1-\exp\!\left(-\frac{d(x,\E_t)^2}{2\epsilon^2}\right),\qquad d(x,\E_t)=\min_{e\in\E_t}\|x-e\|,\label{eq:retain}
+\end{equation}
+with $r_t\equiv1$ while $\E_t=\emptyset$. The bandwidth $\epsilon$ is the 90th percentile of nearest-neighbour distances among benign reference flows, computed from data and not tuned. Because $\E_t$ only grows, $r_t$ is non-increasing in $t$ at every $x$.
+
+\subsection{Operating procedure}
+Algorithm~\ref{alg:ernp} summarises one period. Alerts are grouped into at most $B$ clusters by $k$-means in feature space, and the analyst labels the representative closest to each centroid. The label applies to the whole group, following the alert-grouping practice of security operations. Section~\ref{sec:rq1} and Section~\ref{sec:noise} report the stricter variant in which only the representative is used. The classifier is refitted after each period on sliding windows of the most recent evidence (at most 80k benign and 40k attack flows).
+
+\begin{algorithm}[t]
+\caption{ERNP, one period $t$}\label{alg:ernp}
+\begin{algorithmic}[1]
+\Require classifier $g_t$, threshold $\tau$, evidence $P_t,A_t,\E_t$, prior sample $Q\sim q_0$, budget $B$
+\State score each flow of period $t$ with $s_t$; raise alerts $\{x: s_t(x)>\tau\}$ \Comment{causal: decide before labels}
+\State cluster the alerts into $k=\min(B,\#\text{alerts})$ groups; query the representative of each group
+\For{each group $G$ with analyst label $y$}
+  \If{$y=$ benign} $P_{t+1}\gets P_t\cup G$;\; $\E_{t+1}\gets\E_t\cup G$
+  \Else\ $A_{t+1}\gets A_t\cup G$
+  \EndIf
+\EndFor
+\State weight each $\tilde x\in Q$ by $r_{t+1}(\tilde x)$ (Eq.~\ref{eq:retain}); refit $g_{t+1}$ on Eq.~\eqref{eq:loss}; keep $\tau$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Properties}\label{sec:properties}
+We state the properties for the population detector of Eq.~\eqref{eq:score}. The finite-sample classifier approximates it. Proofs are in Appendix~\ref{app:proofs}.
+
+\begin{proposition}[Adaptation only through trusted evidence]\label{prop:p1}
+Let $U$ be any sequence of unlabelled flows, of any volume and duration.
+\begin{enumerate}
+\item[(i)] The detector $s_t$ depends on the stream only through $(P_t,A_t,\E_t)$. If no label is issued, $s_t=s_0$ for all $t$, whatever $U$ is.
+\item[(ii)] For $\delta\in(0,1)$, the region where more than a fraction $\delta$ of prior mass has been retracted is contained in the union of balls $\bigcup_{e\in\E_t}\mathcal B\big(e,\,\epsilon\sqrt{2\ln(1/\delta)}\big)$.
+\item[(iii)] Suppose the analyst confirms as benign $m$ groups that contain attack flows, each of diameter at most $\Delta$. Then the set of points whose retention is reduced by more than $\delta$ \emph{because of these errors} is contained in $m$ balls of radius $\Delta+\epsilon\sqrt{2\ln(1/\delta)}$.
+\end{enumerate}
+\end{proposition}
+
+Part (i) is the structural difference from self-updating detectors. For those, the training set at $t+1$ contains the flows accepted at $t$, and an adversary can therefore move the acceptance region with unlabelled traffic alone~\cite{kloft2012security}. Parts (ii) and (iii) quantify the price: every unit of adaptation is tied to a labelled group, and every analyst error has a local footprint.
+
+\begin{proposition}[Local convergence]\label{prop:p2}
+For every $x$,
+\begin{equation}
+s_t(x)\le \log\!\Big(a_t(x)+q_0(x)\,\frac{d(x,\E_t)^2}{2\epsilon^2}\Big)-\log b_t(x).
+\end{equation}
+Hence, if benign evidence accumulates at $x$ ($d(x,\E_t)\to0$) and $a_t(x)<e^{\tau}b_t(x)$, then $x$ is eventually accepted.
+\end{proposition}
+
+\begin{proposition}[Zero-day preservation]\label{prop:p3}
+Let $z$ satisfy $d(z,\E_t)\ge c\,\epsilon$ for some $c>0$, and assume $b_t(z)\le b_0(z)$ (benign evidence is added elsewhere). Then
+\begin{equation}
+s_t(z)\;\ge\;\log\frac{q_0(z)}{b_0(z)}+\log\!\big(1-e^{-c^2/2}\big).
+\end{equation}
+In particular, a flow that the initial prior ranks with margin $\log\frac{q_0(z)}{b_0(z)}>\tau-\log(1-e^{-c^2/2})$ remains detected at every $t$. The additional margin is 0.145 nats for $c=2$ and 0.011 nats for $c=3$.
+\end{proposition}
+
+\subsection{Complexity}
+Scoring is one pass of the boosted trees. The prior weights require one nearest-neighbour query of the prior sample against $\E_t$ per refit. A refit costs a few seconds to one minute on a 12-core CPU (Table~\ref{tab:scale}). Inference throughput on a fixed batch of $10^5$ flows is 112k--304k flows/s on the same CPU. No GPU is required.
+
+%======================================================================
+\section{Experimental setup}\label{sec:setup}
+%======================================================================
+\subsection{Research questions}
+\begin{description}
+\item[RQ1] Under a causal protocol with benign drift and equal label budgets, does ERNP detect zero-day attacks better than five recent detectors?
+\item[RQ2] When an adversary targets the adaptation process by slow poisoning, is ERNP more robust than these detectors?
+\item[RQ3] How label-efficient is ERNP compared with label-using methods?
+\item[RQ4] Which components produce ERNP's performance, and do Propositions~\ref{prop:p1}--\ref{prop:p3} hold on real data?
+\item[RQ5] How sensitive is ERNP to its hyper-parameters, and what does it cost to deploy?
+\end{description}
+
+\subsection{Datasets and temporal protocol}
+Table~\ref{tab:datasets} summarises the four datasets:
+\begin{itemize}
+\item CIDDS-001~\cite{ring2017cidds}: internal OpenStack traffic, four weeks;
+\item NF-ToN-IoT-v3~\cite{moustafa2021toniot,luay2025netflowv3}: IoT testbed, NetFlow v3 features;
+\item the corrected CIC-IDS2017~\cite{sharafaldin2018cicids,engelen2021troubleshooting} and CSE-CIC-IDS2018~\cite{liu2022error}, with ``Attempted'' flows relabelled as benign as recommended by the maintainers.
+\end{itemize}
+
+The anchor is the first two days (CIDDS), the first day (ToN), Monday--Wednesday (CIC-IDS2017) and 14--16 February (CSE-CIC-IDS2018). Each seed draws a different uniform sample of the original data (300k flows; 400k for CSE-CIC-IDS2018), keeping at least 600 flows of every rare family. Features are the flow statistics of each dataset plus ten temporal-context features computed on the \emph{full} data before sampling: counts and bytes per source, destination and pair in 10\,s and 120\,s windows, and fan-out. IP addresses are never used as features.
+
+\textbf{CIC-IDS2017 is a held-out dataset:} it was not evaluated at any point during the design of ERNP or the choice of its hyper-parameters, which used the other three datasets.
+
+\begin{table}[t]
+\centering\small
+\caption{Datasets (seed-0 streams). Known families occur in the anchor; zero-day families first occur afterwards. $^\dagger$Held out during method development.}\label{tab:datasets}
+\resizebox{\linewidth}{!}{\input{tables/datasets.tex}}
+\end{table}
+
+\subsection{Baselines and fidelity}
+All baselines run their official code through thin wrappers, share our features, anchor and streams, and use a budget of $B=200$ labels per day where they use labels:
+\begin{itemize}
+\item \textbf{SSF}~\cite{zhang2025ssf}: the authors' hyper-parameters for UNSW-NB15, except the number of per-window epochs, which we set to 20 (the authors' NSL-KDD value) for runtime. We also run it with 180 epochs and with its native 20,000-flow windows (Table~\ref{tab:sotabest}).
+\item \textbf{OWAD}~\cite{han2023owad}: autoencoder with calibrator and shift explanation and adaptation.
+\item \textbf{CADE}~\cite{yang2021cade}: a faithful PyTorch port of the TensorFlow~1 code.
+\item \textbf{Trident}~\cite{zhao2024trident}: per-class autoencoders with EVT thresholds.
+\item \textbf{MemStream}~\cite{bhatia2022memstream}: official class with memory length 2048.
+\end{itemize}
+
+\emph{Fidelity checks.} On the IDS2018 split shipped with CADE, our port reproduces Table~3 of~\cite{yang2021cade}, with precision/recall/F1 of 0.989/0.934/0.958 versus 0.98/0.93/0.96. Re-running OWAD's NIDS demo (Kyoto-2006) through our wrapper gives AUC 0.947/0.807/0.815 versus 0.947/0.807/0.813 in the authors' notebook.
+
+We further report:
+\begin{itemize}
+\item \textbf{GBM+AL:} ERNP without the novelty prior, i.e., the same classifier, features and alert-group labelling trained on benign versus attack evidence;
+\item \textbf{classical references:} $k$NN distance, Isolation Forest~\cite{liu2008iforest}, and an autoencoder;
+\item \textbf{new-IP:} a leakage check that alerts on every flow whose source address was not seen in the anchor.
+\end{itemize}
+The new-IP check obtains F1 = 0 on CIDDS-001 and CIC-IDS2017, so our results there cannot come from address novelty.
+
+\subsection{Metrics and statistics}
+We report F1, MCC and FPR at each method's own decision rule, and \emph{zero-day recall at 1\% FPR}. The latter is measured at a common operating point: the threshold is each method's 99th score percentile on the stream's benign flows, which makes methods with built-in decision rules (SSF's $p>0.5$, Trident's EVT) comparable. MCC is reported because F1 rewards alerting on everything when attacks are frequent: an alert-all detector reaches F1 $\approx 0.70$ on ToN, where 54\% of flows are attacks.
+
+Seeds are sub-samples of the same dataset, not independent datasets. We therefore report per-dataset mean differences with 95\% bootstrap confidence intervals over seeds~\cite{efron1993bootstrap} and a Friedman test over the four datasets~\cite{demsar2006statistical}, rather than pooling dataset$\times$seed pairs.
+
+%======================================================================
+\section{Results}\label{sec:results}
+%======================================================================
+\subsection{RQ1: zero-day detection}\label{sec:rq1}
+Table~\ref{tab:rq1} shows that ERNP has the best mean F1 (0.867), MCC (0.753) and zero-day recall at 1\% FPR (0.677). Among the five detectors, the strongest averages are 0.671 F1 and 0.563 MCC (SSF) and 0.625 zero-day recall (CADE); the $k$NN reference reaches 0.807 F1 and 0.603 MCC. Table~\ref{tab:effects} gives the per-dataset differences: ERNP is better than the baseline, with a confidence interval excluding zero, in 18 of 20 dataset--baseline pairs. It is worse than SSF on CIDDS-001 ($-0.009$) and worse than Trident on ToN ($-0.088$, where Trident alerts on 99.9\% of flows and has MCC $\approx0$). ERNP has the best mean rank (1.50). With only four datasets, the Friedman test is not significant (Table~\ref{tab:effects} caption), and we do not claim uniform superiority.
+
+On the held-out CIC-IDS2017, ERNP attains 0.970 F1 and 0.968 zero-day recall at 1\% FPR, against 0.932 and 0.847 for CADE, the next best of the five. The $k$NN reference is slightly higher in F1 (0.980) but detects fewer zero-day flows at 1\% FPR (Table~\ref{tab:rq1}).
+
+\begin{table}[t]
+\centering\small
+\caption{RQ1: mean$\pm$std over five seeds, causal protocol, $B=200$. Bold: best per column within each metric. GBM+AL: same classifier, features and alert-group labelling without the novelty prior.}\label{tab:rq1}
+\resizebox{\linewidth}{!}{\input{tables/rq1_main.tex}}
+\end{table}
+
+\begin{table}[t]
+\centering\small
+\caption{RQ1: F1 difference ERNP $-$ baseline per dataset, mean over seeds [95\% bootstrap CI]. Bold: CI above zero; underlined: CI below zero. Friedman test over the four datasets (six methods): $p=\friedmanp$.}\label{tab:effects}
+\resizebox{\linewidth}{!}{\input{tables/rq1_effects.tex}}
+\end{table}
+
+\paragraph{Why strong detectors fail at the operating point}
+CADE, Trident and SSF rank anomalies well: their AUROC on CIDDS-001 and the CIC datasets lies between 0.96 and 0.997. They fail at a fixed low FPR under drift. CADE reaches 7--21\% FPR and Trident 15--28\% on the CIC datasets, because benign drift moves flows away from the training centroids. Causal SSF misses zero-day families on CIC-IDS2017 (recall 0.31), because its classifier is supervised on known families. OWAD's autoencoder has AUROC 0.66--0.68 on the CIC datasets and detects almost nothing at 1\% FPR. ERNP's prior makes zero-day flows score high by construction, and retraction absorbs benign drift only where it has been confirmed.
+
+\paragraph{Each baseline at its best configuration}
+To rule out an unfavourable configuration of the baselines, Table~\ref{tab:sotabest} takes, for every method, the best mean F1 over all configurations we ran. These include SSF with the authors' 180 epochs, SSF with its native 20k-flow windows, SSF and OWAD with 4-hour and 1-hour update periods (same labels per day), and MemStream with frozen normalisation. ERNP remains first on average (0.907 vs.\ 0.775 for SSF and 0.807 for $k$NN), but not on every dataset.
+
+\begin{table}[t]
+\centering\small
+\caption{Best configuration of each method (mean F1). SSF: epochs 20/180, native windows, 4\,h/1\,h updates; OWAD: 24/4/1\,h updates; MemStream: original/frozen normalisation; ERNP: 24/4/1\,h updates.}\label{tab:sotabest}
+\resizebox{\linewidth}{!}{\input{tables/sota_best.tex}}
+\end{table}
+
+\paragraph{Scale}
+The main streams are samples of 1--14\% of the original data. On the full CIC-IDS2017 (2.1M flows, three seeds; Table~\ref{tab:scale}), all detectors change. SSF improves markedly (0.472 $\rightarrow$ 0.749 F1), ERNP and CADE are on par (0.940 vs.\ 0.959 F1; 0.859 vs.\ 0.789 zero-day recall at 1\% FPR), and the remaining baselines stay below 0.87. Sampling therefore did not create ERNP's advantage over most baselines. It did, however, understate the strength of CADE and SSF, a limitation we discuss in Section~\ref{sec:threats}.
+
+\begin{table}[t]
+\centering\small
+\caption{Unsampled CIC-IDS2017 (left) and cost on the sampled streams measured one job at a time on a 12-core CPU with an RTX~3050 GPU (right; mean of CIDDS-001, ToN, CSE-CIC-IDS2018). ERNP's refit per period takes 3--55\,s.}\label{tab:scale}
+\resizebox{\linewidth}{!}{\input{tables/scale_cost.tex}}
+\end{table}
+
+\subsection{RQ2: robustness to poisoning of the adaptation process}\label{sec:rq2}
+We inject a controlled slow-poisoning campaign into CIDDS-001. A compromised host's flows move from its own benign behaviour to a real attack payload over seven days, by linear interpolation in feature space, at 30 flows per hour. The payload itself is then sent for two days. The host is either the initiator of the traffic or a server that launders it as a responder. The payload is DoS (a known family) or brute force (zero-day). We measure recall on the final payload and the FPR.
+
+\emph{Caveat.} Interpolated feature vectors need not correspond to protocol-valid traffic. The experiment is a controlled stress test of the adaptation channel, not an end-to-end attack.
+
+Table~\ref{tab:rq2} shows three findings.
+\begin{enumerate}
+\item No method is ``absorbed'' at 200 labels per day: SSF and OWAD learn the ramp as malicious from their labels, and CADE and Trident do not adapt. The price of not adapting is visible in the FPR: 2.2\% for CADE, 30--36\% for Trident, and 93\% for MemStream.
+\item At an equal, small budget of 25 labels per day, ERNP keeps its zero-day payload recall (0.75), whereas SSF falls from 0.79 to 0.63.
+\item The counterfactual \emph{ERNP-self} uses the same model but takes its own non-alerted flows as benign evidence, the usual self-updating channel. Its zero-day payload recall collapses to 0.07--0.09. This isolates the cause: ERNP's robustness comes from admitting only trusted evidence, not from the classifier or the features.
+\end{enumerate}
+Across nine ramp durations (3/7/14 days) and rates (10/30/100 flows per hour), ERNP's brute-force payload recall ranges from 0.59 to 0.91, and ERNP is never absorbed.
+
+\begin{table}[t]
+\centering\small
+\caption{RQ2: payload recall / FPR (\%) under slow poisoning on CIDDS-001, five seeds. init/resp: compromised initiator/responder; DoS: known payload; BF: zero-day brute force. $B$: labels per day.}\label{tab:rq2}
+\resizebox{\linewidth}{!}{\input{tables/rq2.tex}}
+\end{table}
+
+\subsection{RQ3: label efficiency}\label{sec:rq3}
+Table~\ref{tab:rq3} varies the daily budget on the two datasets with many zero-day families and strong drift. ERNP with 25 labels per day (0.905 F1 on CSE-CIC-IDS2018, 0.665 on ToN) exceeds SSF with 200 labels per day (0.860, 0.378) and with 400 (0.873, 0.510). The number of labels actually consumed is also lower, because ERNP asks for at most one label per alert group. ERNP's F1 is nearly flat for $B\ge25$. The prior carries most of the detection ability, and the labels mainly remove false alarms. $B=0$ (no online labels) costs 0.09 F1 on CSE-CIC-IDS2018 and 0.36 on ToN.
+
+\begin{table}[t]
+\centering\small
+\caption{RQ3: F1 versus daily label budget $B$ (seeds 0--2). $B=0$: no online labels.}\label{tab:rq3}
+\input{tables/rq3.tex}
+\end{table}
+
+\subsection{RQ4: ablations and properties}\label{sec:rq4}
+Table~\ref{tab:rq4} reports F1 differences from ERNP.
+\begin{itemize}
+\item \textbf{The novelty prior is the dominant component.} Removing it (GBM+AL) or replacing it by the uniform prior of Sipple~\cite{sipple2020negative} or by a product of marginals costs 0.26--0.29 F1 on average and up to 0.76 on CSE-CIC-IDS2018.
+\item \textbf{The retraction kernel is secondary.} The shape of the kernel matters little (hard ball: $-0.001$), and removing retraction altogether costs 0.017 on average and 0.093 on CSE-CIC-IDS2018.
+\item \textbf{The source of the evidence is essential.} ERNP-self loses 0.50 on ToN and suffers the payload collapse of RQ2.
+\end{itemize}
+In short, what matters is \emph{which} evidence retracts the prior, not the kernel that does it.
+
+ToN is the exception: GBM+AL and the other prior variants are slightly better there. As discussed in Section~\ref{sec:discussion}, ToN's benign traffic changes regime daily, which penalises any novelty prior under a daily update period.
+
+\emph{Proposition~\ref{prop:p3}.} Replaying the evidence sets, we compare, for zero-day flows at distance $\ge 2\epsilon$ from the nearest confirmed benign evidence, ERNP's recall with that of ERNP without online labels. It is as high or higher on every dataset: ToN $\ge4\epsilon$: 0.66 vs.\ 0.23; CIDDS-001 $[2,4)\epsilon$: 0.50 vs.\ 0.38; CIC-IDS2017: 0.98 vs.\ 0.98. Recall drops only close to confirmed evidence ($<\epsilon$), which is the local footprint predicted by Proposition~\ref{prop:p1}(ii).
+
+\emph{Group labels.} One label per group propagates to about 12k--100k flows per run, with 0.3--4.8\% attack flows inside groups labelled benign. With representative-only evidence (the labelling semantics of SSF), ERNP loses 0.034 F1 on average, mostly on ToN. It remains first on average and better than every baseline in pooled comparisons.
+
+\begin{table}[t]
+\centering\small
+\caption{RQ4: $\Delta$F1 of each variant relative to ERNP (five seeds).}\label{tab:rq4}
+\resizebox{\linewidth}{!}{\input{tables/rq4.tex}}
+\end{table}
+
+\subsection{RQ5: sensitivity and cost}\label{sec:rq5}
+One-at-a-time variations of $\rho$, prior mass $m$ and bandwidth $\epsilon$ (Table~\ref{tab:rq5}) change F1 by at most 0.014 on CIDDS-001 and CSE-CIC-IDS2018, with one exception: halving $\epsilon$ costs 0.047 on CSE-CIC-IDS2018. ToN is more sensitive (up to $+0.038$ with $m=2$ and $+0.034$ with $\rho=0.1$). All defaults were fixed before the evaluation and not tuned on these streams. Replacing gradient boosting by a random forest costs 0.26 on ToN, indicating that the calibration of the classifier matters where drift is strong.
+
+On cost (Table~\ref{tab:scale}), ERNP trains initially in 37\,s on average, versus 1,722\,s for SSF and 709\,s for CADE. It uses the least memory and needs no GPU.
+
+\begin{table}[t]
+\centering\small
+\caption{RQ5: $\Delta$F1 relative to the default configuration (seeds 0--2).}\label{tab:rq5}
+\input{tables/rq5.tex}
+\end{table}
+
+\subsection{Noisy analysts}\label{sec:noise}
+Proposition~\ref{prop:p1}(iii) predicts that analyst errors corrupt ERNP locally. To measure this, we flip each returned label with probability $p$ for ERNP and for the labels given to SSF and OWAD (Table~\ref{tab:noise}).
+\begin{itemize}
+\item ERNP is robust on CIDDS-001 and CIC-IDS2017 ($-0.024$ and $-0.004$ F1 at $p=20\%$).
+\item It degrades on CSE-CIC-IDS2018 ($0.910\rightarrow0.840$ at $p=10\%$, below SSF's 0.861) and on ToN.
+\item SSF is nearly insensitive. Its labels only re-weight a supervised classifier, whereas an erroneous benign label in ERNP retracts the prior over an entire alert group.
+\end{itemize}
+On the poisoning scenario, ERNP at $p=10\%$ still keeps a zero-day payload recall at least equal to SSF's (0.70--0.74 vs.\ 0.67--0.72). Label noise is ERNP's main weakness. It motivates retraction rules that require repeated confirmations, which we leave to future work.
+
+\begin{table}[t]
+\centering\small
+\caption{Noisy analyst: F1 when each label is flipped with probability $p$ (seeds 0--2).}\label{tab:noise}
+\input{tables/noise.tex}
+\end{table}
+
+%======================================================================
+\section{Discussion}\label{sec:discussion}
+%======================================================================
+\paragraph{When ERNP does not win}
+Three settings favour other methods, and we report them rather than tune ERNP to them.
+\begin{itemize}
+\item \textbf{Stable benign traffic with a strong supervised signal (CIDDS-001).} SSF's supervised classifier is marginally better (0.985 vs.\ 0.976 F1).
+\item \textbf{Daily regime changes of benign traffic (ToN).} Under a daily causal protocol, every method must score a new benign regime before any label arrives. ERNP's FPR then reaches 42\%. With the same 200 labels per day delivered every 4 or 1 hours, ERNP reaches 0.742/0.753 F1 (MCC 0.45/0.48), versus 0.535 for SSF and 0.386 for OWAD at 4 hours. This suggests that the update period is a deployment parameter that should follow the analysts' triage cycle.
+\item \textbf{Full-scale data (CIC-IDS2017).} ERNP and CADE are on par.
+\end{itemize}
+
+\paragraph{Operational implications}
+ERNP turns the analysts' routine triage into the only adaptation signal. Its cost is a GBM refit per period on a CPU. Its failure mode is explicit: an analyst who whitelists a malicious alert group whitelists its neighbourhood. This makes the correctness of the triage decision, rather than the volume of traffic, the security-critical input, which is where security operations already concentrate their effort.
+
+\subsection{Threats to validity}\label{sec:threats}
+\begin{itemize}
+\item \emph{Sampling.} Main results use samples of the original data. The full-scale check covers one dataset, and there CADE and SSF are stronger than on the samples.
+\item \emph{Datasets.} All four datasets come from testbeds or controlled environments. The benign traffic of CIDDS-001 is script-generated.
+\item \emph{Poisoning model.} RQ2 interpolates feature vectors and is a stress test of the adaptation channel.
+\item \emph{Label model.} Group labels are an assumption. We therefore report the representative-only variant and analyst noise.
+\item \emph{Implementation deviations.} We document every departure from the baselines' original settings: SSF's per-window epochs, Trident's percentile fallback when its EVT fit fails on duplicate-heavy data, MemStream's normalisation variant, and our PyTorch port of CADE. Part of RQ2/RQ3 ran on a second machine; re-running two of those jobs locally changed F1 by at most 0.003.
+\item \emph{Statistics.} Four datasets give low power at the dataset level. We rely on per-dataset effect sizes with confidence intervals.
+\end{itemize}
+
+%======================================================================
+\section{Conclusion}\label{sec:conclusion}
+%======================================================================
+We proposed ERNP, a NIDS that adapts only by retracting a structured novelty prior where analysts have confirmed benign traffic. The design makes the detector invariant to unlabelled traffic, ties every adaptation step to a labelled alert group, and preserves detection away from confirmed evidence. On four temporally split benchmarks, ERNP has the best average detection against five recent detectors and needs roughly an eighth of the labels of the strongest continual learner. A counterfactual shows that its robustness to slow poisoning comes from the trusted-evidence rule. Future work should make retraction robust to analyst errors, evaluate on operational traffic at full scale, and study update periods matched to triage cycles.
+
+\section*{Data and code availability}\label{sec:availability}
+All code, the prepared streams, per-run predictions and the scripts that regenerate every table are available at \url{https://github.com/volethienan/Openset_CN} (to be made public upon acceptance).
+
+\section*{CRediT authorship contribution statement}
+\textbf{Vo Le Thien An:} Conceptualization, Methodology, Software, Investigation, Writing -- original draft. [To be completed for all authors.]
+
+\section*{Declaration of competing interest}
+The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.
+
+\section*{Declaration of generative AI and AI-assisted technologies in the manuscript preparation process}
+During the preparation of this work the author(s) used an AI assistant (Claude, Anthropic) to support experiment implementation, analysis and drafting. After using this tool, the author(s) reviewed and edited the content as needed and take(s) full responsibility for the content of the published article.
+
+\appendix
+\section{Proofs}\label{app:proofs}
+Throughout, $b_t,a_t$ denote the densities of the benign and attack evidence at period $t$, $q_0$ the initial prior, and $r_t$ the retention of Eq.~\eqref{eq:retain}. The population minimiser of Eq.~\eqref{eq:loss} is the weighted posterior, obtained pointwise by minimising $\tfrac12 b_t\,\ell(\eta,0)+\tfrac12(a_t+q_0r_t)\,\ell(\eta,1)$ over $\eta\in[0,1]$. This gives Eq.~\eqref{eq:score}. A common positive rescaling of the weights, as used in the implementation, does not change the minimiser.
+
+\begin{proof}[Proof of Proposition~\ref{prop:p1}]
+(i) By Algorithm~\ref{alg:ernp}, $P_{t+1},A_{t+1},\E_{t+1}$ are obtained from $P_t,A_t,\E_t$ by adding groups that received an analyst label, and $q_0$ and $\tau$ are fixed. Hence $s_t$ is a function of the labelled history only. With no labels, $(P_t,A_t,\E_t)=(P_0,A_0,\emptyset)$ and $s_t=s_0$.
+
+(ii) $1-r_t(x)=\exp(-d(x,\E_t)^2/2\epsilon^2)>\delta$ iff $d(x,\E_t)<\epsilon\sqrt{2\ln(1/\delta)}=:\rho_\delta$, i.e., iff $x$ lies in some ball $\mathcal B(e,\rho_\delta)$, $e\in\E_t$.
+
+(iii) Write $\E_t=\E^{c}\cup\E^{e}$, where $\E^{e}$ is the union of the $m$ erroneous groups $G_1,\dots,G_m$. Because $d(x,\E_t)=\min\{d(x,\E^c),d(x,\E^e)\}$, the retention at $x$ is reduced by the errors only if $d(x,\E^e)<d(x,\E^c)$. It is reduced by more than $\delta$ only if moreover $d(x,\E^e)<\rho_\delta$, i.e., $x\in\mathcal B(e,\rho_\delta)$ for some $e\in G_i$. Each $G_i$ has diameter at most $\Delta$, so it is contained in a ball $\mathcal B(c_i,\Delta)$ around any of its points $c_i$. Hence $\mathcal B(e,\rho_\delta)\subseteq\mathcal B(c_i,\Delta+\rho_\delta)$. The same holds for the benign density $b_t$, into which erroneous groups enter only through the same $m$ labelled groups.
+\end{proof}
+
+\begin{proof}[Proof of Proposition~\ref{prop:p2}]
+Using $1-e^{-u}\le u$, $r_t(x)\le d(x,\E_t)^2/(2\epsilon^2)$. Monotonicity of $\log$ in Eq.~\eqref{eq:score} gives the bound. If $d(x,\E_t)\to0$, the bound tends to $\log(a_t(x)/b_t(x))<\tau$ under the stated condition.
+\end{proof}
+
+\begin{proof}[Proof of Proposition~\ref{prop:p3}]
+Since $a_t\ge0$, $s_t(z)\ge\log(q_0(z)r_t(z))-\log b_t(z)$. With $d(z,\E_t)\ge c\epsilon$, $r_t(z)\ge1-e^{-c^2/2}$. With $b_t(z)\le b_0(z)$, $-\log b_t(z)\ge-\log b_0(z)$. Combining the three inequalities gives the claim. The margin values follow from $-\log(1-e^{-2})\approx0.145$ and $-\log(1-e^{-4.5})\approx0.011$.
+\end{proof}
+
+\begin{remark}
+The assumption $b_t(z)\le b_0(z)$ holds, for instance, when the benign evidence is a mixture $b_t=\lambda_t b_0+(1-\lambda_t)b_{\E}$ with $\lambda_t\le1$ and $b_{\E}(z)=0$, i.e., when the added benign groups lie away from $z$. The propositions describe the population detector. The boosted-tree classifier trained on finite samples approximates it, and Section~\ref{sec:rq4} checks the resulting behaviour empirically.
+\end{remark}
+
+\bibliographystyle{elsarticle-num}
+\bibliography{refs}
+\end{document}

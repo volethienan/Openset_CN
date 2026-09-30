@@ -23,11 +23,18 @@ PERIOD = 24                                          # update cadence in hours (
 dev = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 EPOCH_1 = 20                                         # SSF epoch_1 (suffix _E{n}; the authors' UNSW command uses 180)
 WINDOW = 0                                           # SSF native protocol: windows of WINDOW flows (suffix _W{n}; 0 = off)
+NOISE = 0.0                                          # oracle label noise (suffix _N{pct}); 0 = exact labels
 TIMING = dict(init_s=0.0, score_s=0.0, n_scored=0, update_s=0.0, n_updates=0)   # cost reporting only (RQ5)
 
 def _now():                                          # wall clock after the GPU queue is drained (fair timing)
     if dev.type == "cuda": torch.cuda.synchronize()
     return time.time()
+
+def noisy(lab, key):
+    """labels the analyst returns: each flipped w.p. NOISE (deterministic per seed and period); NOISE = 0 -> lab itself"""
+    if NOISE <= 0: return lab
+    import zlib; r = np.random.default_rng([10_000 + seed(), zlib.crc32(str(key).encode())])   # stable across processes
+    return np.where(r.random(len(lab)) < NOISE, 1 - lab, lab)
 
 def days_of(df, idx):
     if WINDOW: return np.arange(len(idx)) // WINDOW   # SSF's sample_interval (stream is time-ordered)
@@ -96,7 +103,7 @@ def run_owad(ds):
         t0 = _now(); cb = Calibrator(Z[con], method="Isotonic"); cb.set_calibrator(rmse_c, is_P_mal=True)
         sh = ShiftHunter(rmse_c, s[m], cb, ad_type="Tab")
         if sh.permu_test() < U.get_params("ShiftDetector")["test_thres"]:
-            sh.explainer(Z[g], y[g], label_num=lb); sh.adapter(model); model = sh.model
+            sh.explainer(Z[g], noisy(y[g], d), label_num=lb); sh.adapter(model); model = sh.model
             _, rmse_c = AE.test(model, thr, Z[con])   # control scores under the adapted model (next round)
             n_lab += lb; n_adapt += 1
         TIMING["update_s"] += _now() - t0; TIMING["n_updates"] += 1
@@ -135,7 +142,7 @@ def run_ssf(ds, epochs=200, epoch_1=None, opt_old_lr=24, opt_new_lr=50, new_samp
     teacher.load_state_dict(model.state_dict()); TIMING["init_s"] += _now() - t_init
     day = days_of(df, s_idx); prob = np.zeros(len(s_idx)); n_lab = 0; n_drift = 0
     for d in pd.unique(day):
-        m = np.where(day == d)[0]; xte = torch.tensor(X[s_idx[m]], device=dev); yte = torch.tensor(y[s_idx[m]], device=dev).long()
+        m = np.where(day == d)[0]; xte = torch.tensor(X[s_idx[m]], device=dev); yte = torch.tensor(noisy(y[s_idx[m]], d), device=dev).long()
         if CAUSAL:
             t0 = _now()
             with torch.no_grad(): prob[m] = model(xte)[2].squeeze(-1).cpu().numpy()   # causal: predict before learning the day
@@ -230,11 +237,12 @@ def run_cade(ds):
 if __name__ == "__main__":
     ds, method = sys.argv[1], sys.argv[2]; t0 = time.time()
     import re                                            # suffixes: _P{hours} update cadence, _B{n} labels per day
-    mm = re.fullmatch(r"(.+?)(?:_W(\d+))?(?:_E(\d+))?(?:_P(\d+))?(?:_B(\d+))?", method); base = mm[1]
+    mm = re.fullmatch(r"(.+?)(?:_W(\d+))?(?:_E(\d+))?(?:_P(\d+))?(?:_B(\d+))?(?:_N(\d+))?", method); base = mm[1]
     if mm[2]: WINDOW = int(mm[2])      # _W{n}: SSF windows of n flows, _E{n}: SSF epoch_1 (e.g. ssf_causal_W20000,
     if mm[3]: EPOCH_1 = int(mm[3])     # ssf_causal_E180), _P{h}: update cadence (owad_P1), _B{n}: labels/day (owad_B100)
     if mm[4]: PERIOD = int(mm[4])
     if mm[5]: LBL = int(mm[5])
+    if mm[6]: NOISE = int(mm[6]) / 100
     if base == "ssf_causal": CAUSAL = True
     fn = {"memstream": run_memstream, "memstream_fn": run_memstream_fixnorm, "owad": run_owad, "ssf": run_ssf,
           "ssf_causal": run_ssf, "trident": run_trident, "cade": run_cade}[base]

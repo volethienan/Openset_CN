@@ -51,3 +51,18 @@ MAX_GPU_PROCS=6 python run_jobs.py rq2+rq3 --seeds 0 1 2 3 4 --gpu 6 --cpu 4 > l
 bash report_all.sh      # tạo exp/reports/*.txt và criteria.txt (chấm PASS/FAIL từng tiêu chí)
 ```
 Thiết kế và tiêu chí thành công: `ERNP_RQs_Experiments.md`.
+
+## Đợt bổ sung 3 thí nghiệm (30/09/2026)
+| Nhóm | Nội dung | Số job |
+|---|---|---|
+| `rq2lb` | RQ2 với 25 nhãn/ngày cho ERNP, SSF, OWAD (4 kịch bản × 5 seed) | 60 |
+| `noise` | Analyst gán nhãn sai: ERNP với 5/10/20%, SSF và OWAD với 10% (RQ1 + RQ2, seed 0–2) | 120 |
+| `scale` | CIC17 đầy đủ (2,1 triệu flow), seed 1–2, ERNP + 5 SOTA (seed 0 đã có) | 12 mới |
+
+Cần file LFS cho nhóm `scale`: kiểm tra `ls -lh ../mock/streams/CIC17_full.parquet` nặng khoảng 290 MB; nếu không, chạy `git lfs pull`.
+
+```bash
+cd exp && mkdir -p logs
+CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 MAX_GPU_PROCS=4 python run_jobs.py rq2lb+noise+scale --seeds 0 1 2 3 4 --gpu 4 --cpu 3 > logs/extra3.log 2>&1
+```
+Xong thì đẩy kết quả: `git add exp/results && git commit -m "extra experiments" && git push`.

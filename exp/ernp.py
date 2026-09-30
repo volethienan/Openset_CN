@@ -23,7 +23,8 @@ from sklearn.cluster import MiniBatchKMeans
 DEFAULTS = dict(rho=0.3, prior_mass=1.0, budget=200, prior="partial", retraction="soft", evidence="cluster",
                 features="ctx", protocol="causal", n_pos_max=40000, n_known_max=10000, gbm_iter=300, gbm_lr=0.1,
                 eps_mult=1.0, clf="gbm", period=24,          # period: update cadence in hours (24 = daily)
-                evidence_source="analyst", n_self=5000)      # "self": counterfactual absorbing channel (RQ2/RQ4)
+                evidence_source="analyst", n_self=5000,
+                label_noise=0.0)                             # analyst flips each representative label w.p. label_noise      # "self": counterfactual absorbing channel (RQ2/RQ4)
 
 class ERNP:
     def __init__(self, cfg, rng):
@@ -82,7 +83,7 @@ def run(ds, **cfg):
     P = X[rng.choice(tr, min(c["n_pos_max"], len(tr)), replace=False)]
     ka = np.where(anc & (fam != "BENIGN"))[0]
     A = X[rng.choice(ka, min(c["n_known_max"], len(ka)), replace=False)] if len(ka) else np.zeros((0, X.shape[1]), X.dtype)
-    m = ERNP(c, rng)
+    m = ERNP(c, rng); nrng = np.random.default_rng(10_000 + seed())   # noise rng: separate, only used if label_noise > 0
     m.eps = c["eps_mult"] * np.quantile(NearestNeighbors(n_neighbors=2).fit(P).kneighbors(P[:5000])[0][:, 1], 0.9)
     t0 = time.time(); m.fit(P, A); t_fit.append(time.time() - t0)
     tau = calib_upper(m.score(X[ho]))
@@ -108,7 +109,9 @@ def run(ds, **cfg):
             if not len(mem): continue
             rep = mem[np.argmin(np.linalg.norm(X[mem] - km.cluster_centers_[cl], axis=1))]; n_lab += 1
             grp = X[mem] if c["evidence"] == "cluster" else X[[rep]]
-            (addP if fam[rep] == "BENIGN" else addA).append(grp)
+            is_ben = fam[rep] == "BENIGN"
+            if c["label_noise"] > 0 and nrng.random() < c["label_noise"]: is_ben = not is_ben   # analyst error
+            (addP if is_ben else addA).append(grp)
         if addP:
             P = np.vstack([P] + addP); m.conf = np.vstack(([m.conf] if m.conf is not None else []) + addP)
         if addA: A = np.vstack([A] + addA)

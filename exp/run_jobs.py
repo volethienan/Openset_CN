@@ -1,11 +1,14 @@
 """Job runner for the RQ experiments: two pools (GPU jobs, CPU jobs), skip finished runs, one log per job.
 
-usage: python run_jobs.py rq1 --seeds 0 1 2 3 4 [--gpu 2 --cpu 2] [--dry]
+usage: python run_jobs.py rq1 --seeds 0 1 2 3 4 [--gpu 2 --cpu 2] [--gpu-ids 0,1] [--dry]
+--gpu-ids: physical GPUs this runner may use; each GPU job is pinned (CUDA_VISIBLE_DEVICES) to the least-busy one.
 """
 import os, sys, subprocess, argparse, time, threading
 from concurrent.futures import ThreadPoolExecutor
 MAX_GPU_PROCS = int(os.environ.get("MAX_GPU_PROCS", 99))   # machine-wide cap on concurrent GPU jobs (memory commit)
 _LAUNCH = threading.Lock()
+GPU_IDS = []                                   # set from --gpu-ids; empty = leave CUDA_VISIBLE_DEVICES untouched
+_GPU_BUSY = {}
 EXP = os.path.dirname(os.path.abspath(__file__)); RES = os.path.join(EXP, "results"); LOG = os.path.join(EXP, "logs")
 os.makedirs(LOG, exist_ok=True)
 
@@ -110,8 +113,8 @@ def ext1_jobs(seed):
     return [j for j in ext_jobs(seed) if "_inj" not in j[1]]
 
 def scale_jobs(seed):
-    """scale check: CICIDS2017 without sampling (2.1M flows), seed 0"""
-    if seed != 0: return []
+    """scale check: CICIDS2017 without sampling (2.1M flows); seeds 0-2 (seed = anchor split / sampling of model inputs)"""
+    if seed > 2: return []
     ds = "CIC17_full"
     return [("cpu", ds, "ernp", ["ernp.py", ds])] + [("gpu", ds, m, ["baselines/sota.py", ds, m]) for m in SOTA5]
 
@@ -136,6 +139,27 @@ def gpu_procs():
         return n
     except Exception: return 0
 
+INJ = ("injinit", "injresp", "injinit_bf", "injresp_bf")
+
+def rq2lb_jobs(seed):
+    """RQ2 at a small label budget (25/day) for every label-using method: is SSF still not absorbed without 200 labels/day?"""
+    jobs = []
+    for v in INJ:
+        ds = f"{cidds(seed)}_{v}"
+        jobs.append(("cpu", ds, "ernp_B25", ["ernp.py", ds, "--budget", "25", "--name", "ernp_B25"]))
+        jobs += [("gpu", ds, f"{m}_B25", ["baselines/sota.py", ds, f"{m}_B25"]) for m in ("ssf_causal", "owad")]
+    return jobs
+
+def noise_jobs(seed):
+    """noisy analyst: each returned label flipped w.p. 10% (ERNP also 5% and 20%), RQ1 datasets + RQ2 scenarios, seeds 0-2"""
+    if seed > 2: return []
+    jobs = []
+    for ds in list(ds_names(seed).values()) + [f"{cidds(seed)}_{v}" for v in INJ]:
+        for p in (5, 10, 20):
+            jobs.append(("cpu", ds, f"ernp_N{p}", ["ernp.py", ds, "--label_noise", str(p / 100), "--name", f"ernp_N{p}"]))
+        jobs += [("gpu", ds, f"{m}_N10", ["baselines/sota.py", ds, f"{m}_N10"]) for m in ("ssf_causal", "owad")]
+    return jobs
+
 def run(job, seed):
     pool, ds, name, args = job
     out = os.path.join(RES, f"{ds}__{name}__s{seed}.json")
@@ -147,8 +171,16 @@ def run(job, seed):
         with _LAUNCH:                                   # check the cap and start the process atomically
             while gpu_procs() >= MAX_GPU_PROCS: time.sleep(60)
             if os.path.exists(out) or running_elsewhere(args): return f"skip {ds} {name}"
+            dev_id = None
+            if GPU_IDS:                             # pin to the least-busy allowed GPU
+                dev_id = min(GPU_IDS, key=lambda g: _GPU_BUSY.get(g, 0)); _GPU_BUSY[dev_id] = _GPU_BUSY.get(dev_id, 0) + 1
+                env["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"; env["CUDA_VISIBLE_DEVICES"] = dev_id
             f = open(log, "w"); t0 = time.time()
             proc = subprocess.Popen([sys.executable] + args, cwd=EXP, env=env, stdout=f, stderr=subprocess.STDOUT)
+        rc = proc.wait(); f.close()
+        if dev_id is not None:
+            with _LAUNCH: _GPU_BUSY[dev_id] -= 1
+        return f"{'OK ' if rc == 0 else 'ERR'} {ds} {name} s{seed} ({time.time() - t0:.0f}s)" + (f" [gpu {dev_id}]" if dev_id else "")
     else:
         f = open(log, "w"); t0 = time.time()
         proc = subprocess.Popen([sys.executable] + args, cwd=EXP, env=env, stdout=f, stderr=subprocess.STDOUT)
@@ -158,8 +190,9 @@ def run(job, seed):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("rq"); ap.add_argument("--seeds", nargs="+", type=int, default=[0])
     ap.add_argument("--gpu", type=int, default=2); ap.add_argument("--cpu", type=int, default=2); ap.add_argument("--dry", action="store_true")
-    a = ap.parse_args()
-    GEN = {"rq1": rq1_jobs, "rq2": rq2_jobs, "rq3": rq3_jobs, "rq4": rq4_jobs, "rq5": rq5_jobs, "cad": cad_jobs, "ext": ext_jobs, "ext1": ext1_jobs,
+    ap.add_argument("--gpu-ids", default="", help="comma-separated physical GPU ids, e.g. 0,1")
+    a = ap.parse_args(); GPU_IDS[:] = [g.strip() for g in a.gpu_ids.split(",") if g.strip()]
+    GEN = {"rq1": rq1_jobs, "rq2": rq2_jobs, "rq3": rq3_jobs, "rq4": rq4_jobs, "rq5": rq5_jobs, "cad": cad_jobs, "ext": ext_jobs, "ext1": ext1_jobs, "rq2lb": rq2lb_jobs, "noise": noise_jobs,
            "scale": scale_jobs}
     jobs = [(j, s) for rq in a.rq.split("+") for s in a.seeds for j in GEN[rq](s)]
     if a.rq == "cad":   # most informative first: ToN, then CIC18, CIC17, CIDDS; 1 h before 4 h

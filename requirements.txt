@@ -10,3 +10,4 @@ psutil==7.1.0
 mlxtend==0.25.0
 PyYAML==6.0.2
 matplotlib==3.11.2
+tqdm   # Trident's evt.py

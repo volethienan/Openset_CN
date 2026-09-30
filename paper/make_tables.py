@@ -150,3 +150,36 @@ for mth in ["ernp"] + SOTA:
 write("scale_cost.tex", "\\begin{tabular}{lccccc}\n\\toprule\n & \\multicolumn{3}{c}{CIC-IDS2017, full (2.1M flows, 3 seeds)} & \\multicolumn{2}{c}{Cost (sampled streams)}\\\\\n"
       "\\cmidrule(lr){2-4}\\cmidrule(lr){5-6}\nMethod & F1 & MCC & ZD recall@1\\%FPR & Initial training (s) & Peak RAM (MB)\\\\\n\\midrule\n" +
       "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}\n")
+
+# ------------------------------------------------------------------ Table: ranking quality independent of the decision rule
+M2 = ["ernp"] + SOTA; g = r1[r1.method.isin(M2)]; rows = []
+for met, lab in (("AUROC", "AUROC"), ("AUPRC", "AUPRC"), ("recall_at1fpr", "Attack recall @1\\%FPR (all families)")):
+    s = g.groupby(["dataset", "method"])[met].agg(["mean", "std"])
+    rows.append(f"\\midrule\n\\multicolumn{{{len(DS) + 2}}}{{l}}{{\\emph{{{lab}}}}}\\\\")
+    avg = {m: s.xs(m, level="method")["mean"].mean() for m in M2}
+    for m in M2:
+        cells = [fmt(*s.loc[(ds, m)], bold=np.isclose(s.loc[(ds, m)]["mean"], s.loc[ds]["mean"].max())) for ds in DS]
+        rows.append(f"{NAME[m]} & " + " & ".join(cells) + f" & {fmt(avg[m], bold=np.isclose(avg[m], max(avg.values())))}\\\\")
+write("rq1_rank.tex", "\\begin{tabular}{l" + "c" * (len(DS) + 1) + "}\n\\toprule\nMethod & " +
+      " & ".join(DSN[x] for x in DS) + " & Mean\\\\\n" + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}\n")
+
+# ------------------------------------------------------------------ Table: matched update cadence (seeds 0-2)
+x = pd.concat([cad, r1[r1.seed <= 2]]).drop_duplicates(["dataset", "method", "seed"])
+CR = [("ernp", "\\textbf{ERNP}", "24\\,h"), ("ernp_P4", "\\textbf{ERNP}", "4\\,h"), ("ernp_P1", "\\textbf{ERNP}", "1\\,h"),
+      ("ssf_causal", "SSF", "24\\,h"), ("ssf_causal_P4", "SSF", "4\\,h"),
+      ("owad", "OWAD", "24\\,h"), ("owad_P4", "OWAD", "4\\,h"), ("owad_P1", "OWAD", "1\\,h"),
+      ("cade", "CADE", "--"), ("trident", "Trident", "--"), ("memstream", "MemStream", "--")]
+s = x[x.method.isin([c[0] for c in CR])].groupby(["dataset", "method"])[["F1", "MCC"]].mean()
+rows = []
+for i, (mth, lab, per) in enumerate(CR):
+    if i in (3, 8): rows.append("\\midrule")
+    cells = []
+    for ds in DS:
+        for met in ("F1", "MCC"):
+            v = s.loc[(ds, mth), met]; cells.append(fmt(v, bold=np.isclose(v, s.loc[ds][met].max())))
+    rows.append(f"{lab} & {per} & " + " & ".join(cells) + "\\\\")
+write("cadence.tex", "\\begin{tabular}{ll" + "cc" * len(DS) + "}\n\\toprule\n & & " +
+      " & ".join(f"\\multicolumn{{2}}{{c}}{{{DSN[d]}}}" for d in DS) + "\\\\\n" +
+      "".join(f"\\cmidrule(lr){{{3 + 2 * i}-{4 + 2 * i}}}" for i in range(len(DS))) +
+      "\nMethod & Update & " + " & ".join(["F1 & MCC"] * len(DS)) + "\\\\\n\\midrule\n" + "\n".join(rows) +
+      "\n\\bottomrule\n\\end{tabular}\n")

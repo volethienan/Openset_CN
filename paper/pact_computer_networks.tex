@@ -57,7 +57,7 @@ Evidence-Retracted Novelty Priors for Label-Efficient Zero-Day Detection}
 \cortext[1]{Corresponding author}
 
 \begin{abstract}
-Network intrusion detection systems (NIDS) in production must detect attack families never seen in training, tolerate benign traffic drift, and adapt with the few labels that analysts can provide. Detectors that adapt by absorbing the traffic they accept can be steered by slow poisoning, while continual learners that avoid this depend on hundreds of labels per day. We propose \ERNP (Evidence-Retracted Novelty Prior), a detector whose only adaptation channel is the retraction of a structured novelty prior where analysts have confirmed benign traffic. \ERNP estimates a density ratio between benign evidence and the union of attack evidence and a prior built by partially swapping features between benign flows; unlabelled traffic never enters the model. We prove that retraction is local and bounded by analyst errors, and that detection far from confirmed evidence is preserved up to a computable factor. On four temporally split benchmarks, five seeds and a causal protocol, \ERNP has the best mean rank against five recent detectors (SSF, OWAD, CADE, Trident, MemStream), with mean F1 0.867 against 0.671 for the strongest. With 25 labels per day it outperforms SSF using 200--400, and a counterfactual that feeds \ERNP its own verdicts instead of analyst evidence collapses from 0.74 to 0.07 zero-day payload recall under controlled poisoning. \ERNP does not win everywhere: it is on par with CADE on unsampled CIC-IDS2017 and degrades when analysts mislabel 10\% or more of the queried alert groups.
+Network intrusion detection systems (NIDS) in production must detect attack families never seen in training, tolerate benign traffic drift, and adapt with the few labels that analysts can provide. Detectors that adapt by absorbing the traffic they accept can be steered by slow poisoning, while continual learners that avoid this depend on hundreds of labels per day. We propose \ERNP (Evidence-Retracted Novelty Prior), a detector whose only adaptation channel is the retraction of a structured novelty prior where analysts have confirmed benign traffic. \ERNP estimates a density ratio between benign evidence and the union of attack evidence and a prior built by partially swapping features between benign flows; unlabelled traffic never enters the model. We prove that retraction is local and bounded by analyst errors, and that detection far from confirmed evidence is preserved up to a computable factor. On four temporally split benchmarks, five seeds and a causal protocol, \ERNP has the best mean rank against five recent detectors (SSF, OWAD, CADE, Trident, MemStream), with mean F1 0.867 against 0.671 for the strongest. With 25 labels per day it outperforms SSF using 200--400, and a counterfactual that feeds \ERNP its own verdicts instead of analyst evidence collapses from 0.74 to 0.07 zero-day payload recall under controlled poisoning. It has the best AUROC and AUPRC on three of the four datasets. On ToN, whose benign traffic changes regime from day to day, it has the best F1 and MCC when the same labels are delivered every 4\,h rather than once a day. \ERNP does not win everywhere: it is on par with CADE on unsampled CIC-IDS2017, and it degrades when analysts mislabel 10\% or more of the queried alert groups.
 \end{abstract}
 
 \begin{keywords}
@@ -329,7 +329,7 @@ new-IP & this study & leakage check \\
 \end{table}
 
 \subsection{Metrics and statistical analysis}
-We report F1, the Matthews correlation coefficient (MCC) and FPR at each method's own decision rule. We also report \emph{zero-day recall at 1\% FPR}, measured at a common operating point: each method's 99th score percentile on the benign flows of the stream. This makes methods with built-in decision rules comparable (SSF's $p>0.5$, Trident's EVT threshold). MCC is reported because F1 rewards alerting on everything when attacks are frequent: on ToN, where 54\% of flows are attacks, an alert-all detector reaches F1 $\approx0.70$ and MCC $\approx0$.
+We report F1, the Matthews correlation coefficient (MCC) and FPR at each method's own decision rule. We also report \emph{zero-day recall at 1\% FPR}, measured at a common operating point: each method's 99th score percentile on the benign flows of the stream. This makes methods with built-in decision rules comparable (SSF's $p>0.5$, Trident's EVT threshold). MCC is reported because F1 rewards alerting on everything when attacks are frequent: on ToN, where 54\% of flows are attacks, an alert-all detector reaches F1 $\approx0.70$ and MCC $\approx0$. To separate the quality of a detector's scores from the choice of its operating point, we also report AUROC, AUPRC and attack recall at the same common 1\% FPR point, all computed on the stream.
 
 Seeds are sub-samples of the same dataset, not independent datasets. We therefore report per-dataset mean differences with 95\% bootstrap intervals over seeds \cite{efron1993bootstrap}, and a Friedman test over datasets \cite{demsar2006statistical}, rather than pooling dataset--seed pairs. Table~\ref{tab:rqmap} maps each question to its experiment. The software environment was Python 3.12.7, NumPy 2.4.6, scikit-learn 1.9.1 and PyTorch 2.6.0 (CUDA 12.4), on a 12-core CPU with an RTX~3050 GPU; part of RQ2/RQ3 ran on an RTX~A5000.
 
@@ -369,7 +369,7 @@ Table~\ref{tab:answers} gives the answer to each question with its principal est
 \toprule
 RQ & Principal estimate & Answer \\
 \midrule
-RQ1 & Mean F1 0.867 vs.\ 0.671 (SSF); MCC 0.753 vs.\ 0.563; zero-day recall@1\%FPR 0.677 vs.\ 0.625 (CADE); CI above 0 in 18/20 dataset--baseline pairs; best configurations 0.907 vs.\ 0.775; held-out CIC-IDS2017 0.970 F1; unsampled CIC-IDS2017 0.940 vs.\ CADE 0.959 & Best average detector and best mean rank, not uniformly: SSF is ahead on CIDDS-001 ($-0.009$), and \ERNP is on par with CADE at full scale \\
+RQ1 & Mean F1 0.867 vs.\ 0.671 (SSF); MCC 0.753 vs.\ 0.563; zero-day recall@1\%FPR 0.677 vs.\ 0.625 (CADE); CI above 0 in 18/20 dataset--baseline pairs; best configurations 0.907 vs.\ 0.775; held-out CIC-IDS2017 0.970 F1; unsampled CIC-IDS2017 0.940 vs.\ CADE 0.959; best AUROC/AUPRC on 3 of 4 datasets; ToN at 4\,h updates 0.742 F1 / 0.452 MCC vs.\ 0.535/0.174 (SSF) & Best average detector and best mean rank, not uniformly: SSF is ahead on CIDDS-001 by its operating point ($-0.009$ F1), OWAD ranks ToN better, and \ERNP is on par with CADE at full scale \\
 RQ2 & Zero-day payload recall 0.74 (200 labels/day) and 0.75 (25) vs.\ SSF 0.79 and 0.63; FPR 0.5--0.8\% vs.\ 30--36\% (Trident), 93\% (MemStream); counterfactual 0.07--0.09 & No detector is absorbed at 200 labels/day; at equal small budgets \ERNP keeps its payload recall and SSF does not; the trusted-evidence rule is the cause \\
 RQ3 & $B=25$: 0.905/0.665 F1 vs.\ SSF at $B=400$: 0.873/0.510 (CSE-CIC-IDS2018/ToN) & About one eighth of the labels of the strongest continual learner \\
 RQ4 & Prior removed or replaced: $-0.26$ to $-0.29$ F1; retraction kernel shape: $\pm0.01$; self-evidence: $-0.50$ on ToN & The structured prior and the evidence source carry the method; the kernel shape does not \\
@@ -405,6 +405,30 @@ Table~\ref{tab:rq1} reports the three detection metrics per dataset. \ERNP has t
   \item OWAD's autoencoder has AUROC 0.66--0.68 on the CIC datasets and detects almost nothing at 1\% FPR.
 \end{itemize}
 \ERNP's prior makes zero-day flows score high by construction, and retraction absorbs benign drift only where analysts have confirmed it.
+
+\textbf{Score quality independent of the decision rule.} Table~\ref{tab:rank} separates how well each detector ranks attacks above benign flows from where it places its threshold. \ERNP has the highest AUROC and AUPRC on CIDDS-001, CIC-IDS2017 and CSE-CIC-IDS2018, and the highest mean on all three score metrics.
+\begin{itemize}
+  \item On CIDDS-001, \ERNP ranks at least as well as SSF (AUROC 0.998 vs.\ 0.996, AUPRC 0.995 vs.\ 0.992) and detects more attacks (recall 0.990 vs.\ 0.979). Its F1 gap of 0.009 comes from the operating point: its fixed 1\%-FPR threshold gives a stream FPR of 0.47\%, against 0.10\% for SSF.
+  \item On ToN, OWAD ranks best (AUROC 0.782 vs.\ 0.636 for \ERNP). Its threshold, however, recalls only 34\% of the attacks, so its F1 stays at 0.488 against 0.610 for \ERNP. ToN is the one dataset where another detector scores better than \ERNP; Section~\ref{sec:discussion} identifies the cause.
+\end{itemize}
+
+\begin{table*}[t]
+\centering
+\caption{RQ1, score quality independent of each method's decision rule: AUROC, AUPRC and attack recall at 1\% stream FPR (mean$\pm$std over five seeds, causal protocol, $B=200$). Bold: best per column within each metric.}
+\label{tab:rank}
+\scriptsize
+\input{tables/rq1_rank.tex}
+\end{table*}
+
+\textbf{Matched update cadence.} The main protocol refits every method once per day. A SOC triages alerts continuously, so Table~\ref{tab:cadence} also runs every adaptive method with the same 200 labels per day delivered every 4\,h and every 1\,h. The update-free detectors are listed once, because the cadence does not affect them. At 4\,h, \ERNP has the best F1 and MCC on ToN (0.742/0.452, against 0.535/0.174 for SSF, 0.386/0.294 for OWAD and 0.698/0.001 for alert-all Trident), and on CIC-IDS2017 and CSE-CIC-IDS2018. CIDDS-001 remains the exception: SSF is ahead by 0.006 F1 at 4\,h, for the operating-point reason given above. Faster updates do not help every method: OWAD degrades on ToN, from 0.488 F1 at 24\,h to 0.087 at 1\,h.
+
+\begin{table*}[t]
+\centering
+\caption{RQ1 at matched update cadence: the same 200 labels per day, delivered every 24, 4 or 1\,h (mean over seeds 0--2). CADE, Trident and MemStream do not use labels and are cadence-independent. Bold: best per column.}
+\label{tab:cadence}
+\scriptsize
+\input{tables/cadence.tex}
+\end{table*}
 
 \textbf{Each baseline at its best configuration.} To rule out an unfavourable configuration, Table~\ref{tab:sotabest} takes each method's best mean F1 over every configuration we ran:
 \begin{itemize}
@@ -519,10 +543,17 @@ RQ1 establishes that a detector which contrasts benign evidence with a structure
 \subsection{When ERNP does not win}
 Three settings favour other methods, and we report them rather than tune \ERNP to them.
 \begin{itemize}
-  \item \textbf{Stable benign traffic with a strong supervised signal (CIDDS-001).} SSF's supervised classifier is marginally better (0.985 vs.\ 0.976 F1).
-  \item \textbf{Daily regime changes of benign traffic (ToN).} Under a daily causal protocol, every method must score a new benign regime before any label arrives, and \ERNP's FPR reaches 42\%. With the same 200 labels per day delivered every 4\,h or 1\,h, \ERNP reaches 0.742/0.753 F1 (MCC 0.45/0.48), against 0.535 for SSF and 0.386 for OWAD at 4\,h. The update period is therefore a deployment parameter that should follow the triage cycle.
+  \item \textbf{Stable benign traffic with a strong supervised signal (CIDDS-001).} SSF's F1 is higher (0.985 vs.\ 0.976), but \ERNP ranks at least as well and recalls more attacks (Table~\ref{tab:rank}). The difference is the operating point: 0.47\% against 0.10\% FPR.
+  \item \textbf{Daily regime changes of benign traffic (ToN).} Under a daily causal protocol, \ERNP's FPR reaches 42\%, and OWAD ranks ToN better. We traced this on the development seeds (0--1) with three diagnostics, all released with the code.
+  \begin{enumerate}
+    \item The false positives are concentrated on days on which no evidence could exist yet. On the last stream day, benign traffic moves to a new regime: \ERNP alerts on 96\% of that day's benign flows, and 96\% of those false positives carry at least one feature value seen neither in the anchor's benign traffic nor in the benign alerts of earlier days. The remaining false positives are mostly new \emph{combinations} of values that each have been confirmed before.
+    \item The anchor period does not anticipate this drift. We split the anchor's benign traffic in time and trained on the first half. The flows of the second half that this model flags cover 0\% of the false positives of the first two stream days, within $2\epsilon$. Their per-feature displacement profile has cosine similarity 0.38 with that of the stream false positives, against 0.60 with that of the zero-day attacks. Transferring the anchor's drift directions would therefore retract the prior towards attacks.
+    \item Removing the novelty prior (GBM+AL, five seeds) lowers the ToN FPR to 3.0\%, but raises it to 11--41\% on the other three datasets (Table~\ref{tab:rq1}).
+  \end{enumerate}
+  No evidence available before these days separates the new benign regime from novel attacks. A detector that must stay robust to poisoning cannot fix this with a better use of the same labels; it needs the labels sooner. With the same 200 labels per day delivered every 4\,h, \ERNP has the best F1 and MCC on ToN of all methods at that cadence (Table~\ref{tab:cadence}). The update period is therefore a deployment parameter that should follow the triage cycle.
   \item \textbf{Full scale (CIC-IDS2017).} \ERNP and CADE are on par.
 \end{itemize}
+We also tested four modifications of \ERNP aimed at these cases on the development seeds only: a per-feature novelty channel, a retraction kernel shaped by the observed drift, a tighter operating point, and perfectly pure alert groups (an oracle bound). None improved all datasets at once, so none was adopted.
 
 \subsection{Operational interpretation}
 \ERNP turns routine alert triage into the only adaptation signal, at the cost of a CPU refit per period. Its failure mode is explicit: an analyst who whitelists a malicious alert group whitelists its neighbourhood. The security-critical input therefore becomes the correctness of the triage decision rather than the volume of traffic, and that is where SOCs already concentrate review. In deployment, benign confirmations of large groups can be sampled for second review, and \ERNP's footprint bound (Proposition~\ref{prop:p1}(iii)) states what such a review protects.
@@ -532,6 +563,7 @@ Three settings favour other methods, and we report them rather than tune \ERNP t
 \label{sec:limitations}
 %======================================================================
 \begin{itemize}
+  \item \textbf{Update cadence.} Under daily updates, \ERNP loses on ToN to OWAD in score quality and MCC. It wins there only when labels arrive every 4\,h or faster. The cadence study uses three seeds.
   \item \textbf{Sampling.} The main results use samples of the original data. The unsampled check covers one dataset, and there CADE and SSF are stronger than on the samples.
   \item \textbf{External validity.} All four datasets come from testbeds or controlled environments, and the benign traffic of CIDDS-001 is script-generated. Results should be replicated on production traffic.
   \item \textbf{Poisoning model.} RQ2 interpolates feature vectors and is a stress test of the adaptation channel, not an end-to-end attack on a protocol stack.

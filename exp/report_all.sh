@@ -10,7 +10,11 @@ python evaluate.py --out rq1 --datasets CIDDS_ctx ToN_ctx CIC17 CIC18 --methods 
   --compare ernp $SOTA > reports/rq1.txt 2>&1
 python evaluate.py --out rq1_ext --datasets CIDDS_ctx ToN_ctx CIC17 CIC18 --methods ernp abl_evid_rep abl_self $SOTA memstream_fn \
   iforest knn ae_static ssf_causal_E180 ssf_causal_W20000 > reports/rq1_ext.txt 2>&1
-python evaluate.py --out scale --seeds 0 --datasets CIC17_full --methods ernp $SOTA > reports/scale.txt 2>&1
+python evaluate.py --out scale --seeds 0 1 2 --datasets CIC17_full --methods ernp $SOTA > reports/scale.txt 2>&1
+INJ="CIDDS_ctx_injinit CIDDS_ctx_injresp CIDDS_ctx_injinit_bf CIDDS_ctx_injresp_bf"
+python evaluate.py --out rq2lb --datasets $INJ --methods ernp_B25 ssf_causal_B25 owad_B25 > reports/rq2lb.txt 2>&1
+python evaluate.py --out noise --seeds 0 1 2 --datasets CIDDS_ctx ToN_ctx CIC17 CIC18 $INJ --methods ernp_N5 ernp_N10 ernp_N20 \
+  ssf_causal_N10 owad_N10 > reports/noise.txt 2>&1
 python evaluate.py --out rq2 --datasets CIDDS_ctx_injinit CIDDS_ctx_injresp CIDDS_ctx_injinit_bf CIDDS_ctx_injresp_bf \
   --methods ernp ernp_B0 abl_self $SOTA memstream_fn new_ip --compare ernp $SOTA > reports/rq2.txt 2>&1
 SW=$(for r in 3 7 14; do for q in 10 30 100; do [ "$r$q" = "730" ] && echo -n "CIDDS_ctx_injinit_bf " || echo -n "CIDDS_ctx_injinit_bf_r${r}_q${q} "; done; done)

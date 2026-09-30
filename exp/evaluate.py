@@ -21,7 +21,7 @@ Q_NEMENYI = {2: 1.960, 3: 2.343, 4: 2.569, 5: 2.728, 6: 2.850, 7: 2.949, 8: 3.03
 
 def seeded_name(base, s):
     """base dataset name (seed 0) -> stream name of seed s (CIDDS_ctx_injinit -> CIDDS_ctx_s1_injinit, CIC18 -> CIC18_s1)"""
-    if s == 0: return base
+    if s == 0 or base.endswith("_full"): return base
     for root in ("CIDDS_ctx", "ToN_ctx"):
         if base.startswith(root): return f"{root}_s{s}" + base[len(root):]
     return f"{base}_s{s}"

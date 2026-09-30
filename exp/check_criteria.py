@@ -219,5 +219,54 @@ def reviewer_checks():
     if os.path.exists(b):
         print("\n(e) clean cost benchmark (one job at a time, seed 0)\n" + pd.read_csv(b).round(2).to_string(index=False))
 
+def robust_stats(B=10000):
+    """reviewer check W4 (pseudo-replication): seeds are sub-samples of the same dataset, so (dataset x seed) pooling
+    overstates n. Report (i) per-dataset mean difference ERNP - SOTA with a 95% bootstrap CI over seeds and
+    (ii) dataset-level tests on per-dataset means (n = 4 datasets, honest but low power)."""
+    d = rd("rq1")
+    if d is None: return print("ROBUST STATS: no results")
+    print("=" * 100 + "\nROBUST STATISTICS (dataset-level; seeds are not independent samples)")
+    rng = np.random.default_rng(0)
+    for met in ("F1", "MCC", "zd_recall_at1fpr"):
+        rows = []
+        for ds, g in d.groupby("dataset"):
+            piv = g.pivot_table(index="seed", columns="method", values=met)
+            for b in SOTA5:
+                x = (piv["ernp"] - piv[b]).dropna().values
+                bs = rng.choice(x, (B, len(x))).mean(1)
+                rows.append(dict(dataset=ds, sota=b, diff=x.mean(), ci_lo=np.quantile(bs, .025), ci_hi=np.quantile(bs, .975),
+                                 excludes_0=bool(np.quantile(bs, .025) > 0 or np.quantile(bs, .975) < 0)))
+        t = pd.DataFrame(rows)
+        print(f"\n{met}: ERNP - SOTA per dataset, mean over seeds [95% bootstrap CI]")
+        print(t.pivot(index="dataset", columns="sota", values="diff").round(3).astype(str).add(" [") .add(
+              t.pivot(index="dataset", columns="sota", values="ci_lo").round(3).astype(str)).add(", ").add(
+              t.pivot(index="dataset", columns="sota", values="ci_hi").round(3).astype(str)).add("]").to_string())
+        dm = d[d.method.isin(["ernp"] + SOTA5)].groupby(["dataset", "method"])[met].mean().unstack()
+        ranks = dm.rank(axis=1, ascending=False).mean().sort_values()
+        fr = friedmanchisquare(*[dm[c] for c in dm.columns]).pvalue
+        wins = {b: int((dm["ernp"] > dm[b]).sum()) for b in SOTA5}
+        print(f"dataset-level (n=4): mean rank {ranks.round(2).to_dict()}; Friedman p={fr:.3f}; datasets where ERNP wins: {wins}")
+
+def rq2lb():
+    d, ref = rd("rq2lb"), rd("rq2")
+    if d is None: return print("RQ2-LOW-BUDGET: no results")
+    print("=" * 100 + "\nRQ2 at 25 labels/day (vs 200 in RQ2): payload recall / absorbed seeds / FPR")
+    x = pd.concat([d, ref[ref.method.isin(["ernp", "ssf_causal", "owad"])]])
+    x["B"] = np.where(x.method.str.endswith("_B25"), 25, 200); x["family"] = x.method.str.replace("_B25", "", regex=False)
+    print(x.groupby(["dataset", "family", "B"]).agg(payload=("payload_recall", "mean"),
+          absorbed=("absorption_day", lambda a: f"{(a >= 1).sum()}/{len(a)}"), FPR=("FPR", "mean"), F1=("F1", "mean"))
+          .round(3).to_string())
+
+def noise():
+    d, r1, r2 = rd("noise"), rd("rq1"), rd("rq2")
+    if d is None: return print("NOISY ANALYST: no results")
+    print("=" * 100 + "\nNOISY ANALYST (each label flipped w.p. p; seeds 0-2)")
+    seeds = sorted(d.seed.unique())
+    clean = pd.concat([r for r in (r1, r2) if r is not None]); clean = clean[clean.method.isin(["ernp", "ssf_causal", "owad"]) & clean.seed.isin(seeds)]
+    x = pd.concat([d, clean]); x["p"] = x.method.str.extract(r"_N(\d+)$")[0].fillna(0).astype(int)
+    x["family"] = x.method.str.replace(r"_N\d+$", "", regex=True)
+    cols = [c for c in ("F1", "MCC", "payload_recall") if c in x]
+    print(x.groupby(["dataset", "family", "p"])[cols].mean().round(3).to_string())
+
 if __name__ == "__main__":
-    for f in (rq1, rq2, rq3, rq4, rq5, cadence, reviewer_checks): f()
+    for f in (rq1, rq2, rq3, rq4, rq5, cadence, reviewer_checks, robust_stats, rq2lb, noise): f()

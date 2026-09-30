@@ -232,4 +232,6 @@ Nguồn số liệu: `exp/reports/criteria.txt`, `criteria_rq1_final.txt`, `rq2l
 | RQ5 | 104–286k flow/giây trên CPU. Độ nhạy nhỏ trên CIDDS/CIC18, lớn trên ToN | Triển khai được |
 | Nhãn sai | ERNP suy giảm khi analyst sai ≥ 10% (CIC18 0,910 → 0,840 so với SSF 0,861). SSF gần như không đổi | **Hạn chế phải ghi rõ**; hướng tương lai: rút lại khi có nhiều xác nhận |
 
-**Còn mở:** dataset held-out (#5); chứng minh P1–P3 (phát biểu lại P1 có nội dung, xét cả trường hợp nhãn sai).
+**Dataset held-out: CIC17.** Toàn bộ quá trình phát triển thuật toán (QCA → BIR → ERNP) và việc chọn siêu tham số dùng mock test trên CIDDS, ToN, CIC18. CIC17 chưa từng được đánh giá trong giai đoạn đó: `mock/_archive_exploration/results_mock/` có 0 kết quả CIC17, so với 90 file CIC18. CIC17 chỉ được chạy lần đầu trong chiến dịch chính thức, với cấu hình đã chốt. Kết quả trên CIC17: ERNP F1 0,970, CADE 0,932, kNN 0,980, SSF 0,472. Vì vậy thí nghiệm #5 (thêm dataset held-out) là tùy chọn, không bắt buộc.
+
+**Còn mở:** chứng minh P1–P3 (phát biểu lại P1 có nội dung, xét cả trường hợp nhãn sai).

@@ -1,0 +1,1 @@
+{"labels_used": 5200, "drift_intervals": 26, "seconds": 743, "timing": {"init_s": 188.10455989837646, "score_flows_per_s": 13910322.350242779, "update_s_mean": 21.20748821588663, "n_updates": 26}, "peak_mem_mb": 1564}

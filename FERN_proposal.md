@@ -11,6 +11,11 @@
 > - `exp/diagnose_drift_directions.py`: hướng trôi dạt trong anchor ToN không khớp với hướng trôi dạt trong stream (cos 0,38, không trùng đặc trưng nào trong top 5). Hướng trôi dạt anchor lại giống hướng tấn công zero-day hơn (cos 0,60). Học hình dạng trôi dạt từ anchor vì thế sẽ rút lại prior theo hướng tấn công, tức là có hại.
 > - Kết luận: báo động giả những ngày đầu trên ToN không suy ra được từ bất kỳ dữ liệu có nhãn nào có sẵn tại thời điểm đó, cả về vị trí lẫn hướng. Cách giảm duy nhất là có nhãn sớm hơn trong ngày (cadence theo giờ: F1 0,729).
 
+> **Vòng thử thứ ba (01/10/2026, seed 0–1): vẫn không có cơ chế nào thắng mọi nơi.**
+> - Điểm vận hành chặt hơn (`--fpr 0.002/0.005`): F1 trên CIC18/CIDDS tăng, nhưng recall zero-day @1% FPR trên CIDDS sụt từ 0,668 xuống 0,38, và MCC trên ToN giảm. Không dùng.
+> - Độ thuần của nhóm (`audit` trong info): 5,5% flow được đưa vào P trên ToN thực ra là tấn công. Nhưng cận trên "nhóm thuần hoàn hảo" (`--evidence oracle_pure`, chỉ để chẩn đoán) còn không tốt hơn, tức nhóm bị lẫn KHÔNG phải nguyên nhân.
+> - Chỉ số không phụ thuộc ngưỡng: trên CIDDS, ERNP tốt nhất (AUROC 0,998, AUPRC 0,995). Thua F1 ở đây chỉ do điểm vận hành. Trên ToN theo ngày, ERNP có AUROC 0,654, thấp hơn OWAD (0,781) và SSF (0,752). Đây là chỗ thua thật duy nhất, và nguyên nhân là ngày có chế độ benign mới.
+
 ---
 
 ## 1. ERNP thua ở đâu, và vì sao (chẩn đoán có số liệu)

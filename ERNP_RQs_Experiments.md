@@ -215,3 +215,21 @@ Với ℓ là log-loss, g_t hội tụ về p_B / (p_B + ½ p_A + ½ q_t), nên 
    - **SSF:** chạy thêm với cấu hình của tác giả (epoch_1 = 180; cửa sổ 20.000 flow).
    - **MemStream:** chạy thêm bản fixnorm.
    - **Diễn giải cho paper:** các SOTA xếp hạng tốt (AUROC của CADE, Trident, SSF là 0,96–0,99 trên CIC và CIDDS) nhưng hỏng ở điểm vận hành khi có drift. Cụ thể: FPR của CADE 7–21% và Trident 15–28% trên CIC; SSF nhân quả bỏ sót zero-day trên CIC17 (recall 0,31); OWAD có AUROC 0,66–0,68 trên CIC nên gần như không phát hiện gì ở FPR 1%. Đây chính là khoảng trống mà ERNP nhắm tới.
+
+
+---
+
+## PHẦN F — KẾT QUẢ CUỐI (cập nhật 01/10/2026)
+Nguồn số liệu: `exp/reports/criteria.txt`, `criteria_rq1_final.txt`, `rq2lb.txt`, `noise.txt`, `scale.txt`. Một phần RQ2/RQ3 chạy trên server (RTX A5000). Chạy chéo cho thấy lệch rất nhỏ: F1 ≤ 0,003, payload recall và ngày hấp thụ giống hệt.
+
+| RQ | Kết quả | Claim được phép viết |
+|---|---|---|
+| RQ1 | F1 trung bình 0,867 so với 0,671 (SSF). SOTA-best: 0,907 so với 0,775. Hạng 1 về F1, MCC, recall zero-day. Theo từng dataset: 18/20 cặp có CI 95% > 0; thua SSF trên CIDDS (−0,009) và Trident trên ToN. Friedman mức dataset (n = 4): p = 0,08 | Đứng đầu ổn định, **không** thắng trên mọi dataset. Dùng effect size + CI theo dataset, không dùng p gộp 20 cặp |
+| RQ1, quy mô đầy đủ (CIC17, 2,1M flow, 3 seed) | F1: CADE 0,959, ERNP 0,940. Recall zero-day @1% FPR: ERNP 0,859, CADE 0,789. Còn lại ≤ 0,86 | Ngang CADE, rẻ hơn nhiều |
+| RQ2 | ERNP không bị hấp thụ; payload giữ ≥ mức sạch. Không SOTA nào bị hấp thụ ở 200 nhãn/ngày. **Với 25 nhãn/ngày**, payload zero-day: ERNP 0,75, SSF 0,63. Đối chứng tự học: 0,74 → 0,07 | Bền vững ở chi phí nhãn thấp; cơ chế bằng chứng tin cậy là nguyên nhân (đối chứng nhân quả) |
+| RQ3 | ERNP 25 nhãn/ngày > SSF 200 và 400 nhãn/ngày (CIC18 0,905 so với 0,860/0,873; ToN 0,665 so với 0,378/0,510) | Hiệu quả nhãn gấp khoảng 8 lần |
+| RQ4 | Prior có cấu trúc và nguồn bằng chứng tin cậy là then chốt. Dạng rút lại mềm hay cứng không quan trọng | Đóng góp nằm ở prior + bằng chứng tin cậy |
+| RQ5 | 104–286k flow/giây trên CPU. Độ nhạy nhỏ trên CIDDS/CIC18, lớn trên ToN | Triển khai được |
+| Nhãn sai | ERNP suy giảm khi analyst sai ≥ 10% (CIC18 0,910 → 0,840 so với SSF 0,861). SSF gần như không đổi | **Hạn chế phải ghi rõ**; hướng tương lai: rút lại khi có nhiều xác nhận |
+
+**Còn mở:** dataset held-out (#5); chứng minh P1–P3 (phát biểu lại P1 có nội dung, xét cả trường hợp nhãn sai).

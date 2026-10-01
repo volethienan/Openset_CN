@@ -183,3 +183,20 @@ write("cadence.tex", "\\begin{tabular}{ll" + "cc" * len(DS) + "}\n\\toprule\n & 
       "".join(f"\\cmidrule(lr){{{3 + 2 * i}-{4 + 2 * i}}}" for i in range(len(DS))) +
       "\nMethod & Update & " + " & ".join(["F1 & MCC"] * len(DS)) + "\\\\\n\\midrule\n" + "\n".join(rows) +
       "\n\\bottomrule\n\\end{tabular}\n")
+
+# ------------------------------------------------------------------ Table: zero-day recall vs FPR at each method's own decision rule
+s = r1[r1.method.isin(M2)].groupby(["dataset", "method"])[["zero_day_recall", "FPR"]].mean()
+rows = []
+for m in M2:
+    cells = []
+    for ds in DS:
+        z, f = s.loc[(ds, m)]
+        dominated = any((s.loc[(ds, o)].zero_day_recall >= z) and (s.loc[(ds, o)].FPR <= f) and
+                        ((s.loc[(ds, o)].zero_day_recall > z) or (s.loc[(ds, o)].FPR < f)) for o in M2 if o != m)
+        cells.append(f"{z:.3f} & {100 * f:.2f}" + ("" if dominated else "$^\\star$"))
+    rows.append(f"{NAME[m]} & " + " & ".join(cells) + "\\\\")
+write("zd_fpr.tex", "\\begin{tabular}{l" + "cc" * len(DS) + "}\n\\toprule\n & " +
+      " & ".join(f"\\multicolumn{{2}}{{c}}{{{DSN[d]}}}" for d in DS) + "\\\\\n" +
+      "".join(f"\\cmidrule(lr){{{2 + 2 * i}-{3 + 2 * i}}}" for i in range(len(DS))) +
+      "\nMethod & " + " & ".join(["ZD rec. & FPR\\,\\%"] * len(DS)) + "\\\\\n\\midrule\n" + "\n".join(rows) +
+      "\n\\bottomrule\n\\end{tabular}\n")

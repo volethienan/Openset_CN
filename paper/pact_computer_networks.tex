@@ -104,7 +104,13 @@ The contributions are the following.
   \item \textbf{Label efficiency and a causal account of robustness.} \ERNP with 25 labels per day outperforms SSF with 200--400. A counterfactual that replaces analyst evidence by \ERNP's own verdicts isolates the mechanism: under controlled poisoning its zero-day payload recall drops from 0.74 to 0.07. The settings in which \ERNP does not win are reported as results (Section~\ref{sec:discussion}).
 \end{enumerate}
 
-The novelty claim is methodological. Classification against a reference distribution and learning from analyst feedback are both known (Section~\ref{sec:related}). The contribution is an adaptation rule in which trusted evidence \emph{retracts} a structured novelty prior. We state its guarantees, measure the conditions under which it holds, and report where it fails.
+The novelty claim is methodological. Classification against a reference distribution and learning from analyst feedback are both known (Section~\ref{sec:related}). What is new is \emph{what} adapts and \emph{how}. Three comparisons make this precise.
+\begin{itemize}
+  \item \textbf{Negative sampling} \cite{sipple2020negative} contrasts data with a \emph{fixed} reference distribution. In \ERNP the reference is the object that adapts, and only trusted evidence can change it.
+  \item \textbf{Active learning and active anomaly discovery} \cite{settles2009active,das2016aad} use labels to update the \emph{detector}: a classifier or ensemble weights. \ERNP uses them to update the \emph{novelty hypothesis}, and the update can only remove prior mass where benign traffic is confirmed. The same classifier, features and alert-group labels without the prior (GBM+AL) lose 0.26--0.29 F1 on average (Section~\ref{sec:rq4}).
+  \item \textbf{Continual learners} (SSF, OWAD) and streaming detectors update their model of normality. Whatever enters that update, whether accepted traffic or pseudo-labels, gives an adversary a lever. \ERNP's monotone, evidence-only update makes the detector a function of the labelled history alone. Proposition~\ref{prop:p1} proves this, and the counterfactual isolates it: the same model fed its own verdicts instead of analyst evidence loses its zero-day payload recall (0.74$\rightarrow$0.07).
+\end{itemize}
+We state the guarantees of this rule, measure the conditions under which they hold, and report where the method fails.
 
 The remainder of the paper is organised as follows. Section~\ref{sec:related} positions the work. Section~\ref{sec:problem} states the problem and threat model. Section~\ref{sec:method} describes \ERNP and its properties. Section~\ref{sec:experiments} gives the protocol, and Section~\ref{sec:results} reports RQ1--RQ5. Sections~\ref{sec:discussion} and~\ref{sec:limitations} discuss deployment meaning and threats to validity, followed by the conclusion.
 
@@ -331,26 +337,7 @@ new-IP & this study & leakage check \\
 \subsection{Metrics and statistical analysis}
 We report F1, the Matthews correlation coefficient (MCC) and FPR at each method's own decision rule. We also report \emph{zero-day recall at 1\% FPR}, measured at a common operating point: each method's 99th score percentile on the benign flows of the stream. This makes methods with built-in decision rules comparable (SSF's $p>0.5$, Trident's EVT threshold). MCC is reported because F1 rewards alerting on everything when attacks are frequent: on ToN, where 54\% of flows are attacks, an alert-all detector reaches F1 $\approx0.70$ and MCC $\approx0$. To separate the quality of a detector's scores from the choice of its operating point, we also report AUROC, AUPRC and attack recall at the same common 1\% FPR point, all computed on the stream. Finally, we report the recall of zero-day families at each method's own decision rule next to the FPR that it costs, because F1 weighs zero-day families only by their share of the attack flows.
 
-Seeds are sub-samples of the same dataset, not independent datasets. We therefore report per-dataset mean differences with 95\% bootstrap intervals over seeds \cite{efron1993bootstrap}, and a Friedman test over datasets \cite{demsar2006statistical}, rather than pooling dataset--seed pairs. Table~\ref{tab:rqmap} maps each question to its experiment. The software environment was Python 3.12.7, NumPy 2.4.6, scikit-learn 1.9.1 and PyTorch 2.6.0 (CUDA 12.4), on a 12-core CPU with an RTX~3050 GPU; part of RQ2/RQ3 ran on an RTX~A5000.
-
-\begin{table}[t]
-\centering
-\caption{Research-question map.}
-\label{tab:rqmap}
-\scriptsize
-\setlength{\tabcolsep}{2.2pt}
-\begin{tabularx}{\linewidth}{L{0.35}L{1.45}L{1.20}L{1.00}}
-\toprule
-RQ & Experiment & Main metric & Where \\
-\midrule
-RQ1 & 4 datasets $\times$ 5 seeds; best configurations; unsampled CIC-IDS2017 & F1, MCC, zero-day recall@1\%FPR & Tables~\ref{tab:rq1}--\ref{tab:scale} \\
-RQ2 & slow poisoning, 4 scenarios $\times$ 5 seeds, $B\in\{25,200\}$; counterfactual & payload recall, FPR & Table~\ref{tab:rq2} \\
-RQ3 & $B\in\{0,\dots,400\}$ on two datasets & F1 vs.\ labels & Fig.~\ref{fig:budget} \\
-RQ4 & ablations; evidence replay & $\Delta$F1; recall vs.\ distance & Table~\ref{tab:rq4}, Fig.~\ref{fig:p3} \\
-RQ5 & sensitivity; label noise; cost & $\Delta$F1; time; memory & Tables~\ref{tab:rq5}, \ref{tab:scale}; Fig.~\ref{fig:budget} \\
-\bottomrule
-\end{tabularx}
-\end{table}
+Seeds are sub-samples of the same dataset, not independent datasets. We therefore report per-dataset mean differences with 95\% bootstrap intervals over seeds \cite{efron1993bootstrap}, and a Friedman test over datasets \cite{demsar2006statistical}, rather than pooling dataset--seed pairs. Table~\ref{tab:rqmap} in Appendix~\ref{app:supp} maps each question to its experiment. The software environment was Python 3.12.7, NumPy 2.4.6, scikit-learn 1.9.1 and PyTorch 2.6.0 (CUDA 12.4), on a 12-core CPU with an RTX~3050 GPU; part of RQ2/RQ3 ran on an RTX~A5000.
 
 %======================================================================
 \section{Results}
@@ -380,7 +367,7 @@ RQ5 & $|\Delta F1|\le0.014$ on CIDDS-001 and CSE-CIC-IDS2018 except $\epsilon\ti
 
 \subsection{RQ1: zero-day detection}
 \label{sec:rq1}
-Table~\ref{tab:rq1} reports the three detection metrics per dataset. \ERNP has the best mean F1 (0.867), MCC (0.753) and zero-day recall at 1\% FPR (0.677). Among the five detectors, the strongest averages are 0.671 F1 and 0.563 MCC for SSF and 0.625 zero-day recall for CADE; the $k$NN reference reaches 0.807 F1 and 0.603 MCC. The per-dataset differences in Table~\ref{tab:effects} favour \ERNP, with an interval above zero, in 18 of 20 dataset--baseline pairs. The two exceptions are SSF on CIDDS-001 ($-0.009$) and Trident on ToN ($-0.088$); Trident alerts on 99.9\% of ToN flows and has MCC $\approx0$ there. \ERNP has the best mean rank (1.50), but with four datasets the Friedman test is not significant ($p=\friedmanp$), and we do not claim uniform superiority. On the held-out CIC-IDS2017, \ERNP reaches 0.970 F1 and 0.968 zero-day recall at 1\% FPR, against 0.932 and 0.847 for CADE, the next best of the five. The $k$NN reference is marginally higher in F1 (0.980) but detects fewer zero-day flows at 1\% FPR.
+Table~\ref{tab:rq1} reports the three detection metrics per dataset. \ERNP has the best mean F1 (0.867), MCC (0.753) and zero-day recall at 1\% FPR (0.677). Among the five detectors, the strongest averages are 0.671 F1 and 0.563 MCC for SSF and 0.625 zero-day recall for CADE; the $k$NN reference reaches 0.807 F1 and 0.603 MCC. The per-dataset differences (Table~\ref{tab:effects}, Appendix~\ref{app:supp}) favour \ERNP, with an interval above zero, in 18 of 20 dataset--baseline pairs. The two exceptions are SSF on CIDDS-001 ($-0.009$) and Trident on ToN ($-0.088$); Trident alerts on 99.9\% of ToN flows and has MCC $\approx0$ there. \ERNP has the best mean rank (1.50), but with four datasets the Friedman test is not significant ($p=\friedmanp$), and we do not claim uniform superiority. On the held-out CIC-IDS2017, \ERNP reaches 0.970 F1 and 0.968 zero-day recall at 1\% FPR, against 0.932 and 0.847 for CADE, the next best of the five. The $k$NN reference is marginally higher in F1 (0.980) but detects fewer zero-day flows at 1\% FPR.
 
 \begin{table*}[t]
 \centering
@@ -388,14 +375,6 @@ Table~\ref{tab:rq1} reports the three detection metrics per dataset. \ERNP has t
 \label{tab:rq1}
 \scriptsize
 \input{tables/rq1_main.tex}
-\end{table*}
-
-\begin{table*}[t]
-\centering
-\caption{RQ1: F1 difference \ERNP minus baseline, per dataset, mean over seeds [95\% bootstrap interval]. Bold: interval above zero; underlined: interval below zero. Friedman test over the four datasets and six methods: $p=\friedmanp$.}
-\label{tab:effects}
-\scriptsize
-\input{tables/rq1_effects.tex}
 \end{table*}
 
 \textbf{Why strong rankers fail at the operating point.} On CIDDS-001 and the CIC datasets, CADE, Trident and SSF rank anomalies well (AUROC 0.96--0.997), but they fail at a fixed low FPR under drift:
@@ -442,21 +421,13 @@ On CIDDS-001 this is exactly the trade-off behind SSF's higher F1. On the develo
 \input{tables/cadence.tex}
 \end{table*}
 
-\textbf{Each baseline at its best configuration.} To rule out an unfavourable configuration, Table~\ref{tab:sotabest} takes each method's best mean F1 over every configuration we ran:
+\textbf{Each baseline at its best configuration.} To rule out an unfavourable configuration, Table~\ref{tab:sotabest} (Appendix~\ref{app:supp}) takes each method's best mean F1 over every configuration we ran:
 \begin{itemize}
   \item SSF with 20 and 180 epochs, with its native 20k-flow windows, and with 4\,h and 1\,h updates;
   \item OWAD with 24\,h, 4\,h and 1\,h updates;
   \item MemStream with original and frozen normalisation.
 \end{itemize}
 \ERNP remains first on average (0.907 against 0.775 for SSF and 0.807 for $k$NN), but not on every dataset.
-
-\begin{table*}[t]
-\centering
-\caption{Best configuration of each method (mean F1 over the seeds run). Configurations: SSF epochs 20/180, native windows, 24/4/1\,h updates; OWAD 24/4/1\,h; MemStream original/frozen normalisation; \ERNP 24/4/1\,h.}
-\label{tab:sotabest}
-\scriptsize
-\input{tables/sota_best.tex}
-\end{table*}
 
 \textbf{Scale.} The main streams sample 1--14\% of the original data. On the unsampled CIC-IDS2017 (2.1M flows, three seeds; Table~\ref{tab:scale}), every detector changes. SSF improves markedly (0.472$\rightarrow$0.749 F1), and \ERNP and CADE are on par (0.940 vs.\ 0.959 F1; 0.859 vs.\ 0.789 zero-day recall at 1\% FPR). The other detectors stay below 0.87. Sampling did not create \ERNP's advantage over most baselines, but it did understate CADE and SSF (Section~\ref{sec:limitations}).
 
@@ -524,16 +495,7 @@ Table~\ref{tab:rq4} reports F1 differences from \ERNP. The novelty prior is the 
 
 \subsection{RQ5: sensitivity, analyst errors and cost}
 \label{sec:rq5}
-One-at-a-time variations of $\rho$, prior mass $m$ and bandwidth $\epsilon$ (Table~\ref{tab:rq5}) change F1 by at most 0.014 on CIDDS-001 and CSE-CIC-IDS2018. The one exception is halving $\epsilon$, which costs 0.047 on CSE-CIC-IDS2018. ToN is more sensitive (up to $+0.038$). All defaults were fixed before the evaluation and not tuned on these streams. Replacing gradient boosting by a random forest costs 0.26 on ToN, which indicates that classifier calibration matters where drift is strong.
-
-\begin{table}[t]
-\centering
-\caption{RQ5: $\Delta$F1 relative to the default configuration (seeds 0--2).}
-\label{tab:rq5}
-\scriptsize
-\setlength{\tabcolsep}{3pt}
-\input{tables/rq5.tex}
-\end{table}
+One-at-a-time variations of $\rho$, prior mass $m$ and bandwidth $\epsilon$ (Table~\ref{tab:rq5}, Appendix~\ref{app:supp}) change F1 by at most 0.014 on CIDDS-001 and CSE-CIC-IDS2018. The one exception is halving $\epsilon$, which costs 0.047 on CSE-CIC-IDS2018. ToN is more sensitive (up to $+0.038$). All defaults were fixed before the evaluation and not tuned on these streams. Replacing gradient boosting by a random forest costs 0.26 on ToN, which indicates that classifier calibration matters where drift is strong.
 
 \textbf{Analyst errors.} Proposition~\ref{prop:p1}(iii) predicts that analyst errors corrupt \ERNP locally. Figure~\ref{fig:budget}(c) flips each returned label with probability $p$:
 \begin{itemize}
@@ -628,6 +590,56 @@ Since $a_t\ge0$, $s_t(z)\ge\log(q_0(z)r_t(z))-\log b_t(z)$. The assumption $d(z,
 \begin{remark}
 The assumption $b_t(z)\le b_0(z)$ holds, for instance, when the benign evidence is a mixture $b_t=\lambda_t b_0+(1-\lambda_t)b_{\E}$ with $\lambda_t\le1$ and $b_{\E}(z)=0$, i.e.\ when the added benign groups lie away from $z$.
 \end{remark}
+
+\section{Supplementary results}
+\label{app:supp}
+This appendix collects the research-question map, the per-dataset effect sizes behind the RQ1 claims, the best configuration of every baseline and the hyper-parameter sensitivity of \ERNP.
+
+\begin{table}[t]
+\centering
+\caption{Research-question map.}
+\label{tab:rqmap}
+\scriptsize
+\setlength{\tabcolsep}{2.2pt}
+\begin{tabularx}{\linewidth}{L{0.35}L{1.45}L{1.20}L{1.00}}
+\toprule
+RQ & Experiment & Main metric & Where \\
+\midrule
+RQ1 & 4 datasets $\times$ 5 seeds; best configurations; unsampled CIC-IDS2017 & F1, MCC, zero-day recall@1\%FPR & Tables~\ref{tab:rq1}--\ref{tab:scale} \\
+RQ2 & slow poisoning, 4 scenarios $\times$ 5 seeds, $B\in\{25,200\}$; counterfactual & payload recall, FPR & Table~\ref{tab:rq2} \\
+RQ3 & $B\in\{0,\dots,400\}$ on two datasets & F1 vs.\ labels & Fig.~\ref{fig:budget} \\
+RQ4 & ablations; evidence replay & $\Delta$F1; recall vs.\ distance & Table~\ref{tab:rq4}, Fig.~\ref{fig:p3} \\
+RQ5 & sensitivity; label noise; cost & $\Delta$F1; time; memory & Tables~\ref{tab:rq5}, \ref{tab:scale}; Fig.~\ref{fig:budget} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table*}[t]
+\centering
+\caption{RQ1: F1 difference \ERNP minus baseline, per dataset, mean over seeds [95\% bootstrap interval]. Bold: interval above zero; underlined: interval below zero. Friedman test over the four datasets and six methods: $p=\friedmanp$.}
+\label{tab:effects}
+\scriptsize
+\input{tables/rq1_effects.tex}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\caption{Best configuration of each method (mean F1 over the seeds run). Configurations: SSF epochs 20/180, native windows, 24/4/1\,h updates; OWAD 24/4/1\,h; MemStream original/frozen normalisation; \ERNP 24/4/1\,h.}
+\label{tab:sotabest}
+\scriptsize
+\input{tables/sota_best.tex}
+\end{table*}
+
+\begin{table}[t]
+\centering
+\caption{RQ5: $\Delta$F1 relative to the default configuration (seeds 0--2).}
+\label{tab:rq5}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\input{tables/rq5.tex}
+\end{table}
+
+\clearpage
 
 \bibliographystyle{cas-model2-names}
 \bibliography{refs}

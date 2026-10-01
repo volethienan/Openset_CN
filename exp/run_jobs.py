@@ -77,8 +77,7 @@ def rq5_jobs(seed):
 def cad_jobs(seed):
     """cadence study (added after the RQ1 preview showed day-level benign novelty on ToN): update every 4 h / 1 h
     with the SAME total label budget (200/day, split exactly over the periods of a day), label-using methods only"""
-    if seed > 2: return []
-    jobs = []
+    jobs = []                                  # seeds 0-2 (first campaign); seeds 3-4 added 01/10/2026 for five-seed tables
     for ds in ds_names(seed).values():
         for h in (1, 4):
             jobs.append(("cpu", ds, f"ernp_P{h}", ["ernp.py", ds, "--period", str(h), "--name", f"ernp_P{h}"]))
@@ -88,6 +87,11 @@ def cad_jobs(seed):
                 if m == "ssf_causal" and h == 1 and not (ds == "ToN_ctx" and seed == 0): continue
                 jobs.append(("gpu", ds, f"{m}_P{h}", ["baselines/sota.py", ds, f"{m}_P{h}"]))
     return jobs
+
+def opf_jobs(seed):
+    """operating-point check (01/10/2026): ERNP with tau at 0.2% holdout FPR instead of 1%, every dataset - shows what
+    closing the F1 gap to SSF on CIDDS-001 costs in zero-day recall (the 1% default is unchanged)"""
+    return [("cpu", ds, "ernp_F002", ["ernp.py", ds, "--fpr", "0.002", "--name", "ernp_F002"]) for ds in ds_names(seed).values()]
 
 def ext_jobs(seed):
     """reviewer-proofing additions (28/09/2026): classical references, MemStream-fixnorm, the absorbing counterfactual
@@ -200,7 +204,7 @@ if __name__ == "__main__":
     ap.add_argument("--threads", type=int, default=0, help="CPU threads per job (keep (gpu + cpu) x threads <= cores)")
     a = ap.parse_args(); GPU_IDS[:] = [g.strip() for g in a.gpu_ids.split(",") if g.strip()]; THREADS = a.threads
     GEN = {"rq1": rq1_jobs, "rq2": rq2_jobs, "rq3": rq3_jobs, "rq4": rq4_jobs, "rq5": rq5_jobs, "cad": cad_jobs, "ext": ext_jobs, "ext1": ext1_jobs, "rq2lb": rq2lb_jobs, "noise": noise_jobs,
-           "scale": scale_jobs}
+           "scale": scale_jobs, "opf": opf_jobs}
     jobs = [(j, s) for rq in a.rq.split("+") for s in a.seeds for j in GEN[rq](s)]
     if a.rq == "cad":   # most informative first: ToN, then CIC18, CIC17, CIDDS; 1 h before 4 h
         prio = {"ToN": 0, "CIC18": 1, "CIC17": 2, "CIDDS": 3}

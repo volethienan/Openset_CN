@@ -68,3 +68,19 @@ CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 MAX_GPU_PROCS=4 taskset -c 0
 Giới hạn 24 lõi: `taskset -c 0-23` giữ mọi job trong 24 lõi được phép (đổi số lõi theo phần được cấp), còn `--threads 4` giới hạn mỗi job 4 luồng, tức (4 GPU + 2 CPU) × 4 = 24.
 
 Xong thì đẩy kết quả: `git add exp/results && git commit -m "extra experiments" && git push`.
+
+## Đợt bổ sung: nhịp cập nhật cho seed 3–4 (01/10/2026, nhánh `improve-ernp`)
+Bảng so sánh theo nhịp cập nhật (24/4/1 giờ) hiện có 3 seed. Đợt này thêm seed 3–4 để mọi bảng đều đủ 5 seed: 40 job, gồm ERNP P1/P4 (CPU), OWAD P1/P4 và SSF P4 (GPU).
+
+```bash
+cd /workspace/anvlt/Openset_CN
+git fetch && git checkout improve-ernp && git pull && git lfs pull
+source ~/ernp_env/bin/activate
+cd exp && mkdir -p logs
+CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 MAX_GPU_PROCS=4 taskset -c 0-23 nohup python run_jobs.py cad --seeds 3 4 --gpu 4 --cpu 4 --threads 3 > logs/cad34.log 2>&1 &
+```
+- (4 GPU + 4 CPU) × 3 luồng = 24 lõi. Chỉ dùng GPU 0.
+- Theo dõi: `grep -c "OK\|ERR" logs/cad34.log` (đủ 40 là xong); lỗi: `grep ERR logs/cad34.log`.
+- Lâu nhất là SSF ở nhịp 4 giờ; ước tính toàn đợt 6–10 giờ.
+
+Xong thì đẩy kết quả: `git add exp/results && git commit -m "cadence seeds 3-4" && git push`.

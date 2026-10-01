@@ -16,6 +16,13 @@
 > - Độ thuần của nhóm (`audit` trong info): 5,5% flow được đưa vào P trên ToN thực ra là tấn công. Nhưng cận trên "nhóm thuần hoàn hảo" (`--evidence oracle_pure`, chỉ để chẩn đoán) còn không tốt hơn, tức nhóm bị lẫn KHÔNG phải nguyên nhân.
 > - Chỉ số không phụ thuộc ngưỡng: trên CIDDS, ERNP tốt nhất (AUROC 0,998, AUPRC 0,995). Thua F1 ở đây chỉ do điểm vận hành. Trên ToN theo ngày, ERNP có AUROC 0,654, thấp hơn OWAD (0,781) và SSF (0,752). Đây là chỗ thua thật duy nhất, và nguyên nhân là ngày có chế độ benign mới.
 
+> **Vòng thử thứ tư (01/10/2026, seed 0–1): coi bằng chứng là quan sát Bayes. KHÔNG ĐẠT.**
+> - Rút lại tích lũy (`--retraction prod`, r = Π_e(1−k)): FPR trên ToN giảm từ 0,436 xuống 0,366, nhưng recall zero-day @1% FPR sụp từ 0,151 xuống 0,008.
+> - Mô hình 3 lớp với rút lại tại lúc suy luận (`--analytic 1`): theo ngày đã kém ERNP (AUPRC trên ToN 0,576 so với 0,677). Gán nhãn theo giờ mà không fit lại (`--period 1`): F1 0,589, so với ERNP fit lại theo giờ 0,729. Lợi ích của cập nhật nhanh đến từ việc benign đã xác nhận đi vào lớp benign, không đến từ kênh rút lại.
+> - Bộ ước lượng tỉ số mật độ bằng MLP (`--clf mlp`): ToN AUROC 0,441, CIC18 F1 0,726. Kém hơn GBM.
+> - AUROC theo ngày trên ToN: ERNP đạt 0,04 vào ngày 29/04 (xếp hạng ngược) và 0,50 vào ngày 25/04, trong khi OWAD đạt 0,83/0,87. Ngược lại, OWAD chỉ đạt 0,66–0,69 trên CIC. "Tính mới nằm trên đa tạp" là benign ở ToN nhưng là tấn công ở CIC.
+> - Chọn giả thuyết tính mới (ERNP hay autoencoder) bằng nhãn của ngày trước (`exp/diagnose_hypothesis_selection.py`): chọn đúng ERNP trên CIC/CIDDS. Trên ToN, lựa chọn đổi qua lại theo ngày và cho AUROC 0,624, kém cả hai giả thuyết riêng lẻ, vì loại tính mới nào là benign tự nó thay đổi theo ngày.
+
 ---
 
 ## 1. ERNP thua ở đâu, và vì sao (chẩn đoán có số liệu)

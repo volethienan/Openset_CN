@@ -24,7 +24,8 @@ DEFAULTS = dict(rho=0.3, prior_mass=1.0, budget=200, prior="partial", retraction
                 features="ctx", protocol="causal", n_pos_max=40000, n_known_max=10000, gbm_iter=300, gbm_lr=0.1,
                 eps_mult=1.0, clf="gbm", period=24,          # period: update cadence in hours (24 = daily)
                 evidence_source="analyst", n_self=5000,
-                label_noise=0.0, fpr=0.01)                             # analyst flips each representative label w.p. label_noise      # "self": counterfactual absorbing channel (RQ2/RQ4)
+                label_noise=0.0, fpr=0.01,
+                analytic=0, refit=24, knn=32)  # analytic: 3-class model, retraction applied at inference; refit: hours between refits                           # analyst flips each representative label w.p. label_noise      # "self": counterfactual absorbing channel (RQ2/RQ4)
 
 class ERNP:
     def __init__(self, cfg, rng):
@@ -55,6 +56,11 @@ class ERNP:
         if self.c["retraction"] == "shaped":   # kernel stretched along the drift directions the evidence revealed
             w = self.shape_w(); d = NearestNeighbors(n_neighbors=1).fit(self.conf * w).kneighbors(Q * w)[0][:, 0]
             return 1.0 - np.exp(-d ** 2 / (2 * self.eps ** 2))
+        if self.c["retraction"] == "prod":     # independent thinning by EVERY evidence point: r = prod_e (1 - k(x, e))
+            k = min(self.c["knn"], len(self.conf))
+            d = NearestNeighbors(n_neighbors=k).fit(self.conf).kneighbors(Q)[0]
+            kern = np.minimum(np.exp(-d ** 2 / (2 * self.eps ** 2)), 1 - 1e-12)
+            return np.exp(np.log1p(-kern).sum(1))
         d = NearestNeighbors(n_neighbors=1).fit(self.conf).kneighbors(Q)[0][:, 0]
         if self.c["retraction"] == "soft": return 1.0 - np.exp(-d ** 2 / (2 * self.eps ** 2))
         if self.c["retraction"] == "hard": return (d > self.eps).astype(float)
@@ -74,6 +80,7 @@ class ERNP:
         self.dsum = d2.sum(0) if self.dsum is None else self.dsum + d2.sum(0); self.dn += len(G)
 
     def fit(self, P, A):
+        if self.c["analytic"]: return self.fit3(P, A)
         Q = self.sample_prior(P); n_gen = max(len(Q), 1)
         w_q = self.retained(Q); keep = w_q > 1e-3; Q, w_q = Q[keep], w_q[keep]
         X = np.vstack([P, Q, A]); y = np.r_[np.zeros(len(P)), np.ones(len(Q) + len(A))]
@@ -85,12 +92,50 @@ class ERNP:
         elif self.c["clf"] == "rf":                                   # RQ5: classifier family sensitivity
             from sklearn.ensemble import RandomForestClassifier
             self.clf = RandomForestClassifier(300, min_samples_leaf=5, n_jobs=int(os.environ.get("OMP_NUM_THREADS", 4)), random_state=0).fit(X, y, sample_weight=w)
+        elif self.c["clf"] == "mlp":                                  # diagnostic: smooth, relational ratio estimator
+            self.clf = _mlp_fit(X, y, w)
         else: raise ValueError(self.c["clf"])
         return self
 
+    def fit3(self, P, A):
+        """analytic variant: one 3-class model {benign, attack, prior} on the UNRETRACTED prior. In the population,
+        p_c(x) ~ w_c f_c(x), so log((p_A + r_t p_Q) / p_B) equals the score of a model trained on the retracted prior:
+        evidence then acts at inference time, without refitting."""
+        Q = self.sample_prior(P)
+        X = np.vstack([P, A, Q]); y = np.r_[np.zeros(len(P)), np.ones(len(A)), np.full(len(Q), 2)]
+        w = np.r_[np.full(len(P), 0.5 / len(P)), np.full(len(A), 0.5 / max(len(A), 1)), np.full(len(Q), 0.5 / max(len(Q), 1))]
+        self.clf = HistGradientBoostingClassifier(max_iter=self.c["gbm_iter"], learning_rate=self.c["gbm_lr"],
+                                                  random_state=0).fit(X, y, sample_weight=w / w.mean())
+        return self
+
     def score(self, Z):
+        if self.c["analytic"]:
+            p = self.clf.predict_proba(Z); pa = p[:, 1] if p.shape[1] == 3 else 0.0
+            return np.log(pa + self.retained(Z) * p[:, -1] + 1e-9) - np.log(p[:, 0] + 1e-9)
         if self.c["clf"] == "gbm": return self.clf.decision_function(Z)
+        if self.c["clf"] == "mlp": return _mlp_score(self.clf, Z)
         p = np.clip(self.clf.predict_proba(Z)[:, 1], 1e-6, 1 - 1e-6); return np.log(p / (1 - p))
+
+def _mlp_fit(X, y, w, epochs=20, bs=1024):
+    """weighted logistic MLP (2 x 256, ReLU) - same objective as the GBM density-ratio classifier"""
+    import torch
+    torch.manual_seed(seed()); dev = "cuda" if torch.cuda.is_available() else "cpu"
+    net = torch.nn.Sequential(torch.nn.Linear(X.shape[1], 256), torch.nn.ReLU(), torch.nn.Linear(256, 256), torch.nn.ReLU(),
+                              torch.nn.Linear(256, 1)).to(dev)
+    opt = torch.optim.Adam(net.parameters(), 1e-3, weight_decay=1e-5)
+    Xt, yt, wt = (torch.tensor(a, dtype=torch.float32, device=dev) for a in (X, y, w))
+    g = torch.Generator(device="cpu").manual_seed(seed())
+    for _ in range(epochs):
+        for b in torch.randperm(len(Xt), generator=g).split(bs):
+            b = b.to(dev); loss = (torch.nn.functional.binary_cross_entropy_with_logits(net(Xt[b])[:, 0], yt[b], reduction="none") * wt[b]).mean()
+            opt.zero_grad(); loss.backward(); opt.step()
+    return net.eval()
+
+def _mlp_score(net, Z, bs=65536):
+    import torch
+    dev = next(net.parameters()).device
+    with torch.no_grad():
+        return np.concatenate([net(torch.tensor(Z[i:i + bs], dtype=torch.float32, device=dev))[:, 0].cpu().numpy() for i in range(0, len(Z), bs)])
 
 def run(ds, **cfg):
     c = dict(DEFAULTS); c.update(cfg)
@@ -105,7 +150,11 @@ def run(ds, **cfg):
     t0 = time.time(); m.fit(P, A); t_fit.append(time.time() - t0)
     tau = calib_upper(m.score(X[ho])) if c["fpr"] == 0.01 else float(np.quantile(m.score(X[ho]), 1 - c["fpr"]))   # operating point
     day = stream_periods(df, s_idx, c["period"]); s = np.zeros(len(s_idx)); F = np.zeros(len(s_idx), bool); n_lab = 0; audit = []
-    for d in dict.fromkeys(day):
+    refit_at = stream_periods(df, s_idx, c["refit"])               # analytic mode: refit only when this block ends
+    order = list(dict.fromkeys(day)); last_of_block = {}
+    for i, d in enumerate(order):
+        i0 = np.argmax(day == d); last_of_block[d] = i == len(order) - 1 or refit_at[np.argmax(day == order[i + 1])] != refit_at[i0]
+    for d in order:
         idx = np.where(day == d)[0]
         t0 = time.time(); s[idx] = m.score(X[s_idx[idx]]); t_score += time.time() - t0; n_scored += len(idx)
         F[idx] = s[idx] > tau
@@ -118,7 +167,10 @@ def run(ds, **cfg):
             continue
         if c["budget"] <= 0: continue                              # no online labels -> q never changes (P1)
         al = s_idx[idx][s[idx] > tau]; Bk = period_budget(d, c["period"], c["budget"])   # = budget when daily
-        if len(al) < 2 or Bk <= 0: continue
+        if len(al) < 2 or Bk <= 0:
+            if c["analytic"] and last_of_block[d]:                 # block ends without new labels: refit on what accrued
+                t0 = time.time(); m.fit(P[-2 * c["n_pos_max"]:], A[-4 * c["n_known_max"]:]); t_fit.append(time.time() - t0)
+            continue
         k = min(Bk, len(al)); km = MiniBatchKMeans(k, random_state=seed(), n_init=3).fit(X[al])
         addP, addA = [], []
         for cl in range(k):
@@ -138,6 +190,7 @@ def run(ds, **cfg):
             m.observe(np.vstack(addP), P[-2 * c["n_pos_max"]:])
             P = np.vstack([P] + addP); m.conf = np.vstack(([m.conf] if m.conf is not None else []) + addP)
         if addA: A = np.vstack([A] + addA)
+        if c["analytic"] and not last_of_block[d]: continue        # evidence already acts through r_t at inference
         t0 = time.time(); m.fit(P[-2 * c["n_pos_max"]:], A[-4 * c["n_known_max"]:]); t_fit.append(time.time() - t0)
         if c["protocol"] == "ssf":                                 # SSF's native protocol: predict after learning the day
             s[idx] = m.score(X[s_idx[idx]]); F[idx] = s[idx] > tau

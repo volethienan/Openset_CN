@@ -401,7 +401,13 @@ Table~\ref{tab:rq1} reports the three detection metrics per dataset. \ERNP has t
 
 \textbf{Zero-day recall against false alarms.} F1 weighs zero-day families by their share of the attack flows, which is small on CIDDS-001. Table~\ref{tab:zdfpr} therefore reports, at each method's own decision rule, the recall of zero-day families together with the FPR it costs. A method is marked when no other method has both higher zero-day recall and lower FPR on that dataset. \ERNP is the only detector that is Pareto-optimal on all four datasets. Every baseline is dominated on at least one: SSF on ToN, CADE on ToN and CSE-CIC-IDS2018, Trident on CSE-CIC-IDS2018, OWAD and MemStream on three datasets. Among the detectors with FPR below 1\%, \ERNP has the highest zero-day recall on CIDDS-001 (0.625, against 0.262 for SSF and 0.000 for OWAD) and on CSE-CIC-IDS2018 (0.966 vs.\ 0.758).
 
-On CIDDS-001 this is exactly the trade-off behind SSF's higher F1. On the development seeds (0--1) we moved \ERNP's threshold from 1\% to 0.2\% holdout FPR. Its FPR fell from 0.5\% to 0.1\% and its F1 rose from 0.977 to 0.985, level with SSF. Its zero-day recall, however, fell from 0.64 to 0.08. The benign flows that \ERNP flags on CIDDS-001 share their score range with the zero-day brute-force flows, so removing those false alarms removes the zero-day detections with them. We keep the 1\% operating point, which was fixed before the evaluation.
+On CIDDS-001 this is exactly the trade-off behind SSF's higher F1. To show it, we reran \ERNP on all four datasets and five seeds with its threshold at 0.2\% instead of 1\% holdout FPR.
+\begin{itemize}
+  \item On CIDDS-001, its FPR fell from 0.47\% to 0.10\% and its F1 rose from 0.976 to 0.984, level with SSF (0.985). Its zero-day recall, however, fell from 0.625 to 0.093, below SSF's 0.262. The benign flows that \ERNP flags there share their score range with the zero-day brute-force flows, so removing those false alarms removes the zero-day detections with them.
+  \item On ToN, F1 fell from 0.610 to 0.441.
+  \item On the CIC datasets, F1 rose (0.970$\rightarrow$0.977 and 0.914$\rightarrow$0.945) at a small cost in zero-day recall (0.981$\rightarrow$0.974 and 0.966$\rightarrow$0.944).
+\end{itemize}
+No single operating point is best on every dataset. We keep the 1\% point, which was fixed before the evaluation.
 
 \begin{table*}[t]
 \centering

@@ -6,7 +6,8 @@ import pandas as pd, numpy as np, glob, sys, os
 _PROJ = os.environ.get("ERNP_ROOT", os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))).replace("\\", "/").rstrip("/") + "/"
 ROOT = _PROJ + "dataraw/"
 OUT = _PROJ + "mock/streams/"; os.makedirs(OUT, exist_ok=True)
-TARGET, MIN_FAM = 300_000, 600
+TARGET, MIN_FAM = int(os.environ.get("ERNP_TARGET", 300_000)), 600   # ERNP_TARGET: larger samples for the scale study
+EXTRA = os.environ.get("ERNP_STREAM_EXTRA", "")   # stream-name suffix after the seed suffix, e.g. "_x10" -> CIDDS_ctx_s1_x10
 SEED = int(os.environ.get("EXP_SEED", 0))   # seed 0 reproduces the mock-test streams
 rng = np.random.default_rng(SEED)
 

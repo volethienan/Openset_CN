@@ -10,7 +10,8 @@ import prepare as P, prepare_ctx as C
 DROP = {"id", "Flow ID", "Src IP", "Src Port", "Dst IP", "Dst Port", "Protocol", "Timestamp", "Label", "Attempted Category"}
 CFG = {"CIC17": ("CICIDS2017_improved/CICIDS2017_improved.zip", 300_000),
        "CIC18": ("CSECICIDS2018_improved/CSECICIDS2018_improved.zip", 400_000),
-       "CIC17_full": ("CICIDS2017_improved/CICIDS2017_improved.zip", None)}   # scale check: no sampling (2.1M flows)
+       "CIC17_full": ("CICIDS2017_improved/CICIDS2017_improved.zip", None),   # scale check: no sampling (2.1M flows)
+       "CIC18_x10": ("CSECICIDS2018_improved/CSECICIDS2018_improved.zip", 4_000_000)}   # scale study: 10x the main sample
 
 def norm_label(s):
     s = s.astype(str).str.strip()

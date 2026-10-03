@@ -87,7 +87,7 @@ def build(name):
     for j in range(C.shape[1]): df[f"f_{base + j}"] = C[:, j]
     df = df.dropna(subset=["t"]).sort_values("t", kind="stable").reset_index(drop=True)
     sfx = "" if P.SEED == 0 else f"_s{P.SEED}"
-    df.to_parquet(OUT + f"{name}_ctx{sfx}.parquet"); print(name, sfx, df.shape, df["fam"].value_counts().to_dict(), flush=True)
+    df.to_parquet(OUT + f"{name}_ctx{sfx}{P.EXTRA}.parquet"); print(name, sfx, df.shape, df["fam"].value_counts().to_dict(), flush=True)
 
 if __name__ == "__main__":
     build(sys.argv[1])

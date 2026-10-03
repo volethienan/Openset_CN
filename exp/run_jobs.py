@@ -124,6 +124,16 @@ def scale_jobs(seed):
     ds = "CIC17_full"
     return [("cpu", ds, "ernp", ["ernp.py", ds])] + [("gpu", ds, m, ["baselines/sota.py", ds, m]) for m in SOTA5]
 
+def x10_jobs(seed):
+    """scale study (03/10/2026): CIDDS-001 and CSE-CIC-IDS2018 resampled at 10x the main sample (3M / 4M flows),
+    same protocol and defaults; seeds 0-2 (each seed is an independent sample). Streams: exp/data, ERNP_TARGET/_x10."""
+    if seed > 2: return []
+    s = "" if seed == 0 else f"_s{seed}"
+    jobs = []
+    for ds in (f"CIDDS_ctx{s}_x10", f"CIC18_x10{s}"):
+        jobs += [("cpu", ds, "ernp", ["ernp.py", ds])] + [("gpu", ds, m, ["baselines/sota.py", ds, m]) for m in SOTA5]
+    return jobs
+
 def running_elsewhere(args, seed=None):
     """True if the same job (same command AND same EXP_SEED) is already running in another process"""
     try:
@@ -204,7 +214,7 @@ if __name__ == "__main__":
     ap.add_argument("--threads", type=int, default=0, help="CPU threads per job (keep (gpu + cpu) x threads <= cores)")
     a = ap.parse_args(); GPU_IDS[:] = [g.strip() for g in a.gpu_ids.split(",") if g.strip()]; THREADS = a.threads
     GEN = {"rq1": rq1_jobs, "rq2": rq2_jobs, "rq3": rq3_jobs, "rq4": rq4_jobs, "rq5": rq5_jobs, "cad": cad_jobs, "ext": ext_jobs, "ext1": ext1_jobs, "rq2lb": rq2lb_jobs, "noise": noise_jobs,
-           "scale": scale_jobs, "opf": opf_jobs}
+           "scale": scale_jobs, "opf": opf_jobs, "x10": x10_jobs}
     jobs = [(j, s) for rq in a.rq.split("+") for s in a.seeds for j in GEN[rq](s)]
     if a.rq == "cad":   # most informative first: ToN, then CIC18, CIC17, CIDDS; 1 h before 4 h
         prio = {"ToN": 0, "CIC18": 1, "CIC17": 2, "CIDDS": 3}

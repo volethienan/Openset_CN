@@ -1,6 +1,0 @@
-Highlights
-- NIDS adapts only by retracting a novelty prior where analysts confirm benign traffic
-- Unlabelled traffic cannot move the detector; analyst errors have a bounded footprint
-- Best average zero-day detection against five recent detectors on four benchmarks
-- 25 labels per day outperform a continual learner using 200 to 400 labels per day
-- Counterfactual isolates trusted evidence as the cause of robustness to poisoning

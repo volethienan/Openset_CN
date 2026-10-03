@@ -4,3 +4,4 @@ __pycache__/
 exp/logs/
 exp/results_superseded/
 .ipynb_checkpoints/
+paper/

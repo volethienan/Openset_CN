@@ -125,14 +125,11 @@ def scale_jobs(seed):
     return [("cpu", ds, "ernp", ["ernp.py", ds])] + [("gpu", ds, m, ["baselines/sota.py", ds, m]) for m in SOTA5]
 
 def x10_jobs(seed):
-    """scale study (03/10/2026): CIDDS-001 and CSE-CIC-IDS2018 resampled at 10x the main sample (3M / 4M flows),
-    same protocol and defaults; seeds 0-2 (each seed is an independent sample). Streams: exp/data, ERNP_TARGET/_x10."""
+    """scale study (03/10/2026): CSE-CIC-IDS2018 resampled at 10x the main sample (4M flows), same protocol and
+    defaults; seeds 0-2 (each seed is an independent sample). Streams: exp/data/build_x10.sh."""
     if seed > 2: return []
-    s = "" if seed == 0 else f"_s{seed}"
-    jobs = []
-    for ds in (f"CIDDS_ctx{s}_x10", f"CIC18_x10{s}"):
-        jobs += [("cpu", ds, "ernp", ["ernp.py", ds])] + [("gpu", ds, m, ["baselines/sota.py", ds, m]) for m in SOTA5]
-    return jobs
+    ds = "CIC18_x10" if seed == 0 else f"CIC18_x10_s{seed}"
+    return [("cpu", ds, "ernp", ["ernp.py", ds])] + [("gpu", ds, m, ["baselines/sota.py", ds, m]) for m in SOTA5]
 
 def running_elsewhere(args, seed=None):
     """True if the same job (same command AND same EXP_SEED) is already running in another process"""

@@ -86,9 +86,9 @@ CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 MAX_GPU_PROCS=4 taskset -c 0
 Xong thì đẩy kết quả: `git add exp/results && git commit -m "cadence seeds 3-4" && git push`.
 
 ## Đợt bổ sung: nghiên cứu theo quy mô ×10 (03/10/2026)
-Mục đích: kiểm tra lợi thế của ERNP có phải do lấy mẫu hay không. CIDDS-001 được lấy mẫu 3 triệu flow, CSE-CIC-IDS2018 4 triệu flow, tức gấp 10 lần mẫu chính; seed 0–2; ERNP và 5 SOTA: **36 job**.
+Mục đích: kiểm tra lợi thế của ERNP có phải do lấy mẫu hay không. CSE-CIC-IDS2018 được lấy mẫu 4 triệu flow, gấp 10 lần mẫu chính; seed 0–2; ERNP và 5 SOTA: **18 job**.
 
-**1. Chép stream lên server.** Các file lớn (tổng khoảng 2–3 GB) không đi qua GitHub. Chạy lệnh sau trên **máy local** (PowerShell), thay `<server>` bằng địa chỉ bạn vẫn dùng để SSH:
+**1. Chép stream lên server.** 3 file lớn (tổng khoảng 2 GB) không đi qua GitHub. Chạy lệnh sau trên **máy local** (PowerShell), thay `<server>` bằng địa chỉ bạn vẫn dùng để SSH:
 ```bash
 scp C:\Users\AnThiwn\Desktop\Openset_CN\mock\streams\*_x10*.parquet anvlt@<server>:/workspace/anvlt/Openset_CN/mock/streams/
 ```
@@ -99,6 +99,6 @@ cd /workspace/anvlt/Openset_CN && git pull && source ~/ernp_env/bin/activate && 
 CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 MAX_GPU_PROCS=4 taskset -c 0-23 python run_jobs.py x10 --seeds 0 1 2 --gpu 4 --cpu 4 --threads 3 > logs/x10.log 2>&1
 ```
 - Mỗi job đọc cả stream vào RAM (3–5 GB). Nếu server báo thiếu RAM hoặc thiếu bộ nhớ GPU, giảm xuống `--gpu 3 --cpu 3 --threads 4`.
-- Xong khi `grep -c "OK\|ERR" logs/x10.log` đạt 36. Ước tính khoảng 1–1,5 ngày; lâu nhất là SSF.
+- Xong khi `grep -c "OK\|ERR" logs/x10.log` đạt 18. Ước tính khoảng 12–20 giờ; lâu nhất là SSF.
 
 Xong thì đẩy kết quả: `git add exp/results && git commit -m "x10 scale study" && git push`.

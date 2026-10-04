@@ -181,6 +181,15 @@ def run_ssf(ds, epochs=200, epoch_1=None, opt_old_lr=24, opt_new_lr=50, new_samp
     return prob, prob > 0.5, dict(labels_used=n_lab, drift_intervals=n_drift)
 
 # ---------------------------------------------------------------- Trident (official model + EVT)
+def _ae_err(mdl, Xn, bs=65536):
+    """per-row reconstruction MSE, computed in GPU batches (same values as one full pass; needed for the 4M-flow streams)"""
+    out = []
+    with torch.no_grad():
+        for i in range(0, len(Xn), bs):
+            xb = torch.from_numpy(np.ascontiguousarray(Xn[i:i + bs])).float().to(dev)
+            out.append(((mdl(xb) - xb) ** 2).mean(1).cpu().numpy())
+    return np.concatenate(out) if out else np.zeros(0, np.float32)
+
 def run_trident(ds):
     sys.path.insert(0, SOTA + "Trident/code")
     import autoencoder as AEm, evt, random
@@ -202,8 +211,7 @@ def run_trident(ds):
                 xb = Xg[order[b * 10:(b + 1) * 10]]; loss = lf(mdl(xb), xb)
                 opt.zero_grad(); loss.backward(); opt.step()
         mdl.eval()
-        with torch.no_grad():
-            e = ((mdl(Xg) - Xg) ** 2).mean(1).cpu().numpy()
+        e = _ae_err(mdl, Xc)
         try:
             s = evt.SPOT(5e-2); s.fit(e, e); s.initialize(); res = s.run_simp()
             t_c = res["thresholds"][0] if res["thresholds"][0] > 0 else np.sort(s.init_data)[int(0.85 * s.init_data.size)]
@@ -212,8 +220,7 @@ def run_trident(ds):
         thr.append(t_c)
         mods.append(mdl)
     TIMING["init_s"] += _now() - t0; t0 = _now()
-    with torch.no_grad():
-        xs = torch.from_numpy(X[s_idx]).float().to(dev); E = np.stack([((m(xs) - xs) ** 2).mean(1).cpu().numpy() for m in mods], 1)
+    E = np.stack([_ae_err(m, X[s_idx]) for m in mods], 1)
     ok = E < np.array(thr)[None, :]; Em = np.where(ok, E, np.inf); best = Em.argmin(1)
     pred = np.where(ok.any(1), np.array(classes, dtype=object)[best], "UNKNOWN")
     flag = pred != "BENIGN"; TIMING["score_s"] += _now() - t0; TIMING["n_scored"] += len(s_idx)

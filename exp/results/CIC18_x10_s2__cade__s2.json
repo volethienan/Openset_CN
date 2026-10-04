@@ -1,0 +1,1 @@
+{"classes": ["BENIGN", "DoS GoldenEye", "DoS Hulk", "DoS Slowloris", "SSH-BruteForce"], "labels_used": 0, "mad_threshold": 3.5, "seconds": 7402, "timing": {"init_s": 7385.848078489304, "score_flows_per_s": 1805606.1791772116, "update_s_mean": 0.0, "n_updates": 0}, "peak_mem_mb": 3237}

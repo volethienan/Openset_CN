@@ -1,6 +1,10 @@
 """Run OFFICIAL SOTA implementations under the mock-test protocol (same streams, features, anchor split).
 
-MemStream (WWW'22)  : official class code (exec'd from repo), 0 labels, beta = threshold at 1% holdout FPR.
+MemStream (WWW'22)  : official class code (exec'd from repo), 0 labels, memory-admission beta = 0.1 (authors' value for
+                      the intrusion datasets), alert threshold at 1% holdout FPR. Results named `memstream_adapt` are the
+                      earlier runs with beta = the alert threshold (adaptive memory; kept as a sensitivity variant).
+Trident (WWW'24)    : the authors' demo retrains every 300 flows on the ground-truth labels of the whole stream so far;
+                      under a query budget no such labels exist, so Trident is run update-free after anchor training.
 OWAD (NDSS'23)      : official AE + Calibrator + ShiftHunter; daily shift test, explain+adapt with a label
                       budget of LBL labels/day (simulated analyst labelling, as in the official demo).
 SSF (INFOCOM'25)    : official AE_classifier / InfoNCE / drift detection / mask optimisation / sample selection;
@@ -47,7 +51,12 @@ def run_memstream_fixnorm(ds):
     on duplicate-heavy flow data and makes the detector collapse."""
     return run_memstream(ds, fixnorm=True)
 
-def run_memstream(ds, memlen=2048, epochs=5000, lr=1e-2, fixnorm=False):
+def run_memstream(ds, memlen=2048, epochs=5000, lr=1e-2, fixnorm=False, beta=0.1):
+    """beta: memory-admission threshold, the authors' value for the intrusion datasets (README: NSL-KDD, UNSW-NB15,
+    CICIDS-DoS all use beta = 0.1, memlen 2048). The alert threshold is separate: 1% FPR on the anchor holdout, as for
+    every method. (Before 05/10/2026 the wrapper used the alert threshold as beta, 100-900x the authors' value on our
+    feature scale; memory then admitted most attacks: CIDDS-001 seed 0 AUROC 0.26 vs 0.998 with beta = 0.1, see
+    diagnose_memstream_beta.py. Earlier runs: exp/results_superseded/.)"""
     df, X, src, dst, tr, ho, s_idx, anc = load(ds)
     code = open(SOTA + "MemStream/code/memstream.py").read()
     cls = code[code.index("class MemStream"): code.index("if args.dataset in")]
@@ -65,7 +74,8 @@ def run_memstream(ds, memlen=2048, epochs=5000, lr=1e-2, fixnorm=False):
     def score_only(Z):                        # score without memory update (calibration)
         new = (Z - model.mean) / model.std; new[:, model.std == 0] = 0
         e = model.encoder(new); return torch.cdist(e, model.memory, p=1).min(1).values.cpu().numpy()
-    thr = calib_upper(score_only(Xt[ho])); model.max_thres = torch.tensor(thr).to(dev)   # beta = detection threshold
+    thr = calib_upper(score_only(Xt[ho]))                       # alert threshold (1% holdout FPR)
+    model.max_thres = torch.tensor(float(beta)).to(dev)         # memory admission: the authors' beta
     if fixnorm:
         mu0, sd0 = model.mean.clone(), model.std.clone(); orig = model.update_memory
         def upd(output_loss, encoder_output, data):
@@ -75,7 +85,7 @@ def run_memstream(ds, memlen=2048, epochs=5000, lr=1e-2, fixnorm=False):
     for j, g in enumerate(s_idx):                   # streaming: scoring and memory update are one step
         s[j] = float(model(Xt[g: g + 1]))
     TIMING["score_s"] += _now() - t0; TIMING["n_scored"] += len(s_idx)
-    return s, s > thr, dict(thr=thr, memlen=len(init), labels_used=0)
+    return s, s > thr, dict(thr=thr, beta=float(beta), memory_updates=int(model.count), memlen=len(init), labels_used=0)
 
 # ---------------------------------------------------------------- OWAD (official modules)
 def run_owad(ds):

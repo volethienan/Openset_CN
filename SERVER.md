@@ -115,3 +115,17 @@ CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 MAX_GPU_PROCS=6 taskset -c 0
 - (6 + 1) × 3 = 21 luồng, trong giới hạn 24 nhân; chỉ dùng GPU 0. Mỗi job OWAD dùng khoảng 2 GB GPU.
 - Ước tính 1,5–3 giờ. Tiến độ: `ls results | grep -c "__owad.*json"`, đủ **175** là xong.
 - Xong thì đẩy kết quả: `git add exp/results && git commit -m "OWAD rerun" && git push` (chỉ `git add exp/results`).
+
+## Chạy lại MemStream với tham số gốc (05/10/2026)
+Wrapper cũ dùng ngưỡng báo động (thang điểm 10–90) làm beta, tức ngưỡng cho flow vào bộ nhớ, trong khi tác giả dùng beta = 0,1. Giờ beta = 0,1 như README gốc, còn ngưỡng báo động giữ ở 1% FPR. Các lượt cũ được giữ lại thành biến thể `memstream_adapt`.
+
+Cần chạy lại **70 job MemStream** (RQ1 20, RQ2 44, CIC17 đầy đủ 3, CIC18 ×10 3). Nhóm `scale` cần lại file `CIC17_full.parquet` (đã xóa hôm trước), khôi phục bằng:
+```bash
+cd /workspace/anvlt/Openset_CN && git checkout -- mock/streams/CIC17_full.parquet && git lfs pull --include="mock/streams/CIC17_full.parquet" && ls -lh mock/streams/CIC17_full.parquet
+```
+(khoảng 290 MB). Sau khi đợt OWAD chạy xong:
+```bash
+cd /workspace/anvlt/Openset_CN && git pull && cd exp && python pending_jobs.py rq1:0-4 rq2:0-4 x10:0-4 scale:0-2 | tail -1
+CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 MAX_GPU_PROCS=6 taskset -c 0-23 python run_jobs.py rq1+rq2+x10+scale --seeds 0 1 2 3 4 --gpu 6 --cpu 1 --threads 3 > logs/memstream_rerun.log 2>&1
+```
+`pending_jobs` phải ra 70, cộng thêm các job OWAD còn thiếu nếu đợt OWAD chưa xong. Đẩy kết quả: `git add exp/results && git commit -m "MemStream rerun" && git push`.

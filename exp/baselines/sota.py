@@ -89,7 +89,11 @@ def run_owad(ds):
     df, X, src, dst, tr, ho, s_idx, anc = load(ds)
     y = (df["fam"].values != "BENIGN").astype(int)
     U.set_random_seed()
-    sc = MinMaxScaler().fit(X[tr]); Z = sc.transform(X).astype(np.float32)
+    # Input: the shared standardised features, as for every other method. (Before 05/10/2026 the wrapper applied the
+    # min-max scaling of OWAD's Kyoto demo on top of them; on features already standardised and clipped at +-10 sd this
+    # squeezes most flows into a narrow band and broke OWAD's AE on the CIC datasets: initial-model AUROC on CIC-IDS2017
+    # 0.68 with min-max vs 0.96 without, see diagnose_owad_scaling.py. Earlier OWAD runs: exp/results_superseded/.)
+    Z = (X if os.environ.get("OWAD_MINMAX", "0") != "1" else MinMaxScaler().fit(X[tr]).transform(X)).astype(np.float32)
     t0 = _now(); model, _ = AE.train(Z[tr], Z.shape[1]); TIMING["init_s"] += _now() - t0
     _, r_ho = AE.test(model, 0, Z[ho]); thr = calib_upper(r_ho)
     con = tr[:50000]; _, rmse_c = AE.test(model, thr, Z[con])

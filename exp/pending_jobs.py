@@ -1,0 +1,17 @@
+"""List the jobs of the given runner groups whose result file is missing (what run_jobs.py would actually run).
+usage: python pending_jobs.py rq1:0-4 cad:0-4 rq2:0-4 ..."""
+import os, sys
+HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
+import run_jobs as R
+from collections import Counter
+todo = []
+for arg in sys.argv[1:]:
+    g, rng = arg.split(":"); a, b = map(int, rng.split("-"))
+    gen = {"rq1": R.rq1_jobs, "rq2": R.rq2_jobs, "rq3": R.rq3_jobs, "rq4": R.rq4_jobs, "rq5": R.rq5_jobs, "cad": R.cad_jobs,
+           "ext": R.ext_jobs, "rq2lb": R.rq2lb_jobs, "noise": R.noise_jobs, "scale": R.scale_jobs, "x10": R.x10_jobs}[g]
+    for s in range(a, b + 1):
+        for pool, ds, name, args in gen(s):
+            if not os.path.exists(os.path.join(R.RES, f"{ds}__{name}__s{s}.json")): todo.append((g, pool, name, ds, s))
+c = Counter((g, pool, name) for g, pool, name, ds, s in todo)
+for k, v in sorted(c.items()): print(f"{k[0]:6s} {k[1]:4s} {k[2]:22s} {v}")
+print("TOTAL", len(todo))

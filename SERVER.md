@@ -102,3 +102,16 @@ CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 MAX_GPU_PROCS=4 taskset -c 0
 - Xong khi `grep -c "OK\|ERR" logs/x10.log` đạt 18. Ước tính khoảng 12–20 giờ; lâu nhất là SSF.
 
 Xong thì đẩy kết quả: `git add exp/results && git commit -m "x10 scale study" && git push`.
+
+## Chạy lại OWAD sau khi sửa đầu vào (05/10/2026)
+Wrapper OWAD trước đây áp MinMax lên đặc trưng đã chuẩn hóa, làm hỏng autoencoder của OWAD trên CIC (AUROC ban đầu trên CIC17: 0,68 khi dùng MinMax, 0,96 khi không dùng). Giờ OWAD nhận cùng đầu vào chuẩn hóa như mọi phương pháp khác. Kết quả cũ được lưu ở `exp/results_superseded/owad_minmax_20261005/`.
+
+Cần chạy lại **175 job OWAD** (RQ1, nhịp cập nhật, RQ2, RQ3, nhãn sai, ×10). Runner tự bỏ qua mọi job khác vì đã có kết quả. Kiểm tra trước bằng `python pending_jobs.py rq1:0-4 cad:0-4 rq2:0-4 rq3:0-4 rq2lb:0-4 noise:0-4 x10:0-4` (phải ra TOTAL 175).
+
+```bash
+cd /workspace/anvlt/Openset_CN && git pull && source ~/ernp_env/bin/activate && cd exp && mkdir -p logs
+CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 MAX_GPU_PROCS=6 taskset -c 0-23 python run_jobs.py rq1+cad+rq2+rq3+rq2lb+noise+x10 --seeds 0 1 2 3 4 --gpu 6 --cpu 1 --threads 3 > logs/owad_rerun.log 2>&1
+```
+- (6 + 1) × 3 = 21 luồng, trong giới hạn 24 nhân; chỉ dùng GPU 0. Mỗi job OWAD dùng khoảng 2 GB GPU.
+- Ước tính 1,5–3 giờ. Tiến độ: `ls results | grep -c "__owad.*json"`, đủ **175** là xong.
+- Xong thì đẩy kết quả: `git add exp/results && git commit -m "OWAD rerun" && git push` (chỉ `git add exp/results`).

@@ -1,0 +1,51 @@
+                                        F1               MCC  zero_day_recall zd_recall_at1fpr              FPR            AUROC            AUPRC            labels
+dataset   method                                                                                                                                                   
+CIC18_x10 cade             0.4301 ± 0.0667   0.4781 ± 0.0663  0.9128 ± 0.0669  0.8962 ± 0.0573  0.0903 ± 0.0227   0.967 ± 0.0253   0.9109 ± 0.053         0.0 ± 0.0
+          ernp             0.9406 ± 0.0152   0.9392 ± 0.0145    0.976 ± 0.016  0.9894 ± 0.0051  0.0038 ± 0.0019  0.9965 ± 0.0001   0.9885 ± 0.004  1388.0 ± 17.3205
+          memstream          0.0254 ± 0.01   0.0113 ± 0.0117  0.0164 ± 0.0066   0.016 ± 0.0059  0.0102 ± 0.0013  0.9335 ± 0.0159   0.2057 ± 0.033         0.0 ± 0.0
+          memstream_adapt  0.0321 ± 0.0228   0.0068 ± 0.0221  0.0254 ± 0.0197  0.0036 ± 0.0014  0.0199 ± 0.0046  0.1839 ± 0.1074   0.022 ± 0.0031         0.0 ± 0.0
+          owad             0.0134 ± 0.0006  -0.0021 ± 0.0012  0.0085 ± 0.0003  0.0085 ± 0.0003  0.0096 ± 0.0005  0.9095 ± 0.0016  0.1778 ± 0.0045      1400.0 ± 0.0
+          ssf_causal       0.9192 ± 0.0137   0.9195 ± 0.0129  0.8524 ± 0.0245  0.9351 ± 0.0127  0.0001 ± 0.0001   0.9797 ± 0.003  0.9461 ± 0.0041      1600.0 ± 0.0
+          trident          0.3141 ± 0.0113   0.3941 ± 0.0106  0.9994 ± 0.0004  0.5197 ± 0.4311  0.1655 ± 0.0088  0.9884 ± 0.0078  0.6376 ± 0.1572         0.0 ± 0.0
+
+tests/ranking over: ['cade', 'ernp', 'memstream', 'memstream_adapt', 'owad', 'ssf_causal', 'trident']
+
+== F1: ERNP vs baselines (one-sided Wilcoxon over dataset x seed)
+                  mean_diff  wins    n  p_one_sided
+cade                0.5105   3.0  3.0        0.125
+memstream           0.9152   3.0  3.0        0.125
+memstream_adapt     0.9085   3.0  3.0        0.125
+owad                0.9271   3.0  3.0        0.125
+ssf_causal          0.0214   3.0  3.0        0.125
+trident             0.6265   3.0  3.0        0.125
+mean rank: {'ernp': 1.0, 'ssf_causal': 2.0, 'cade': 3.0, 'trident': 4.0, 'memstream': 5.33, 'memstream_adapt': 5.67, 'owad': 7.0} {'friedman_p': np.float64(0.006987321595941291), 'nemenyi_CD': np.float64(5.201547077552985), 'n_blocks': 3, 'k': 7}
+
+== MCC: ERNP vs baselines (one-sided Wilcoxon over dataset x seed)
+                  mean_diff  wins    n  p_one_sided
+cade                0.4611   3.0  3.0        0.125
+memstream           0.9278   3.0  3.0        0.125
+memstream_adapt     0.9324   3.0  3.0        0.125
+owad                0.9413   3.0  3.0        0.125
+ssf_causal          0.0197   3.0  3.0        0.125
+trident             0.5450   3.0  3.0        0.125
+mean rank: {'ernp': 1.0, 'ssf_causal': 2.0, 'cade': 3.0, 'trident': 4.0, 'memstream': 5.33, 'memstream_adapt': 6.0, 'owad': 6.67} {'friedman_p': np.float64(0.008288615058473087), 'nemenyi_CD': np.float64(5.201547077552985), 'n_blocks': 3, 'k': 7}
+
+== zero_day_recall: ERNP vs baselines (one-sided Wilcoxon over dataset x seed)
+                  mean_diff  wins    n  p_one_sided
+cade                0.0632   3.0  3.0        0.125
+memstream           0.9596   3.0  3.0        0.125
+memstream_adapt     0.9506   3.0  3.0        0.125
+owad                0.9675   3.0  3.0        0.125
+ssf_causal          0.1236   3.0  3.0        0.125
+trident            -0.0234   0.0  3.0        1.000
+mean rank: {'trident': 1.0, 'ernp': 2.0, 'cade': 3.33, 'ssf_causal': 3.67, 'memstream': 5.33, 'memstream_adapt': 5.67, 'owad': 7.0} {'friedman_p': np.float64(0.0078307526457766), 'nemenyi_CD': np.float64(5.201547077552985), 'n_blocks': 3, 'k': 7}
+
+== zd_recall_at1fpr: ERNP vs baselines (one-sided Wilcoxon over dataset x seed)
+                  mean_diff  wins    n  p_one_sided
+cade                0.0932   3.0  3.0        0.125
+memstream           0.9734   3.0  3.0        0.125
+memstream_adapt     0.9858   3.0  3.0        0.125
+owad                0.9809   3.0  3.0        0.125
+ssf_causal          0.0542   3.0  3.0        0.125
+trident             0.4697   3.0  3.0        0.125
+mean rank: {'ernp': 1.0, 'ssf_causal': 2.33, 'cade': 2.67, 'trident': 4.0, 'memstream': 5.0, 'owad': 6.0, 'memstream_adapt': 7.0} {'friedman_p': np.float64(0.006987321595941291), 'nemenyi_CD': np.float64(5.201547077552985), 'n_blocks': 3, 'k': 7}

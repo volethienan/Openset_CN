@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from sklearn.metrics import roc_auc_score
 from evaluate import seeded_name
 
-M = ["ernp", "ssf_causal", "owad", "cade", "trident", "memstream", "memstream_adapt", "knn", "iforest", "ae_static", "new_ip"]
+M = ["ernp", "ssf_causal", "owad", "owad_lr3", "cade", "trident", "memstream", "memstream_adapt", "knn", "iforest", "ae_static", "new_ip"]
 rows = []
 for base in ["CIDDS_ctx", "ToN_ctx", "CIC17", "CIC18"]:
     for s in range(5):

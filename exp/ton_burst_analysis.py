@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from sklearn.metrics import roc_auc_score
 from evaluate import seeded_name
 
-M = ["ernp", "ssf_causal", "cade", "trident", "knn", "iforest", "ae_static", "memstream_adapt", "ernp_P4", "ssf_causal_P4"]
+M = ["ernp", "ssf_causal", "owad", "owad_lr3", "cade", "trident", "memstream", "memstream_adapt", "knn", "iforest", "ae_static", "ernp_P4", "ssf_causal_P4", "owad_P4"]
 rows = []
 for s in range(5):
     os.environ["EXP_SEED"] = str(s); import common; importlib.reload(common)

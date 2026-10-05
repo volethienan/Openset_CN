@@ -88,7 +88,9 @@ def run_memstream(ds, memlen=2048, epochs=5000, lr=1e-2, fixnorm=False, beta=0.1
     return s, s > thr, dict(thr=thr, beta=float(beta), memory_updates=int(model.count), memlen=len(init), labels_used=0)
 
 # ---------------------------------------------------------------- OWAD (official modules)
-def run_owad(ds):
+def run_owad(ds, ae_lr=None):
+    """ae_lr: learning rate of OWAD's AE (None = the authors' configs.yml value, 1e-5). Variant owad_lr3 uses 1e-3:
+    with the authors' value the AE is under-trained on CSE-CIC-IDS2018 (initial-model AUROC 0.58 vs 0.98 at 1e-3)."""
     import yaml
     _load = yaml.load; yaml.load = lambda f, Loader=yaml.SafeLoader: _load(f, Loader=Loader)   # PyYAML>=6 compat
     for p in ("OWAD", "OWAD/admodels", "OWAD/moudles"): sys.path.insert(0, SOTA + p)
@@ -104,7 +106,8 @@ def run_owad(ds):
     # squeezes most flows into a narrow band and broke OWAD's AE on the CIC datasets: initial-model AUROC on CIC-IDS2017
     # 0.68 with min-max vs 0.96 without, see diagnose_owad_scaling.py. Earlier OWAD runs: exp/results_superseded/.)
     Z = (X if os.environ.get("OWAD_MINMAX", "0") != "1" else MinMaxScaler().fit(X[tr]).transform(X)).astype(np.float32)
-    t0 = _now(); model, _ = AE.train(Z[tr], Z.shape[1]); TIMING["init_s"] += _now() - t0
+    t0 = _now(); model, _ = (AE.train(Z[tr], Z.shape[1]) if ae_lr is None else AE.train(Z[tr], Z.shape[1], lr=ae_lr))
+    TIMING["init_s"] += _now() - t0
     _, r_ho = AE.test(model, 0, Z[ho]); thr = calib_upper(r_ho)
     con = tr[:50000]; _, rmse_c = AE.test(model, thr, Z[con])
     day = days_of(df, s_idx); s = np.zeros(len(s_idx)); n_lab = 0; n_adapt = 0
@@ -265,7 +268,7 @@ if __name__ == "__main__":
     if mm[5]: LBL = int(mm[5])
     if mm[6]: NOISE = int(mm[6]) / 100
     if base == "ssf_causal": CAUSAL = True
-    fn = {"memstream": run_memstream, "memstream_fn": run_memstream_fixnorm, "owad": run_owad, "ssf": run_ssf,
+    fn = {"memstream": run_memstream, "memstream_fn": run_memstream_fixnorm, "owad": run_owad, "owad_lr3": lambda d: run_owad(d, ae_lr=1e-3), "ssf": run_ssf,
           "ssf_causal": run_ssf, "trident": run_trident, "cade": run_cade}[base]
     out = fn(ds)
     score, flag, info = out; info["seconds"] = round(time.time() - t0)

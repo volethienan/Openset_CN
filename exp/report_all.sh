@@ -22,7 +22,7 @@ python evaluate.py --out rq2_sweep --seeds 0 1 2 --datasets $SW --methods ernp s
 python evaluate.py --out rq3 --seeds 0 1 2 --datasets ToN_ctx CIC18 --methods ernp_B25 ernp_B50 ernp_B100 ernp_B400 \
   ssf_causal_B25 ssf_causal_B50 ssf_causal_B100 ssf_causal_B400 owad_B25 owad_B50 owad_B100 owad_B400 > reports/rq3.txt 2>&1
 python evaluate.py --out rq4 --datasets CIDDS_ctx ToN_ctx CIC17 CIC18 --methods ernp abl_prior_none abl_prior_uniform \
-  abl_prior_marginal abl_retr_none abl_retr_hard abl_evid_rep abl_feat_flow ernp_B0 > reports/rq4.txt 2>&1
+  abl_prior_marginal abl_prior_scarf abl_retr_none abl_retr_hard abl_evid_rep abl_feat_flow ernp_B0 > reports/rq4.txt 2>&1
 python evaluate.py --out rq5 --seeds 0 1 2 --datasets CIDDS_ctx ToN_ctx CIC18 --methods ernp sens_rho0.1 sens_rho0.2 sens_rho0.5 \
   sens_mass0.25 sens_mass0.5 sens_mass2 sens_eps0.5 sens_eps2 sens_clf_rf > reports/rq5.txt 2>&1
 python evaluate.py --out cadence --seeds 0 1 2 3 4 --datasets CIDDS_ctx ToN_ctx CIC17 CIC18 --methods ernp_P4 ernp_P1   ssf_causal_P4 ssf_causal_P1 owad_P4 owad_P1 > reports/cadence.txt 2>&1

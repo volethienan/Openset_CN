@@ -43,6 +43,10 @@ class ERNP:
         if self.c["prior"] == "partial":       # ERNP: row-wise crossover with one donor, each feature w.p. rho
             donor = base[rng.integers(0, len(base), len(base))]; mask = rng.random(base.shape) < self.c["rho"]
             return np.where(mask, donor, base)
+        if self.c["prior"] == "scarf":         # SCARF/VIME corruption: each feature w.p. rho from its own random donor
+            mask = rng.random(base.shape) < self.c["rho"]
+            repl = np.stack([base[rng.integers(0, n, n), j] for j in range(P.shape[1])], 1)
+            return np.where(mask, repl, base)
         if self.c["prior"] == "marginal":      # full product of marginals (independent donor per feature)
             return np.stack([base[rng.integers(0, n, n), j] for j in range(P.shape[1])], 1)
         if self.c["prior"] == "uniform":       # Sipple (ICML'20): uniform in the benign bounding box

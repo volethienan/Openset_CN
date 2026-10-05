@@ -58,7 +58,7 @@ def rq3_jobs(seed):
     return jobs
 
 ABLATIONS = {"abl_prior_none": ["--prior", "none"], "abl_prior_uniform": ["--prior", "uniform"],
-             "abl_prior_marginal": ["--prior", "marginal"], "abl_retr_none": ["--retraction", "none"],
+             "abl_prior_marginal": ["--prior", "marginal"], "abl_prior_scarf": ["--prior", "scarf"], "abl_retr_none": ["--retraction", "none"],
              "abl_retr_hard": ["--retraction", "hard"], "abl_evid_rep": ["--evidence", "rep"],
              "abl_feat_flow": ["--features", "flow"], "ernp_B0": ["--budget", "0"]}
 SENSITIVITY = {"sens_rho0.1": ["--rho", "0.1"], "sens_rho0.2": ["--rho", "0.2"], "sens_rho0.5": ["--rho", "0.5"],
@@ -188,6 +188,14 @@ def camo_jobs(seed):
                  ("gpu", ds, "ssf_causal", ["baselines/sota.py", ds, "ssf_causal"])]
     return jobs
 
+def scarf_jobs(seed):
+    """RQ4 add-on: SCARF/VIME-style corruption (independent donor per feature) instead of the single-donor swap"""
+    return [("cpu", ds, "abl_prior_scarf", ["ernp.py", ds, "--prior", "scarf", "--name", "abl_prior_scarf"]) for ds in ds_names(seed).values()]
+
+def audit_jobs(seed):
+    """RQ1 ERNP rerun with the group-purity audit logged (same defaults; scores must equal the ernp runs)"""
+    return [("cpu", ds, "ernp_audit", ["ernp.py", ds, "--name", "ernp_audit"]) for ds in ds_names(seed).values()]
+
 def rq2rep_jobs(seed):
     """RQ2 with representative-only labels: does ERNP's robustness need group-label propagation?"""
     return [("cpu", f"{cidds(seed)}_{v}", "abl_evid_rep", ["ernp.py", f"{cidds(seed)}_{v}", "--evidence", "rep", "--name", "abl_evid_rep"])
@@ -228,7 +236,7 @@ if __name__ == "__main__":
     ap.add_argument("--threads", type=int, default=0, help="CPU threads per job (keep (gpu + cpu) x threads <= cores)")
     a = ap.parse_args(); GPU_IDS[:] = [g.strip() for g in a.gpu_ids.split(",") if g.strip()]; THREADS = a.threads
     GEN = {"rq1": rq1_jobs, "rq2": rq2_jobs, "rq3": rq3_jobs, "rq4": rq4_jobs, "rq5": rq5_jobs, "cad": cad_jobs, "ext": ext_jobs, "ext1": ext1_jobs, "rq2lb": rq2lb_jobs, "noise": noise_jobs,
-           "scale": scale_jobs, "opf": opf_jobs, "x10": x10_jobs, "camo": camo_jobs, "rq2rep": rq2rep_jobs}
+           "scale": scale_jobs, "opf": opf_jobs, "x10": x10_jobs, "camo": camo_jobs, "rq2rep": rq2rep_jobs, "scarf": scarf_jobs, "audit": audit_jobs}
     jobs = [(j, s) for rq in a.rq.split("+") for s in a.seeds for j in GEN[rq](s)]
     if a.rq == "cad":   # most informative first: ToN, then CIC18, CIC17, CIDDS; 1 h before 4 h
         prio = {"ToN": 0, "CIC18": 1, "CIC17": 2, "CIDDS": 3}

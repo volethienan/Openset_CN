@@ -11,7 +11,8 @@ python evaluate.py --out scale --seeds 0 1 2 --datasets CIC17_full --methods ern
 python evaluate.py --out rq2lb --datasets $INJ --methods ernp_B25 ssf_causal_B25 owad_B25 > reports/rq2lb.txt 2>&1; echo rq2lb
 python evaluate.py --out noise --seeds 0 1 2 --datasets CIDDS_ctx ToN_ctx CIC17 CIC18 $INJ --methods ernp_N5 ernp_N10 ernp_N20 \
   ssf_causal_N10 owad_N10 > reports/noise.txt 2>&1; echo noise
-python evaluate.py --out rq2 --datasets $INJ --methods ernp ernp_B0 abl_self $SOTA memstream_adapt new_ip --compare ernp $SOTA > reports/rq2.txt 2>&1; echo rq2
+python evaluate.py --out rq2 --datasets $INJ --methods ernp ernp_B0 abl_self abl_evid_rep $SOTA memstream_adapt new_ip --compare ernp $SOTA > reports/rq2.txt 2>&1; echo rq2
+python evaluate.py --out camo --datasets CIDDS_ctx_injcamo1_bf CIDDS_ctx_injcamo3_bf --methods ernp abl_evid_rep ernp_B0 ssf_causal > reports/camo.txt 2>&1; echo camo
 SW=$(for r in 3 7 14; do for q in 10 30 100; do [ "$r$q" = "730" ] && echo -n "CIDDS_ctx_injinit_bf " || echo -n "CIDDS_ctx_injinit_bf_r${r}_q${q} "; done; done)
 python evaluate.py --out rq2_sweep --seeds 0 1 2 --datasets $SW --methods ernp ssf_causal owad memstream memstream_adapt > reports/rq2_sweep.txt 2>&1; echo rq2_sweep
 python evaluate.py --out rq3 --seeds 0 1 2 --datasets ToN_ctx CIC18 --methods ernp_B25 ernp_B50 ernp_B100 ernp_B400 \

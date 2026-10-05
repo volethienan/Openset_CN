@@ -1,0 +1,1 @@
+{"thr": 82.60911560058594, "beta": 0.1, "memory_updates": 1, "memlen": 2048, "labels_used": 0, "seconds": 2030, "timing": {"init_s": 4.4427714347839355, "score_flows_per_s": 451.61934330196846, "update_s_mean": 0.0, "n_updates": 0}, "peak_mem_mb": 2245}

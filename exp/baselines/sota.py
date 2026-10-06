@@ -207,7 +207,7 @@ def _ae_err(mdl, Xn, bs=65536):
             out.append(((mdl(xb) - xb) ** 2).mean(1).cpu().numpy())
     return np.concatenate(out) if out else np.zeros(0, np.float32)
 
-def run_trident(ds):
+def run_trident(ds, anchor_thr=False):
     sys.path.insert(0, SOTA + "Trident/code")
     import autoencoder as AEm, evt, random
     import torch.nn as nn
@@ -242,10 +242,13 @@ def run_trident(ds):
     pred = np.where(ok.any(1), np.array(classes, dtype=object)[best], "UNKNOWN")
     flag = pred != "BENIGN"; TIMING["score_s"] += _now() - t0; TIMING["n_scored"] += len(s_idx)
     bi = classes.index("BENIGN"); score = E[:, bi] / thr[bi]
+    if anchor_thr:   # review variant: threshold at 1% FPR on held-out anchor benign flows (as ERNP and kNN)
+        t1 = calib_upper(_ae_err(mods[bi], X[ho]) / thr[bi]); flag = score > t1
+        return score, flag, dict(classes=classes, labels_used=int(len(idx)), anchor_threshold=float(t1))
     return score, flag, dict(classes=classes, labels_used=int(len(idx)))
 
 # ---------------------------------------------------------------- CADE (USENIX Security 2021; faithful PyTorch port)
-def run_cade(ds):
+def run_cade(ds, anchor_thr=False):
     import cade_port as C
     from sklearn.preprocessing import MinMaxScaler
     df, X, src, dst, tr, ho, s_idx, anc = load(ds); fam = df["fam"].values
@@ -256,6 +259,9 @@ def run_cade(ds):
     bi = list(st["classes"]).index("BENIGN")
     flag = drift | (closest != "BENIGN")                      # unseen family OR nearest known family is an attack
     score = A[:, bi]                                          # MAD-normalised deviation from the benign family
+    if anchor_thr:   # review variant: threshold at 1% FPR on held-out anchor benign flows (as ERNP and kNN)
+        t1 = calib_upper(C.detect(st, Z[ho])[3][:, bi]); flag = score > t1
+        return score, flag, dict(classes=list(st["classes"]), labels_used=0, anchor_threshold=float(t1))
     return score, flag, dict(classes=list(st["classes"]), labels_used=0, mad_threshold=3.5)
 
 if __name__ == "__main__":
@@ -269,7 +275,8 @@ if __name__ == "__main__":
     if mm[6]: NOISE = int(mm[6]) / 100
     if base == "ssf_causal": CAUSAL = True
     fn = {"memstream": run_memstream, "memstream_fn": run_memstream_fixnorm, "owad": run_owad, "owad_lr3": lambda d: run_owad(d, ae_lr=1e-3), "ssf": run_ssf,
-          "ssf_causal": run_ssf, "trident": run_trident, "cade": run_cade}[base]
+          "ssf_causal": run_ssf, "trident": run_trident, "cade": run_cade,
+          "trident_t1": lambda d: run_trident(d, anchor_thr=True), "cade_t1": lambda d: run_cade(d, anchor_thr=True)}[base]
     out = fn(ds)
     score, flag, info = out; info["seconds"] = round(time.time() - t0)
     info["timing"] = dict(init_s=TIMING["init_s"], score_flows_per_s=TIMING["n_scored"] / max(TIMING["score_s"], 1e-9),

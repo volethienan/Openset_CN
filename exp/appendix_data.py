@@ -35,7 +35,8 @@ def group_audit():
     for f in sorted(glob.glob(os.path.join(RES, "*__ernp_audit__s*.json"))):
         ds = os.path.basename(f).split("__")[0]
         base = next(d for d in DS if ds == d or ds.startswith(d + "_s") or (d.endswith("_ctx") and ds.startswith(d.replace("_ctx", "") + "_ctx")))
-        a = pd.DataFrame(json.load(open(f))["audit"], columns=["day", "benign", "size", "wrong", "rep_family"])
+        rec = json.load(open(f))["audit"]
+        a = pd.DataFrame(rec, columns=["day", "benign", "size", "wrong", "rep_family", "radius"][:len(rec[0])])
         b, m = a[a.benign == 1], a[a.benign == 0]
         rows.append(dict(dataset=base, stream=ds, days=a.day.nunique(), groups_per_day=len(a) / max(1, a.day.nunique()),
                          mean_group_size=a["size"].mean(), flows_labelled=int(a["size"].sum()),
@@ -46,6 +47,26 @@ def group_audit():
     out = pd.DataFrame(rows); out.to_csv(os.path.join(REP, "group_audit.csv"), index=False)
     print(out.groupby("dataset").mean(numeric_only=True).round(4).to_string())
 
+def group_footprint():
+    """Prop. 1(iii): a wrongly confirmed group G changes retention only within Delta + rho_delta of G, Delta <= 2 x radius.
+    reports/group_footprint.csv: per dataset, the group diameter bound 2r in units of epsilon (benign-labelled groups,
+    all groups, and impure benign groups, i.e. the analyst-error case)."""
+    rows = []
+    for f in sorted(glob.glob(os.path.join(RES, "*__ernp_diam__s*.json"))):
+        ds = os.path.basename(f).split("__")[0]
+        base = next(d for d in DS if ds == d or ds.startswith(d.split("_")[0]))
+        info = json.load(open(f)); eps = float(info["eps"])
+        a = pd.DataFrame(info["audit"], columns=["day", "benign", "size", "wrong", "rep_family", "radius"])
+        a["diam_eps"] = 2 * a.radius / eps; b = a[a.benign == 1]; imp = b[b.wrong > 0]
+        rows.append(dict(dataset=base, stream=ds, eps=eps,
+                         benign_median=b.diam_eps.median(), benign_p90=b.diam_eps.quantile(0.9), benign_max=b.diam_eps.max(),
+                         impure_median=imp.diam_eps.median() if len(imp) else np.nan,
+                         impure_p90=imp.diam_eps.quantile(0.9) if len(imp) else np.nan, n_impure=len(imp),
+                         all_median=a.diam_eps.median()))
+    out = pd.DataFrame(rows); out.to_csv(os.path.join(REP, "group_footprint.csv"), index=False)
+    print(out.groupby("dataset").mean(numeric_only=True).round(3).to_string())
+
 if __name__ == "__main__":
     family_table()
     if glob.glob(os.path.join(RES, "*__ernp_audit__s*.json")): group_audit()
+    if glob.glob(os.path.join(RES, "*__ernp_diam__s*.json")): group_footprint()

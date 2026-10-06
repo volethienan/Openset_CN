@@ -129,3 +129,25 @@ cd /workspace/anvlt/Openset_CN && git pull && cd exp && python pending_jobs.py r
 CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 MAX_GPU_PROCS=6 taskset -c 0-23 python run_jobs.py rq1+rq2+x10+scale --seeds 0 1 2 3 4 --gpu 6 --cpu 1 --threads 3 > logs/memstream_rerun.log 2>&1
 ```
 `pending_jobs` phải ra 70, cộng thêm các job OWAD còn thiếu nếu đợt OWAD chưa xong. Đẩy kết quả: `git add exp/results && git commit -m "MemStream rerun" && git push`.
+
+## Đợt thí nghiệm theo phản biện lần 2 (06/10/2026): 120 job
+| Nhóm | Thí nghiệm | Job |
+|---|---|---|
+| `rq2gate` | GBM+AL (không prior) và ERNP không retraction, chạy trên 4 kịch bản đầu độc + camouflage 1 và 3 decoy | 60 CPU |
+| `t1` | CADE và Trident giữ nguyên mô hình, chỉ đặt ngưỡng ở 1% FPR trên anchor (`cade_t1`, `trident_t1`) | 40 GPU |
+| `diam` | Chạy lại ERNP của RQ1, ghi thêm bán kính từng nhóm alert (footprint của Prop. 1(iii)) | 20 CPU |
+
+Luồng camouflage bị git bỏ qua; script tự dựng lại từ `CIDDS_ctx*.parquet` nếu thiếu (tất định, kết quả giống hệt máy local). Chạy trong tmux:
+```bash
+tmux new -s review2
+cd /workspace/anvlt/Openset_CN && git pull && source ~/ernp_env/bin/activate
+bash exp/run_review2.sh
+```
+- Đầu script in số job còn thiếu, phải ra **TOTAL 120**. Nếu báo thiếu file `CIDDS_ctx*.parquet` thì chạy `git lfs pull --include="mock/streams/CIDDS_ctx*"` rồi chạy lại.
+- (4 GPU + 4 CPU) × 3 luồng = 24 nhân; chỉ dùng GPU 0.
+- Ước tính: 2–4 giờ. Theo dõi: `tail -f exp/logs/review2.log`, hoặc `cd exp && python pending_jobs.py rq2gate:0-4 diam:0-4 t1:0-4 | tail -1`.
+- Script tự in bảng tóm tắt khi xong và kết thúc bằng dòng `REVIEW2_DONE`.
+- Đẩy kết quả lên (chỉ kết quả và báo cáo):
+```bash
+cd /workspace/anvlt/Openset_CN && git add exp/results exp/reports && git commit -m "Review 2 experiments: rq2gate, t1, diam" && git push
+```

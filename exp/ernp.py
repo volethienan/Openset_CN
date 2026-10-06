@@ -189,7 +189,8 @@ def run(ds, **cfg):
             (addP if is_ben else addA).append(grp)
             if c["evidence"] == "cluster":      # logging only (ground truth never used for decisions): group purity
                 bad = fam[mem] != "BENIGN" if is_ben else fam[mem] == "BENIGN"
-                audit.append((d, int(is_ben), len(mem), int(bad.sum()), fam[rep]))
+                rad = float(np.linalg.norm(X[mem] - X[rep], axis=1).max())   # group radius around the representative
+                audit.append((d, int(is_ben), len(mem), int(bad.sum()), fam[rep], rad))
         if addP:
             m.observe(np.vstack(addP), P[-2 * c["n_pos_max"]:])
             P = np.vstack([P] + addP); m.conf = np.vstack(([m.conf] if m.conf is not None else []) + addP)

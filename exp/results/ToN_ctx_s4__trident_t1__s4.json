@@ -1,0 +1,1 @@
+{"classes": ["BENIGN", "scanning"], "labels_used": 90197, "anchor_threshold": 54.7468147277832, "seconds": 167, "timing": {"init_s": 165.88465785980225, "score_flows_per_s": 1433915.76652633, "update_s_mean": 0.0, "n_updates": 0}, "peak_mem_mb": 1234}

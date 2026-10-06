@@ -1,0 +1,54 @@
+      dataset                                        family      kind  stream_flows   ernp  ssf_causal   owad   cade  trident  memstream    knn
+21      CIC17                                   FTP-Patator     known             0    NaN         NaN    NaN    NaN      NaN        NaN    NaN
+22      CIC17                              DoS Slowhttptest     known             0    NaN         NaN    NaN    NaN      NaN        NaN    NaN
+23      CIC17                                    Heartbleed     known             0    NaN         NaN    NaN    NaN      NaN        NaN    NaN
+24      CIC17                                      DoS Hulk     known             0    NaN         NaN    NaN    NaN      NaN        NaN    NaN
+25      CIC17                                 DoS GoldenEye     known             0    NaN         NaN    NaN    NaN      NaN        NaN    NaN
+26      CIC17                                   SSH-Patator     known             0    NaN         NaN    NaN    NaN      NaN        NaN    NaN
+27      CIC17                                 DoS Slowloris     known             0    NaN         NaN    NaN    NaN      NaN        NaN    NaN
+13      CIC17                                      Portscan  zero-day         22742  0.999       0.041  0.850  1.000    1.000      0.656  1.000
+14      CIC17                                          DDoS  zero-day         13652  1.000       0.999  0.000  1.000    0.997      0.006  1.000
+15      CIC17                       Infiltration - Portscan  zero-day         10236  0.971       0.001  0.836  0.996    0.998      0.587  0.998
+16      CIC17                                        Botnet  zero-day           608  0.082       0.000  0.063  0.036    1.000      0.315  1.000
+17      CIC17                      Web Attack - Brute Force  zero-day            73  1.000       0.986  0.000  1.000    0.997      0.000  0.986
+18      CIC17                                  Infiltration  zero-day            36  0.528       0.261  0.356  0.644    0.983      0.472  0.972
+19      CIC17                              Web Attack - XSS  zero-day            18  1.000       1.000  0.000  1.000    1.000      0.000  1.000
+20      CIC17                    Web Attack - SQL Injection  zero-day            13  0.862       0.615  0.000  1.000    0.308      0.000  0.000
+38      CIC18                                SSH-BruteForce     known             0    NaN         NaN    NaN    NaN      NaN        NaN    NaN
+39      CIC18                                 DoS Slowloris     known             0    NaN         NaN    NaN    NaN      NaN        NaN    NaN
+40      CIC18                                 DoS GoldenEye     known             0    NaN         NaN    NaN    NaN      NaN        NaN    NaN
+41      CIC18                                      DoS Hulk     known             0    NaN         NaN    NaN    NaN      NaN        NaN    NaN
+28      CIC18                                     DDoS-HOIC  zero-day          6887  1.000       0.997  0.000  1.000    0.948      0.354  0.998
+29      CIC18                                DDoS-LOIC-HTTP  zero-day          1803  1.000       0.852  0.000  1.000    1.000      0.034  1.000
+30      CIC18                                   Botnet Ares  zero-day           846  0.966       0.129  0.007  0.453    1.000      0.598  0.999
+31      CIC18                  Infiltration - NMAP Portscan  zero-day           643  0.801       0.156  0.017  0.976    0.994      0.623  0.907
+32      CIC18                                 DDoS-LOIC-UDP  zero-day           575  1.000       0.010  1.000  1.000    1.000      0.986  1.000
+33      CIC18  Infiltration - Communication Victim Attacker  zero-day           204  0.379       0.000  0.310  0.904    1.000      0.448  0.995
+34      CIC18                      Web Attack - Brute Force  zero-day           131  0.794       0.000  0.000  0.402    0.998      0.000  0.992
+35      CIC18                              Web Attack - XSS  zero-day           113  0.981       0.000  0.000  0.508    0.996      0.000  1.000
+36      CIC18               Infiltration - Dropbox Download  zero-day            85  0.186       0.000  0.153  0.386    0.605      0.002  0.292
+37      CIC18                              Web Attack - SQL  zero-day            39  0.646       0.000  0.000  0.169    0.564      0.000  0.000
+0   CIDDS_ctx                                           dos     known         26748  1.000       0.999  0.990  1.000    1.000      0.999  1.000
+1   CIDDS_ctx                                      portScan     known          1839  0.977       0.931  0.182  0.977    0.985      0.914  0.918
+3   CIDDS_ctx                                      pingScan     known           520  0.944       0.931  0.938  0.950    0.972      0.941  0.943
+2   CIDDS_ctx                                    bruteForce  zero-day           613  0.625       0.262  0.001  0.696    0.844      0.570  0.425
+12    ToN_ctx                                      scanning     known             0    NaN         NaN    NaN    NaN      NaN        NaN    NaN
+4     ToN_ctx                                          ddos  zero-day         45244  0.549       0.374  0.111  0.392    1.000      0.058  0.183
+5     ToN_ctx                                           xss  zero-day         30702  0.584       0.268  0.530  0.236    1.000      0.211  0.795
+6     ToN_ctx                                      password  zero-day         17430  0.961       0.176  0.813  0.405    0.993      0.320  0.953
+7     ToN_ctx                                     injection  zero-day          4152  0.244       0.082  0.815  0.340    1.000      0.118  0.935
+8     ToN_ctx                                      Backdoor  zero-day          2284  0.112       0.522  0.934  0.536    1.000      0.060  0.934
+9     ToN_ctx                                           dos  zero-day          2229  0.452       0.317  0.167  0.361    0.999      0.485  0.547
+10    ToN_ctx                                    ransomware  zero-day           590  0.100       0.305  0.734  0.444    1.000      0.471  0.991
+11    ToN_ctx                                          mitm  zero-day           567  0.035       0.128  0.610  0.380    1.000      0.561  0.809
+           days  groups_per_day  mean_group_size  flows_labelled  benign_groups  attack_groups  attack_in_benign_groups  benign_in_attack_groups  impure_benign_groups
+dataset                                                                                                                                                               
+CIC18       7.0        190.2143           9.8227         13085.0          657.5          674.0                   0.0022                   0.0011                0.0060
+CIDDS_ctx  25.5         64.6092          18.5555         30561.0          515.5         1132.0                   0.0352                   0.0029                0.0263
+ToN_ctx     6.0        190.3333          90.8978        103854.0          489.5          652.5                   0.0547                   0.0287                0.0888
+             eps  benign_median  benign_p90  benign_max  impure_median  impure_p90  n_impure  all_median
+dataset                                                                                                 
+CIC17      2.063          6.110      15.760      21.458         11.000      17.097       5.6       2.092
+CIC18      1.184          0.402      11.093      43.522         10.047      17.779       4.0       0.430
+CIDDS_ctx  1.196          0.000       8.686      19.755          7.917      10.831      14.6       0.214
+ToN_ctx    0.728          0.525      20.690      83.972         25.980      52.600      40.6       3.948

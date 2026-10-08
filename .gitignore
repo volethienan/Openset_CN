@@ -7,3 +7,4 @@ exp/results_superseded/
 paper/
 mock/streams/*_x10*.parquet
 mock/streams/*injcamo*.parquet
+logs/

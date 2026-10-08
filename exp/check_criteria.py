@@ -1,4 +1,4 @@
-"""Verdicts against the success criteria fixed in ERNP_RQs_Experiments.md (read from reports/*_runs.csv of evaluate.py).
+"""Verdicts against the success criteria fixed before the campaign (read from reports/*_runs.csv of evaluate.py).
 
 Operationalisation (decided before reading the full results):
   RQ1  ranking/tests only over ERNP + 5 SOTA under the causal protocol (ernp_ssfproto/ssf = protocol (b), new_ip = sanity).

@@ -4,7 +4,7 @@ Per run (dataset, method, seed): precision, recall, F1, FPR, AUROC, AUPRC, zero-
 in the anchor period), per-family recall, online labels used, and - for injection streams - payload recall and the
 absorption day (first stream day from which the ramp recall stays below 10%).
 
-Statistics (fixed before running, see ERNP_RQs_Experiments.md):
+Statistics (fixed before running the campaign):
   * per dataset: mean +- std over seeds, and #seeds where ERNP > baseline
   * primary test: one-sided Wilcoxon signed-rank ERNP > baseline over all (dataset x seed) pairs (n = 20 in RQ1)
     (with 5 seeds a per-dataset two-sided Wilcoxon cannot reach p < 0.05 - min p = 0.0625 - so it is not used)

@@ -1,0 +1,16 @@
+dataset,seed,method,reconstructed,labels_used,ok
+ToN_ctx,0,ernp,1176,1176,True
+ToN_ctx,0,abl_retr_none,1195,1195,True
+ToN_ctx,0,abl_evid_rep,1104,1104,True
+ToN_ctx,1,ernp,1108,1108,True
+ToN_ctx,1,abl_retr_none,1159,1159,True
+ToN_ctx,1,abl_evid_rep,1108,1108,True
+ToN_ctx,2,ernp,1150,1150,True
+ToN_ctx,2,abl_retr_none,1108,1108,True
+ToN_ctx,2,abl_evid_rep,1185,1185,True
+ToN_ctx,3,ernp,1192,1192,True
+ToN_ctx,3,abl_retr_none,1090,1090,True
+ToN_ctx,3,abl_evid_rep,1058,1058,True
+ToN_ctx,4,ernp,1153,1153,True
+ToN_ctx,4,abl_retr_none,1104,1104,True
+ToN_ctx,4,abl_evid_rep,1093,1093,True

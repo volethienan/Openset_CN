@@ -202,6 +202,39 @@ def rq2gate_jobs(seed):
     return [("cpu", ds, n, ["ernp.py", ds, *a, "--name", n]) for ds in dss
             for n, a in (("abl_prior_none", ["--prior", "none"]), ("abl_retr_none", ["--retraction", "none"]))]
 
+def e23_jobs(seed):
+    """Q1 revision. E3/mechanism control: ERNP's own feedback schedule (alerts -> groups -> decisions) replayed into ERNP
+    without retraction and GBM+AL (no prior), so only the model differs. E2: B = 25 groups with at most 200 flows per
+    day entering the evidence (= SSF's 200 labelled flows), plus the B = 25 runs of RQ3 extended to seeds 3-4."""
+    n = ds_names(seed)
+    jobs = [("cpu", ds, nm, ["ernp.py", ds, "--replay", "ernp", *a, "--name", nm]) for ds in n.values()
+            for nm, a in (("rpl_retr_none", ["--retraction", "none"]), ("rpl_prior_none", ["--prior", "none"]))]
+    for ds in (n["ToN"], n["CIC18"]):
+        jobs += [("cpu", ds, nm, ["ernp.py", ds, "--budget", "25", *a, "--name", nm]) for nm, a in
+                 (("ernp_B25_cap200", ["--flow_cap", "200"]), ("ernp_B25", []), ("abl_evid_rep_B25", ["--evidence", "rep"]))]
+    return jobs
+
+def e5_jobs(seed):
+    """Q1 revision E5: analyst labels arrive DELAY days after the alerts (same delay for every label-using method);
+    CIC17 has two stream days, so a delay leaves it without any update and it is not included"""
+    n = ds_names(seed); jobs = []
+    for ds in (n["CIDDS"], n["ToN"], n["CIC18"]):
+        jobs += [("cpu", ds, f"ernp_D{D}", ["ernp.py", ds, "--delay", str(D), "--name", f"ernp_D{D}"]) for D in (1, 2)]
+        jobs += [("gpu", ds, f"{m}_D1", ["baselines/sota.py", ds, f"{m}_D1"]) for m in ("ssf_causal", "owad")]
+    return jobs
+
+def e4_jobs(seed):
+    """Q1 revision E4: slow poisoning with protocol-valid flow records (data/inject_valid.py), bruteForce payload;
+    ERNP, its evidence-gated variants and ERNP without labels, and the five SOTA, as in RQ2"""
+    jobs = []
+    for v in ("injvalidinit_bf", "injvalidresp_bf"):
+        ds = f"{cidds(seed)}_{v}"
+        jobs += [("cpu", ds, n, ["ernp.py", ds, *a, "--name", n]) for n, a in
+                 (("ernp", []), ("ernp_B0", ["--budget", "0"]), ("abl_evid_rep", ["--evidence", "rep"]),
+                  ("abl_retr_none", ["--retraction", "none"]), ("abl_prior_none", ["--prior", "none"]))]
+        jobs += [("gpu", ds, m, ["baselines/sota.py", ds, m]) for m in SOTA5]
+    return jobs
+
 def t1_jobs(seed):
     """review 2: CADE and Trident with the threshold at 1% FPR on held-out anchor flows (same models)"""
     return [("gpu", ds, m, ["baselines/sota.py", ds, m]) for ds in ds_names(seed).values() for m in ("cade_t1", "trident_t1")]
@@ -248,10 +281,11 @@ if __name__ == "__main__":
     ap.add_argument("--gpu", type=int, default=2); ap.add_argument("--cpu", type=int, default=2); ap.add_argument("--dry", action="store_true")
     ap.add_argument("--gpu-ids", default="", help="comma-separated physical GPU ids, e.g. 0,1")
     ap.add_argument("--threads", type=int, default=0, help="CPU threads per job (keep (gpu + cpu) x threads <= cores)")
+    ap.add_argument("--pool", choices=("all", "cpu", "gpu"), default="all", help="run only the CPU or only the GPU jobs")
     a = ap.parse_args(); GPU_IDS[:] = [g.strip() for g in a.gpu_ids.split(",") if g.strip()]; THREADS = a.threads
     GEN = {"rq1": rq1_jobs, "rq2": rq2_jobs, "rq3": rq3_jobs, "rq4": rq4_jobs, "rq5": rq5_jobs, "cad": cad_jobs, "ext": ext_jobs, "ext1": ext1_jobs, "rq2lb": rq2lb_jobs, "noise": noise_jobs,
-           "scale": scale_jobs, "opf": opf_jobs, "x10": x10_jobs, "camo": camo_jobs, "rq2rep": rq2rep_jobs, "scarf": scarf_jobs, "audit": audit_jobs, "rq2gate": rq2gate_jobs, "t1": t1_jobs, "diam": diam_jobs}
-    jobs = [(j, s) for rq in a.rq.split("+") for s in a.seeds for j in GEN[rq](s)]
+           "scale": scale_jobs, "opf": opf_jobs, "x10": x10_jobs, "camo": camo_jobs, "rq2rep": rq2rep_jobs, "scarf": scarf_jobs, "audit": audit_jobs, "rq2gate": rq2gate_jobs, "t1": t1_jobs, "e23": e23_jobs, "e5": e5_jobs, "e4": e4_jobs, "diam": diam_jobs}
+    jobs = [(j, s) for rq in a.rq.split("+") for s in a.seeds for j in GEN[rq](s) if a.pool in ("all", j[0])]
     if a.rq == "cad":   # most informative first: ToN, then CIC18, CIC17, CIDDS; 1 h before 4 h
         prio = {"ToN": 0, "CIC18": 1, "CIC17": 2, "CIDDS": 3}
         jobs.sort(key=lambda js: (prio[js[0][1].split("_")[0]], js[0][2].endswith("_P4"), js[1]))

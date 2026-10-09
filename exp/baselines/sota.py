@@ -28,6 +28,8 @@ dev = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 EPOCH_1 = 20                                         # SSF epoch_1 (suffix _E{n}; the authors' UNSW command uses 180)
 WINDOW = 0                                           # SSF native protocol: windows of WINDOW flows (suffix _W{n}; 0 = off)
 NOISE = 0.0                                          # oracle label noise (suffix _N{pct}); 0 = exact labels
+DELAY = 0                                            # label delay in periods (suffix _D{n}): the labelled batch of period
+                                                     # i - DELAY is used by the update at the end of period i (E5)
 TIMING = dict(init_s=0.0, score_s=0.0, n_scored=0, update_s=0.0, n_updates=0)   # cost reporting only (RQ5)
 
 def _now():                                          # wall clock after the GPU queue is drained (fair timing)
@@ -111,14 +113,19 @@ def run_owad(ds, ae_lr=None):
     _, r_ho = AE.test(model, 0, Z[ho]); thr = calib_upper(r_ho)
     con = tr[:50000]; _, rmse_c = AE.test(model, thr, Z[con])
     day = days_of(df, s_idx); s = np.zeros(len(s_idx)); n_lab = 0; n_adapt = 0
-    for d in pd.unique(day):
+    days = list(pd.unique(day))
+    for j, d in enumerate(days):
         m = np.where(day == d)[0]; g = s_idx[m]
         t0 = _now(); _, s[m] = AE.test(model, thr, Z[g])          # predict first (causal)
         TIMING["score_s"] += _now() - t0; TIMING["n_scored"] += len(g)
+        sc = s[m]
+        if DELAY:                                                  # labels of period j - DELAY arrive now
+            if j < DELAY: continue
+            d = days[j - DELAY]; m = np.where(day == d)[0]; g = s_idx[m]; _, sc = AE.test(model, thr, Z[g])
         lb = period_budget(d, PERIOD, LBL)                         # = LBL when daily
         if len(g) < 200 or lb <= 0: continue
         t0 = _now(); cb = Calibrator(Z[con], method="Isotonic"); cb.set_calibrator(rmse_c, is_P_mal=True)
-        sh = ShiftHunter(rmse_c, s[m], cb, ad_type="Tab")
+        sh = ShiftHunter(rmse_c, sc, cb, ad_type="Tab")
         if sh.permu_test() < U.get_params("ShiftDetector")["test_thres"]:
             sh.explainer(Z[g], noisy(y[g], d), label_num=lb); sh.adapter(model); model = sh.model
             _, rmse_c = AE.test(model, thr, Z[con])   # control scores under the adapted model (next round)
@@ -158,12 +165,17 @@ def run_ssf(ds, epochs=200, epoch_1=None, opt_old_lr=24, opt_new_lr=50, new_samp
             loss = crit(rv, yb).mean() + bce(cl.squeeze(-1), yb.float()).mean(); loss.backward(); opt.step()
     teacher.load_state_dict(model.state_dict()); TIMING["init_s"] += _now() - t_init
     day = days_of(df, s_idx); prob = np.zeros(len(s_idx)); n_lab = 0; n_drift = 0
-    for d in pd.unique(day):
+    days = list(pd.unique(day)); assert CAUSAL or not DELAY, "label delay needs the causal protocol"
+    for j, d in enumerate(days):
         m = np.where(day == d)[0]; xte = torch.tensor(X[s_idx[m]], device=dev); yte = torch.tensor(noisy(y[s_idx[m]], d), device=dev).long()
         if CAUSAL:
             t0 = _now()
             with torch.no_grad(): prob[m] = model(xte)[2].squeeze(-1).cpu().numpy()   # causal: predict before learning the day
             TIMING["score_s"] += _now() - t0; TIMING["n_scored"] += len(m)
+        if DELAY:                                                  # labels of period j - DELAY arrive now
+            if j < DELAY: continue
+            d = days[j - DELAY]; m = np.where(day == d)[0]
+            xte = torch.tensor(X[s_idx[m]], device=dev); yte = torch.tensor(noisy(y[s_idx[m]], d), device=dev).long()
         lb = LBL if PERIOD == 24 else min(period_budget(d, PERIOD, LBL), len(m))   # daily: exactly the original loop
         if PERIOD != 24 and (lb <= 0 or len(m) < 2):               # sub-daily period without labels: no update
             if not CAUSAL:
@@ -267,12 +279,13 @@ def run_cade(ds, anchor_thr=False):
 if __name__ == "__main__":
     ds, method = sys.argv[1], sys.argv[2]; t0 = time.time()
     import re                                            # suffixes: _P{hours} update cadence, _B{n} labels per day
-    mm = re.fullmatch(r"(.+?)(?:_W(\d+))?(?:_E(\d+))?(?:_P(\d+))?(?:_B(\d+))?(?:_N(\d+))?", method); base = mm[1]
+    mm = re.fullmatch(r"(.+?)(?:_W(\d+))?(?:_E(\d+))?(?:_P(\d+))?(?:_B(\d+))?(?:_N(\d+))?(?:_D(\d+))?", method); base = mm[1]
     if mm[2]: WINDOW = int(mm[2])      # _W{n}: SSF windows of n flows, _E{n}: SSF epoch_1 (e.g. ssf_causal_W20000,
     if mm[3]: EPOCH_1 = int(mm[3])     # ssf_causal_E180), _P{h}: update cadence (owad_P1), _B{n}: labels/day (owad_B100)
     if mm[4]: PERIOD = int(mm[4])
     if mm[5]: LBL = int(mm[5])
     if mm[6]: NOISE = int(mm[6]) / 100
+    if mm[7]: DELAY = int(mm[7])
     if base == "ssf_causal": CAUSAL = True
     fn = {"memstream": run_memstream, "memstream_fn": run_memstream_fixnorm, "owad": run_owad, "owad_lr3": lambda d: run_owad(d, ae_lr=1e-3), "ssf": run_ssf,
           "ssf_causal": run_ssf, "trident": run_trident, "cade": run_cade,

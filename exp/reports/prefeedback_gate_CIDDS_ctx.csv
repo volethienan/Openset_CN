@@ -1,0 +1,16 @@
+dataset,seed,method,reconstructed,labels_used,ok
+CIDDS_ctx,0,ernp,1617,1617,True
+CIDDS_ctx,0,abl_retr_none,1827,1827,True
+CIDDS_ctx,0,abl_evid_rep,1809,1809,True
+CIDDS_ctx,1,ernp,1678,1678,True
+CIDDS_ctx,1,abl_retr_none,1948,1948,True
+CIDDS_ctx,1,abl_evid_rep,1913,1913,True
+CIDDS_ctx,2,ernp,1562,1562,True
+CIDDS_ctx,2,abl_retr_none,1677,1677,True
+CIDDS_ctx,2,abl_evid_rep,1764,1764,True
+CIDDS_ctx,3,ernp,1654,1654,True
+CIDDS_ctx,3,abl_retr_none,1846,1846,True
+CIDDS_ctx,3,abl_evid_rep,1883,1883,True
+CIDDS_ctx,4,ernp,1689,1689,True
+CIDDS_ctx,4,abl_retr_none,1996,1996,True
+CIDDS_ctx,4,abl_evid_rep,1969,1969,True

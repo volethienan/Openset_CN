@@ -1,0 +1,16 @@
+dataset,seed,method,reconstructed,labels_used,ok
+CIC18,0,ernp,1293,1293,True
+CIC18,0,abl_retr_none,1394,1394,True
+CIC18,0,abl_evid_rep,1359,1359,True
+CIC18,1,ernp,1370,1370,True
+CIC18,1,abl_retr_none,1398,1398,True
+CIC18,1,abl_evid_rep,1390,1390,True
+CIC18,2,ernp,1297,1297,True
+CIC18,2,abl_retr_none,1332,1332,True
+CIC18,2,abl_evid_rep,1375,1375,True
+CIC18,3,ernp,1342,1342,True
+CIC18,3,abl_retr_none,1395,1395,True
+CIC18,3,abl_evid_rep,1362,1362,True
+CIC18,4,ernp,1347,1347,True
+CIC18,4,abl_retr_none,1372,1372,True
+CIC18,4,abl_evid_rep,1329,1329,True

@@ -15,7 +15,7 @@ Ablation switches (RQ4) are explicit arguments; defaults = the final ERNP config
 """
 import sys, time, argparse, numpy as np
 import os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import load, calib_upper, stream_days, stream_periods, period_budget, save, seed, N_CTX
+from common import load, calib_upper, stream_days, stream_periods, period_budget, save, seed, N_CTX, ROOT
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.neighbors import NearestNeighbors
 from sklearn.cluster import MiniBatchKMeans
@@ -23,9 +23,12 @@ from sklearn.cluster import MiniBatchKMeans
 DEFAULTS = dict(rho=0.3, prior_mass=1.0, budget=200, prior="partial", retraction="soft", evidence="cluster",
                 features="ctx", protocol="causal", n_pos_max=40000, n_known_max=10000, gbm_iter=300, gbm_lr=0.1,
                 eps_mult=1.0, clf="gbm", period=24,          # period: update cadence in hours (24 = daily)
-                evidence_source="analyst", n_self=5000,
-                label_noise=0.0, fpr=0.01,
-                analytic=0, refit=24, knn=32)  # analytic: 3-class model, retraction applied at inference; refit: hours between refits                           # analyst flips each representative label w.p. label_noise      # "self": counterfactual absorbing channel (RQ2/RQ4)
+                evidence_source="analyst", n_self=5000,      # "self": counterfactual absorbing channel (RQ2/RQ4)
+                label_noise=0.0, fpr=0.01,                   # analyst flips each representative label w.p. label_noise
+                analytic=0, refit=24, knn=32,                # analytic: 3-class model, retraction applied at inference; refit: hours between refits
+                replay="", flow_cap=0, delay=0)              # replay: take the alerts that form the groups from a saved run
+# (fixed feedback schedule, E3/mechanism control); flow_cap: max flows entering the evidence per period (E2);
+# delay: periods between an analyst decision and the refit that uses it (E5)
 
 class ERNP:
     def __init__(self, cfg, rng):
@@ -150,15 +153,18 @@ def run(ds, **cfg):
     ka = np.where(anc & (fam != "BENIGN"))[0]
     A = X[rng.choice(ka, min(c["n_known_max"], len(ka)), replace=False)] if len(ka) else np.zeros((0, X.shape[1]), X.dtype)
     m = ERNP(c, rng); nrng = np.random.default_rng(10_000 + seed())   # noise rng: separate, only used if label_noise > 0
+    crng = np.random.default_rng(20_000 + seed())                      # flow-cap rng: separate, only used if flow_cap > 0
+    F_ref = np.load(ROOT + f"exp/results/{ds}__{c['replay']}__s{seed()}.npz")["flag"].astype(bool) if c["replay"] else None
     m.eps = c["eps_mult"] * np.quantile(NearestNeighbors(n_neighbors=2).fit(P).kneighbors(P[:5000])[0][:, 1], 0.9)
     t0 = time.time(); m.fit(P, A); t_fit.append(time.time() - t0)
     tau = calib_upper(m.score(X[ho])) if c["fpr"] == 0.01 else float(np.quantile(m.score(X[ho]), 1 - c["fpr"]))   # operating point
-    day = stream_periods(df, s_idx, c["period"]); s = np.zeros(len(s_idx)); F = np.zeros(len(s_idx), bool); n_lab = 0; audit = []
+    day = stream_periods(df, s_idx, c["period"]); s = np.zeros(len(s_idx)); F = np.zeros(len(s_idx), bool); n_lab = 0; n_flow = 0; audit = []
     refit_at = stream_periods(df, s_idx, c["refit"])               # analytic mode: refit only when this block ends
     order = list(dict.fromkeys(day)); last_of_block = {}
     for i, d in enumerate(order):
         i0 = np.argmax(day == d); last_of_block[d] = i == len(order) - 1 or refit_at[np.argmax(day == order[i + 1])] != refit_at[i0]
-    for d in order:
+    pend = []                                                      # delayed decisions: (release period, addP, addA)
+    for i_d, d in enumerate(order):
         idx = np.where(day == d)[0]
         t0 = time.time(); s[idx] = m.score(X[s_idx[idx]]); t_score += time.time() - t0; n_scored += len(idx)
         F[idx] = s[idx] > tau
@@ -170,27 +176,34 @@ def run(ds, **cfg):
                 t0 = time.time(); m.fit(P[-2 * c["n_pos_max"]:], A[-4 * c["n_known_max"]:]); t_fit.append(time.time() - t0)
             continue
         if c["budget"] <= 0: continue                              # no online labels -> q never changes (P1)
-        al = s_idx[idx][s[idx] > tau]; Bk = period_budget(d, c["period"], c["budget"])   # = budget when daily
+        al = s_idx[idx][F_ref[idx] if F_ref is not None else s[idx] > tau]; Bk = period_budget(d, c["period"], c["budget"])   # = budget when daily
         if len(al) < 2 or Bk <= 0:
             if c["analytic"] and last_of_block[d]:                 # block ends without new labels: refit on what accrued
                 t0 = time.time(); m.fit(P[-2 * c["n_pos_max"]:], A[-4 * c["n_known_max"]:]); t_fit.append(time.time() - t0)
-            continue
-        k = min(Bk, len(al)); km = MiniBatchKMeans(k, random_state=seed(), n_init=3).fit(X[al])
-        addP, addA = [], []
+            if not c["delay"]: continue
+            k = 0                                                  # no decision now; delayed decisions may still arrive
+        else: k = min(Bk, len(al)); km = MiniBatchKMeans(k, random_state=seed(), n_init=3).fit(X[al])
+        addP, addA = [], []; per = max(1, c["flow_cap"] // k) if c["flow_cap"] > 0 and k else 0   # flows per group under the cap
         for cl in range(k):
             mem = al[km.labels_ == cl]
             if not len(mem): continue
             rep = mem[np.argmin(np.linalg.norm(X[mem] - km.cluster_centers_[cl], axis=1))]; n_lab += 1
             grp = X[mem] if c["evidence"] == "cluster" else X[[rep]]
+            if per and len(mem) > per:          # E2: representative + random members, at most `per` flows per group
+                grp = X[np.r_[rep, crng.choice(mem[mem != rep], per - 1, replace=False)]]
             if c["evidence"] == "oracle_pure":   # DIAGNOSTIC upper bound only: perfectly pure groups (uses ground truth)
                 grp = X[mem[(fam[mem] == "BENIGN") == (fam[rep] == "BENIGN")]]
             is_ben = fam[rep] == "BENIGN"
             if c["label_noise"] > 0 and nrng.random() < c["label_noise"]: is_ben = not is_ben   # analyst error
-            (addP if is_ben else addA).append(grp)
+            (addP if is_ben else addA).append(grp); n_flow += len(grp)
             if c["evidence"] == "cluster":      # logging only (ground truth never used for decisions): group purity
                 bad = fam[mem] != "BENIGN" if is_ben else fam[mem] == "BENIGN"
                 rad = float(np.linalg.norm(X[mem] - X[rep], axis=1).max())   # group radius around the representative
                 audit.append((d, int(is_ben), len(mem), int(bad.sum()), fam[rep], rad))
+        if c["delay"]:                         # E5: decisions on period i reach the model at the end of period i + delay
+            pend.append((i_d + c["delay"], addP, addA)); rel = [q for q in pend if q[0] <= i_d]; pend = [q for q in pend if q[0] > i_d]
+            addP = [g for q in rel for g in q[1]]; addA = [g for q in rel for g in q[2]]
+            if not addP and not addA: continue
         if addP:
             m.observe(np.vstack(addP), P[-2 * c["n_pos_max"]:])
             P = np.vstack([P] + addP); m.conf = np.vstack(([m.conf] if m.conf is not None else []) + addP)
@@ -199,7 +212,7 @@ def run(ds, **cfg):
         t0 = time.time(); m.fit(P[-2 * c["n_pos_max"]:], A[-4 * c["n_known_max"]:]); t_fit.append(time.time() - t0)
         if c["protocol"] == "ssf":                                 # SSF's native protocol: predict after learning the day
             s[idx] = m.score(X[s_idx[idx]]); F[idx] = s[idx] > tau
-    info = dict(cfg={k: v for k, v in c.items()}, tau=tau, eps=m.eps, labels_used=n_lab, audit=audit,
+    info = dict(cfg={k: v for k, v in c.items()}, tau=tau, eps=m.eps, labels_used=n_lab, audit=audit, flows_in_evidence=n_flow,
                 timing=dict(fit_mean_s=float(np.mean(t_fit)), fit_max_s=float(np.max(t_fit)),
                             score_flows_per_s=n_scored / max(t_score, 1e-9)))
     return s, F, info

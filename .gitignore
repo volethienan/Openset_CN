@@ -9,5 +9,4 @@ mock/streams/*_x10*.parquet
 mock/streams/*injcamo*.parquet
 logs/
 mock/streams/_raw_cache*.pkl
-mock/streams/*injvalid*.parquet
 Huong_dan_*.docx

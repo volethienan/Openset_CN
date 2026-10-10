@@ -3,7 +3,7 @@
 Anchor period (known attacks) / stream (zero-day evaluation):
   CIDDS*  : first 2 days          ToN*   : first day
   CIC17*  : before 2017-07-06     CIC18* : before 2018-02-17
-  CTU13*  : before 2011-08-12     LITNET*: before 2019-10-03     SIMARGL*: before 2021-04-12   (real-network datasets)
+  CTU13*  : before 2011-08-12     SIMARGL*: before 2021-04-12   (real-network datasets)
 Anchor BENIGN flows -> 80% reference / 20% holdout (seeded by EXP_SEED). Features are standardised with reference stats.
 Every score-based threshold is set at FPR_TARGET on the holdout.
 """
@@ -22,7 +22,6 @@ def anchor_end(ds, t0):
     if ds.startswith("CIC17"): return pd.Timestamp("2017-07-06").value / 1e9
     if ds.startswith("CIC18"): return pd.Timestamp("2018-02-17").value / 1e9
     if ds.startswith("CTU13"): return pd.Timestamp("2011-08-12").value / 1e9      # captures of 10-11 August (Neris)
-    if ds.startswith("LITNET"): return pd.Timestamp("2019-10-03").value / 1e9     # capture days 2019-03-06 and 2019-10-02
     if ds.startswith("SIMARGL"): return pd.Timestamp("2021-04-12").value / 1e9    # capture days 2021-03-25 and 2021-04-11
     return t0 + (2.0 if ds.startswith("CIDDS") else 1.0) * 86400
 

@@ -1,4 +1,4 @@
-"""Streams from three real-network datasets, in the schema of the other streams:
+"""Streams from real-network datasets, in the schema of the other streams:
    t (unix s), src, dst, fam (attack family or 'BENIGN'), f_* numeric features (per-flow features, then 10 context features).
 
   CTU13   : CTU-13 (CTU University, Czech Republic, August 2011). Real background traffic of the university network with
@@ -6,22 +6,19 @@
             (*.binetflow). Attack = flows labelled 'From-Botnet', family = the botnet of the capture. Background flows
             are unverified and are treated as benign, as is usual; column `lab` keeps botnet / normal / background, so
             that the false-positive rate can also be reported on the verified 'Normal' flows alone.
-  LITNET  : LITNET-2020 (Lithuanian research and education network, 2019-2020), NetFlow v9 with 12 attack types
-            (allFlows.csv, read from ALLinONE.zip). The 19 rule-output columns that the authors derived to annotate
-            the attacks (icmp_dst_ip_b ... udp_src_p_0) are NOT used as features: they encode the labels.
   SIMARGL : RoEduNet-SIMARGL2021 (Romanian education network, March-May 2021), NetFlow v9 (nProbe), five capture days,
             seven attack types run against servers of the network (SYN/UDP/NULL/XMAS/FIN scans, Slowloris, R-U-Dead-Yet).
 
 Protocol identical to prepare_ctx.py: the 10 temporal-context features (counts and bytes per source, destination and
 pair in a short and a long window, and fan-out) are computed on the FULL data before sampling, over flows that started
 at or before the flow; sampling is uniform with rate r = TARGET / N, rare attack families kept up to MIN_FAM flows.
-Addresses are never features. The windows are 10 s and 120 s; time is counted in milliseconds for CTU13, in 10 ms
-ticks for SIMARGL and in seconds for LITNET, whose timestamps have a resolution of one second (flows of the same
-second are included in each other's windows).
+Addresses are never features. The windows are 10 s and 120 s; time is counted in milliseconds for CTU13 and in 10 ms
+ticks for SIMARGL, whose capture spans 67 days.
+(LITNET-2020 was examined with this builder and is not used, see exp/reports/litnet_check.txt.)
 
-usage: ERNP_RAW=/path/to/dataraw python exp/data/prepare_real.py CTU13|LITNET|SIMARGL [seeds ...]   (default: EXP_SEED)
+usage: ERNP_RAW=/path/to/dataraw python exp/data/prepare_real.py CTU13|SIMARGL|SIMARGL_all [seeds ...]   (default: EXP_SEED)
 """
-import os, sys, glob, zipfile, numpy as np, pandas as pd
+import os, sys, numpy as np, pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import prepare as P
 
@@ -138,38 +135,6 @@ def ctu_feats(ch):
     df["lab"] = np.where(fam != "BENIGN", "botnet", np.where(lab.str.contains("Normal", regex=False), "normal", "background"))
     return df
 
-# ---------------------------------------------------------------- LITNET-2020
-LIT_USE = ["ts_year", "ts_month", "ts_day", "ts_hour", "ts_min", "ts_second", "td", "sa", "da", "sp", "dp", "pr", "_flag1", "_flag2",
-           "_flag3", "_flag4", "_flag5", "_flag6", "stos", "ipkt", "ibyt", "opkt", "obyt", "attack_t", "attack_a"]
-
-def lit_chunks():
-    with zipfile.ZipFile(RAW + "LITNET-2020/ALLinONE.zip").open("allFlows.csv") as f:
-        yield from pd.read_csv(f, usecols=LIT_USE, chunksize=CHUNK, dtype=str)
-
-def lit_time(ch):
-    s = (ch["ts_year"] + "-" + ch["ts_month"].str.zfill(2) + "-" + ch["ts_day"].str.zfill(2) + " " + ch["ts_hour"].str.zfill(2) + ":" +
-         ch["ts_min"].str.zfill(2) + ":" + ch["ts_second"].str.zfill(2))
-    return pd.to_datetime(s, format="%Y-%m-%d %H:%M:%S", errors="coerce")
-
-def lit_fam(ch):
-    a = ch["attack_t"].astype(str).str.strip()
-    return np.where((ch["attack_a"].astype(str).str.strip() == "1") & (a != "none"), a, "BENIGN")
-
-def lit_pass1(ch):
-    ts = lit_time(ch); t = np.where(ts.isna(), -1, ts.astype("int64").values // 1_000_000_000)
-    return t.astype(np.int64), ch["sa"].astype(str).values, ch["da"].astype(str).values, num(ch["ibyt"]) + num(ch["obyt"]), lit_fam(ch)
-
-def lit_feats(ch):
-    proto = ch["pr"].astype(str).str.strip().str.upper(); ip, ib, op, ob = (num(ch[c]) for c in ("ipkt", "ibyt", "opkt", "obyt"))
-    X = np.column_stack([np.log1p(num(ch["td"])), np.log1p(ip), np.log1p(ib), np.log1p(ib / np.maximum(ip, 1)), np.log1p(op), np.log1p(ob),
-                         *[(ch[f"_flag{i}"].astype(str).str.strip() != ".").values.astype(float) for i in range(1, 7)],
-                         (proto == "TCP").values, (proto == "UDP").values, (proto == "ICMP").values,
-                         P.port_bucket(ch["sp"]), P.port_bucket(ch["dp"]), num(ch["stos"]) > 0]).astype(np.float32)
-    df = pd.DataFrame(X, columns=[f"f_{i}" for i in range(X.shape[1])])
-    df["t"] = lit_time(ch).astype("int64").values / 1e9
-    df["src"] = ch["sa"].astype(str).values; df["dst"] = ch["da"].astype(str).values; df["fam"] = lit_fam(ch)
-    return df
-
 # ---------------------------------------------------------------- RoEduNet-SIMARGL2021
 # One parquet file with every flow of the five capture days. Counters and export-time fields (FLOW_ID, TOTAL_FLOWS_EXP,
 # FIRST/LAST_SWITCHED, timeouts) are not features: they encode the position of a flow in the capture.
@@ -223,9 +188,8 @@ def sim_feats(ch):
 
 if __name__ == "__main__":
     name = sys.argv[1]; P.TARGET = int(os.environ.get("ERNP_TARGET", 400_000))      # 1-2% of each trace, as for CSE-CIC-IDS2018
-    seeds = [int(x) for x in sys.argv[2:]] or [P.SEED]                              # e.g. `prepare_real.py LITNET 0 1 2 3 4`
+    seeds = [int(x) for x in sys.argv[2:]] or [P.SEED]                              # e.g. `prepare_real.py CTU13 0 1 2 3 4`
     if name == "CTU13": build("CTU13", ctu_chunks, ctu_pass1, ctu_feats, (10_000, 120_000), seeds)        # ms
-    elif name == "LITNET": build("LITNET", lit_chunks, lit_pass1, lit_feats, (10, 120), seeds)            # s (timestamp resolution)
     elif name in ("SIMARGL", "SIMARGL_all"):                                                              # 10 ms ticks
         SIM_KEEP_SCAN[0] = name == "SIMARGL_all"; build(name, sim_chunks, sim_pass1, sim_feats, (1_000, 12_000), seeds)
     else: raise SystemExit("unknown dataset " + name)

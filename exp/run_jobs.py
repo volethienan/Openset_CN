@@ -237,8 +237,8 @@ def e4_jobs(seed):
     return jobs
 
 REAL = ("CTU13", "SIMARGL")                    # real-network datasets (data/prepare_real.py), held out from development.
-# LITNET-2020 was examined and left out: its 'normal' class contains unlabelled scanning and attack traffic (the seed-0
-# check runs of ERNP, kNN and IForest are kept in results/ and reported).
+# LITNET-2020 was examined and left out: its 'normal' class contains unlabelled scanning and attack traffic
+# (exp/reports/litnet_check.txt).
 
 def realsens_jobs(seed):
     """sensitivity of RoEduNet-SIMARGL2021 to the unlabelled FIN scan: the stream with the published labels (SIMARGL_all)"""

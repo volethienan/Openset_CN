@@ -1,0 +1,78 @@
+Q1 revision: E4 (slow poisoning with protocol-valid flow records) and E5 (analyst label delay). No model is run.
+
+E4. Streams CIDDS_ctx*_injvalid{init,resp}_bf (data/inject_valid.py) against the interpolated-feature streams of RQ2
+(CIDDS_ctx*_inj{init,resp}_bf) and the clean stream, same seeds. Per run: F1, FPR, recall of the ramp and of the final
+payload at the method's own rule, payload recall at 1% stream FPR (oracle point), absorption (ramp recall < 10% from
+some day on), and the benign FPR before / during the campaign. For the ERNP variants the analyst decisions are
+replayed from the saved alerts (same grouping as ernp.run, gated on labels_used) to count what the attacker gains
+through the label channel: decisions spent on groups whose representative is an injected flow, groups labelled benign
+that contain injected flows, and injected flows that enter the benign evidence P.
+
+E5. Labels arrive D days after the alerts (ernp_D1, ernp_D2, ssf_causal_D1, owad_D1) against D = 0, on the three
+streams with more than two days. ToN is also re-scored without the gateway burst hour (ton_burst_analysis.py) and
+per stream day, because pooled AUROC below 0.5 there comes from that hour and from families that last 1-2 days.
+Output: reports/e4_valid_poisoning.txt, e4_runs.csv, e4_label_channel.csv, e5_delay.txt, e5_runs.csv, e5_ton_days.csv
+
+E4 per scenario and method (mean over 5 seeds; payload_min = worst seed)
+                                             F1    FPR  ramp_recall  payload_recall  payload_at1fpr  fpr_before  fpr_during  AUROC  labels  absorbed_seeds  payload_min
+dataset                   method                                                                                                                                       
+CIDDS_ctx_injinit_bf      abl_evid_rep    0.957  0.007        0.853           0.737           0.757       0.010       0.007  0.991  2475.2               0        0.678
+                          abl_prior_none  0.594  0.296        0.722           0.998           0.973       0.046       0.313  0.963  4828.6               0        0.993
+                          abl_retr_none   0.957  0.007        0.847           0.741           0.764       0.011       0.007  0.990  2501.2               0        0.698
+                          cade            0.899  0.022        0.693           0.704           0.693       0.020       0.023  0.974     0.0               0        0.655
+                          ernp            0.961  0.006        0.849           0.740           0.760       0.010       0.005  0.991  2376.8               0        0.684
+                          ernp_B0         0.903  0.012        0.404           0.536           0.483       0.011       0.012  0.969     0.0               0        0.369
+                          memstream       0.896  0.011        0.313           0.583           0.557       0.009       0.012  0.977     0.0               0        0.494
+                          owad            0.831  0.009        0.001           0.001           0.001       0.009       0.009  0.857  4880.0               5        0.000
+                          ssf_causal      0.933  0.003        0.367           0.815           0.849       0.001       0.004  0.973  5200.0               0        0.774
+                          trident         0.521  0.360        0.777           0.850           0.637       0.357       0.361  0.965     0.0               0        0.726
+CIDDS_ctx_injresp_bf      abl_evid_rep    0.955  0.007        0.820           0.758           0.772       0.010       0.007  0.990  2436.6               0        0.722
+                          abl_prior_none  0.632  0.272        0.716           0.972           0.929       0.046       0.287  0.967  4820.4               0        0.867
+                          abl_retr_none   0.956  0.007        0.820           0.743           0.768       0.011       0.006  0.989  2432.0               0        0.717
+                          cade            0.896  0.022        0.652           0.704           0.693       0.020       0.023  0.972     0.0               0        0.655
+                          ernp            0.960  0.006        0.817           0.746           0.786       0.010       0.005  0.992  2313.6               0        0.693
+                          ernp_B0         0.901  0.012        0.383           0.536           0.483       0.011       0.012  0.972     0.0               0        0.369
+                          memstream       0.896  0.011        0.318           0.583           0.557       0.009       0.012  0.974     0.0               0        0.494
+                          owad            0.831  0.009        0.003           0.001           0.001       0.009       0.009  0.848  4880.0               5        0.000
+                          ssf_causal      0.941  0.004        0.503           0.764           0.824       0.001       0.004  0.982  5200.0               0        0.703
+                          trident         0.519  0.360        0.747           0.850           0.637       0.357       0.361  0.962     0.0               0        0.726
+CIDDS_ctx_injvalidinit_bf abl_evid_rep    0.954  0.008        0.799           0.977           0.978       0.010       0.008  0.989  2625.6               0        0.970
+                          abl_prior_none  0.635  0.267        0.686           0.997           0.989       0.046       0.282  0.964  4843.0               0        0.994
+                          abl_retr_none   0.958  0.007        0.813           0.976           0.979       0.011       0.007  0.989  2599.0               0        0.967
+                          cade            0.879  0.022        0.409           0.752           0.716       0.020       0.023  0.955     0.0               0        0.713
+                          ernp            0.962  0.006        0.811           0.982           0.985       0.010       0.006  0.991  2458.2               0        0.974
+                          ernp_B0         0.895  0.012        0.398           0.173           0.149       0.011       0.012  0.964     0.0               0        0.121
+                          memstream       0.891  0.011        0.284           0.476           0.469       0.009       0.012  0.981     0.0               1        0.102
+                          owad            0.834  0.009        0.028           0.031           0.031       0.009       0.009  0.943  4920.0               5        0.031
+                          ssf_causal      0.958  0.002        0.641           0.948           0.971       0.001       0.002  0.990  5200.0               0        0.938
+                          trident         0.517  0.360        0.708           0.858           0.689       0.357       0.360  0.965     0.0               0        0.756
+CIDDS_ctx_injvalidresp_bf abl_evid_rep    0.935  0.009        0.554           0.965           0.967       0.010       0.008  0.982  2573.2               0        0.869
+                          abl_prior_none  0.689  0.236        0.493           0.943           0.938       0.046       0.249  0.955  4257.8               0        0.778
+                          abl_retr_none   0.942  0.008        0.614           0.984           0.987       0.011       0.008  0.983  2523.2               0        0.960
+                          cade            0.875  0.022        0.367           0.727           0.710       0.020       0.023  0.949     0.0               0        0.703
+                          ernp            0.946  0.006        0.590           0.991           0.994       0.010       0.006  0.986  2362.6               0        0.985
+                          ernp_B0         0.892  0.012        0.351           0.225           0.185       0.011       0.012  0.958     0.0               0        0.161
+                          memstream       0.889  0.011        0.255           0.472           0.462       0.009       0.012  0.951     0.0               1        0.101
+                          owad            0.832  0.009        0.011           0.002           0.002       0.009       0.009  0.916  4920.0               5        0.001
+                          ssf_causal      0.938  0.002        0.390           0.868           0.941       0.001       0.002  0.984  5200.0               0        0.774
+                          trident         0.511  0.360        0.612           0.846           0.672       0.357       0.360  0.952     0.0               0        0.737
+
+Label channel of the ERNP variants (mean over seeds)
+                                          n_injected  decisions  dec_on_injected_rep  benign_groups_with_injected  injected_into_P  injected_into_A  share_dec_on_injected  share_injected_in_P
+dataset                   method                                                                                                                                                               
+CIDDS_ctx_injinit_bf      abl_evid_rep        6480.0     2475.2                932.8                          0.0              0.0            932.8                  0.377                0.000
+                          abl_prior_none      6480.0     4828.6                424.0                        110.6            478.4           4598.8                  0.089                0.074
+                          abl_retr_none       6480.0     2501.2                944.6                         10.6             21.6           5315.8                  0.378                0.003
+                          ernp                6480.0     2376.8                958.4                          8.8             16.4           5330.8                  0.403                0.003
+CIDDS_ctx_injresp_bf      abl_evid_rep        6480.0     2436.6                823.2                          0.0              0.0            823.2                  0.339                0.000
+                          abl_prior_none      6480.0     4820.4                434.2                         45.6            200.4           4807.8                  0.091                0.031
+                          abl_retr_none       6480.0     2432.0                849.8                          6.6              9.6           5190.6                  0.350                0.001
+                          ernp                6480.0     2313.6                858.0                          5.2              6.6           5186.2                  0.371                0.001
+CIDDS_ctx_injvalidinit_bf abl_evid_rep        6480.0     2625.6                883.8                          0.0              0.0            883.8                  0.337                0.000
+                          abl_prior_none      6480.0     4843.0                364.6                         94.4            279.8           4615.6                  0.076                0.043
+                          abl_retr_none       6480.0     2599.0                925.4                         27.6             59.8           5442.8                  0.357                0.009
+                          ernp                6480.0     2458.2                924.6                         25.0             54.0           5445.8                  0.376                0.008
+CIDDS_ctx_injvalidresp_bf abl_evid_rep        6480.0     2573.2                682.8                          0.0              0.0            682.8                  0.266                0.000
+                          abl_prior_none      6480.0     4257.8                361.6                         46.2            327.4           3512.8                  0.091                0.051
+                          abl_retr_none       6480.0     2523.2                743.4                         11.8             20.6           4493.6                  0.295                0.003
+                          ernp                6480.0     2362.6                771.6                         11.4             26.6           4373.0                  0.327                0.004

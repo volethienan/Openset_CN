@@ -8,15 +8,19 @@
             that the false-positive rate can also be reported on the verified 'Normal' flows alone.
   SIMARGL : RoEduNet-SIMARGL2021 (Romanian education network, March-May 2021), NetFlow v9 (nProbe), five capture days,
             seven attack types run against servers of the network (SYN/UDP/NULL/XMAS/FIN scans, Slowloris, R-U-Dead-Yet).
+  APPRAISE: APPRAISE H2020 real labelled NetFlow dataset (network of the BTC complex in Ljubljana, a commercial and
+            building-management network; 18 January - 12 April 2023, 76 consecutive days), NetFlow v9, 15.1M flows,
+            three attack categories run in the network (reconnaissance from the first day, DDoS, brute force).
 
 Protocol identical to prepare_ctx.py: the 10 temporal-context features (counts and bytes per source, destination and
 pair in a short and a long window, and fan-out) are computed on the FULL data before sampling, over flows that started
 at or before the flow; sampling is uniform with rate r = TARGET / N, rare attack families kept up to MIN_FAM flows.
-Addresses are never features. The windows are 10 s and 120 s; time is counted in milliseconds for CTU13 and in 10 ms
-ticks for SIMARGL, whose capture spans 67 days.
+Addresses are never features. The windows are 10 s and 120 s; time is counted in milliseconds for CTU13, in 10 ms
+ticks for SIMARGL, whose capture spans 67 days, and in seconds for APPRAISE, whose timestamps have a resolution of
+one second (flows of the same second are included in each other's windows).
 (LITNET-2020 was examined with this builder and is not used, see exp/reports/litnet_check.txt.)
 
-usage: ERNP_RAW=/path/to/dataraw python exp/data/prepare_real.py CTU13|SIMARGL|SIMARGL_all [seeds ...]   (default: EXP_SEED)
+usage: ERNP_RAW=/path/to/dataraw python exp/data/prepare_real.py CTU13|SIMARGL|SIMARGL_all|APPRAISE [seeds ...]   (default: EXP_SEED)
 """
 import os, sys, numpy as np, pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -186,10 +190,40 @@ def sim_feats(ch):
     df["src"] = ch["IPV4_SRC_ADDR"].astype(str).values; df["dst"] = ch["IPV4_DST_ADDR"].astype(str).values; df["fam"] = sim_fam(ch)
     return df
 
+# ---------------------------------------------------------------- APPRAISE H2020
+# FLOW_ID and TOTAL_FLOWS_EXP are counters of the export and are not features; L7_PROTO is not used either.
+APP_FILE = os.environ.get("ERNP_APPRAISE", "APPRAISE/APPRAISE_NETFLOW.csv")      # path under ERNP_RAW
+
+def app_chunks():
+    yield from pd.read_csv(RAW + APP_FILE, chunksize=CHUNK, low_memory=False)
+
+def app_fam(ch):
+    c = ch["ANOMALY_CATEGORY"].astype(str).str.strip()
+    return np.where((num(ch["ANOMALY"]) == 1) & (c != "-"), c, "BENIGN")
+
+def app_pass1(ch):
+    t = num(ch["FIRST_SWITCHED"]).astype(np.int64)                                # seconds
+    return np.where(t > 0, t, -1), ch["IPV4_SRC_ADDR"].astype(str).values, ch["IPV4_DST_ADDR"].astype(str).values, \
+           num(ch["IN_BYTES"]) + num(ch["OUT_BYTES"]), app_fam(ch)
+
+def app_feats(ch):
+    ip, ib, op, ob = (np.maximum(num(ch[c]), 0) for c in ("IN_PKTS", "IN_BYTES", "OUT_PKTS", "OUT_BYTES"))
+    fl = num(ch["TCP_FLAGS"]).astype(np.int64); proto = ch["PROTOCOL_MAP"].astype(str).str.lower()
+    X = np.column_stack([np.log1p(np.maximum(num(ch["LAST_SWITCHED"]) - num(ch["FIRST_SWITCHED"]), 0)), np.log1p(ip), np.log1p(ib),
+                         np.log1p(op), np.log1p(ob), np.log1p(ib / np.maximum(ip, 1)), np.log1p(ob / np.maximum(op, 1)),
+                         *[((fl >> b) & 1).astype(float) for b in range(6)],                    # FIN SYN RST PSH ACK URG
+                         (proto == "tcp").values, (proto == "udp").values, (proto == "icmp").values,
+                         P.port_bucket(ch["L4_SRC_PORT"]), P.port_bucket(ch["L4_DST_PORT"])]).astype(np.float32)
+    df = pd.DataFrame(X, columns=[f"f_{i}" for i in range(X.shape[1])])
+    df["t"] = num(ch["FIRST_SWITCHED"]).astype(np.float64)
+    df["src"] = ch["IPV4_SRC_ADDR"].astype(str).values; df["dst"] = ch["IPV4_DST_ADDR"].astype(str).values; df["fam"] = app_fam(ch)
+    return df
+
 if __name__ == "__main__":
     name = sys.argv[1]; P.TARGET = int(os.environ.get("ERNP_TARGET", 400_000))      # 1-2% of each trace, as for CSE-CIC-IDS2018
     seeds = [int(x) for x in sys.argv[2:]] or [P.SEED]                              # e.g. `prepare_real.py CTU13 0 1 2 3 4`
     if name == "CTU13": build("CTU13", ctu_chunks, ctu_pass1, ctu_feats, (10_000, 120_000), seeds)        # ms
     elif name in ("SIMARGL", "SIMARGL_all"):                                                              # 10 ms ticks
         SIM_KEEP_SCAN[0] = name == "SIMARGL_all"; build(name, sim_chunks, sim_pass1, sim_feats, (1_000, 12_000), seeds)
+    elif name == "APPRAISE": build("APPRAISE", app_chunks, app_pass1, app_feats, (10, 120), seeds)        # s (timestamp resolution)
     else: raise SystemExit("unknown dataset " + name)

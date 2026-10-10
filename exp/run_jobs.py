@@ -236,7 +236,7 @@ def e4_jobs(seed):
         jobs += [("gpu", ds, m, ["baselines/sota.py", ds, m]) for m in SOTA5]
     return jobs
 
-REAL = ("CTU13", "SIMARGL")                    # real-network datasets (data/prepare_real.py), held out from development.
+REAL = ("CTU13", "SIMARGL", "APPRAISE")                  # real-network datasets (data/prepare_real.py), held out from development.
 # LITNET-2020 was examined and left out: its 'normal' class contains unlabelled scanning and attack traffic
 # (exp/reports/litnet_check.txt).
 

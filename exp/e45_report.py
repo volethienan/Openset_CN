@@ -22,8 +22,8 @@ from evaluate import seeded_name, run_metrics
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reports")
 E4_DS = ["CIDDS_ctx_injvalidinit_bf", "CIDDS_ctx_injvalidresp_bf", "CIDDS_ctx_injinit_bf", "CIDDS_ctx_injresp_bf"]
-E4_M = ["ernp", "abl_evid_rep", "abl_retr_none", "abl_prior_none", "ernp_B0", "ssf_causal", "owad", "memstream", "trident", "cade"]
-GROUPED = ["ernp", "abl_evid_rep", "abl_retr_none", "abl_prior_none"]           # ERNP variants with analyst decisions (B = 200)
+E4_M = ["ernp", "ernp_B25", "abl_evid_rep", "abl_retr_none", "abl_prior_none", "abl_self", "ernp_B0", "ssf_causal", "owad", "memstream", "trident", "cade"]
+GROUPED = ["ernp", "ernp_B25", "abl_evid_rep", "abl_retr_none", "abl_prior_none"]   # ERNP variants with analyst decisions
 E5_DS = ["CIDDS_ctx", "ToN_ctx", "CIC18"]
 E5_M = ["ernp", "ernp_D1", "ernp_D2", "ssf_causal", "ssf_causal_D1", "owad", "owad_D1"]
 
@@ -63,7 +63,7 @@ def e4():
                                  absorbed=r["absorption_day"] >= 0, fpr_before=float(fl[ben & (t < t_inj)].mean()),
                                  fpr_during=float(fl[ben & (t >= t_inj)].mean()), labels=r["labels"]))
                 if m in GROUPED:
-                    c = label_channel(X, fam_all, s_idx, day, fl, s, 200, m == "abl_evid_rep")
+                    c = label_channel(X, fam_all, s_idx, day, fl, s, int(info["cfg"]["budget"]), m == "abl_evid_rep")
                     assert c["decisions"] == int(info["labels_used"]), (ds, m, c["decisions"], info["labels_used"])
                     chan.append(dict(dataset=base, method=m, seed=s, n_injected=int((pay | ramp).sum()), **c))
             print("e4", ds, flush=True)

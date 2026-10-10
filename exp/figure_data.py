@@ -17,8 +17,8 @@ def runs(base, methods, seeds=range(5)):
             if os.path.exists(p): yield s, m, df, s_idx, np.load(p)["flag"].astype(bool)
 
 rows = []
-for base in ["CIDDS_ctx_injinit_bf", "CIDDS_ctx_injinit"]:
-    for s, m, df, s_idx, fl in runs(base, ["ernp", "abl_self", "ernp_B25", "ssf_causal", "ssf_causal_B25", "owad", "memstream", "memstream_adapt", "trident", "cade"]):
+for base in ["CIDDS_ctx_injvalidinit_bf", "CIDDS_ctx_injvalidresp_bf", "CIDDS_ctx_injinit_bf", "CIDDS_ctx_injinit"]:
+    for s, m, df, s_idx, fl in runs(base, ["ernp", "abl_self", "ernp_B25", "ernp_B0", "ssf_causal", "ssf_causal_B25", "owad", "memstream", "memstream_adapt", "trident", "cade"]):
         t = df["t"].values[s_idx]; day = ((t - df["t"].min()) // 86400).astype(int); fam = df["fam"].values[s_idx]
         inj, ben = np.isin(fam, ["INJ_ramp", "INJ_attack"]), fam == "BENIGN"
         for d in np.unique(day):

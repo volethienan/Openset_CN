@@ -231,7 +231,8 @@ def e4_jobs(seed):
         ds = f"{cidds(seed)}_{v}"
         jobs += [("cpu", ds, n, ["ernp.py", ds, *a, "--name", n]) for n, a in
                  (("ernp", []), ("ernp_B0", ["--budget", "0"]), ("abl_evid_rep", ["--evidence", "rep"]),
-                  ("abl_retr_none", ["--retraction", "none"]), ("abl_prior_none", ["--prior", "none"]))]
+                  ("abl_retr_none", ["--retraction", "none"]), ("abl_prior_none", ["--prior", "none"]),
+                  ("abl_self", ["--evidence_source", "self"]), ("ernp_B25", ["--budget", "25"]))]   # counterfactual, small budget
         jobs += [("gpu", ds, m, ["baselines/sota.py", ds, m]) for m in SOTA5]
     return jobs
 

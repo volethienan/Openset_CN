@@ -1,0 +1,1 @@
+{"thr": 1.683452844619751, "labels_used": 4600, "adaptations": 23, "seconds": 391, "timing": {"init_s": 2.5139806270599365, "score_flows_per_s": 3689217.104144071, "update_s_mean": 14.845518662379337, "n_updates": 26}, "peak_mem_mb": 1601}

@@ -1,0 +1,1 @@
+{"classes": ["BENIGN", "Reconnaissance"], "labels_used": 0, "mad_threshold": 3.5, "seconds": 220, "timing": {"init_s": 215.05911350250244, "score_flows_per_s": 3666141.179732491, "update_s_mean": 0.0, "n_updates": 0}, "peak_mem_mb": 1265}

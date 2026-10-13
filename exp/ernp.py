@@ -26,9 +26,15 @@ DEFAULTS = dict(rho=0.3, prior_mass=1.0, budget=200, prior="partial", retraction
                 evidence_source="analyst", n_self=5000,      # "self": counterfactual absorbing channel (RQ2/RQ4)
                 label_noise=0.0, fpr=0.01,                   # analyst flips each representative label w.p. label_noise
                 analytic=0, refit=24, knn=32,                # analytic: 3-class model, retraction applied at inference; refit: hours between refits
-                replay="", flow_cap=0, delay=0)              # replay: take the alerts that form the groups from a saved run
+                replay="", flow_cap=0, delay=0,              # replay: take the alerts that form the groups from a saved run
+                n_prior=1, rule="q1", keep="fifo", att_cap=0)
 # (fixed feedback schedule, E3/mechanism control); flow_cap: max flows entering the evidence per period (E2);
-# delay: periods between an analyst decision and the refit that uses it (E5)
+# delay: periods between an analyst decision and the refit that uses it (E5);
+# n_prior: models per fit, each trained against its own draw of the prior, scores averaged (Monte-Carlo variance of the
+# prior sample); rule: "q1" = threshold at the 1% holdout quantile, "post" = the model's own Bayes rule (score > 0);
+# keep: which evidence a fit sees once it exceeds its size limit: "fifo" = the most recent flows (the anchor can be
+# evicted), "A" / "P" / "AP" = the anchor attacks / anchor benign flows always stay and the online evidence is sampled
+# uniformly; att_cap: max flows of one attack-confirmed group entering the attack evidence (0 = the whole group)
 
 class ERNP:
     def __init__(self, cfg, rng):
@@ -88,6 +94,12 @@ class ERNP:
 
     def fit(self, P, A):
         if self.c["analytic"]: return self.fit3(P, A)
+        if self.c["n_prior"] <= 1: return self.fit1(P, A)
+        assert self.c["clf"] == "gbm"
+        self.clf = [self.fit1(P, A).clf for _ in range(self.c["n_prior"])]   # one prior draw per model
+        return self
+
+    def fit1(self, P, A):
         Q = self.sample_prior(P); n_gen = max(len(Q), 1)
         w_q = self.retained(Q); keep = w_q > 1e-3; Q, w_q = Q[keep], w_q[keep]
         X = np.vstack([P, Q, A]); y = np.r_[np.zeros(len(P)), np.ones(len(Q) + len(A))]
@@ -119,6 +131,7 @@ class ERNP:
         if self.c["analytic"]:
             p = self.clf.predict_proba(Z); pa = p[:, 1] if p.shape[1] == 3 else 0.0
             return np.log(pa + self.retained(Z) * p[:, -1] + 1e-9) - np.log(p[:, 0] + 1e-9)
+        if isinstance(self.clf, list): return np.mean([m.decision_function(Z) for m in self.clf], 0)
         if self.c["clf"] == "gbm": return self.clf.decision_function(Z)
         if self.c["clf"] == "mlp": return _mlp_score(self.clf, Z)
         p = np.clip(self.clf.predict_proba(Z)[:, 1], 1e-6, 1 - 1e-6); return np.log(p / (1 - p))
@@ -154,10 +167,16 @@ def run(ds, **cfg):
     A = X[rng.choice(ka, min(c["n_known_max"], len(ka)), replace=False)] if len(ka) else np.zeros((0, X.shape[1]), X.dtype)
     m = ERNP(c, rng); nrng = np.random.default_rng(10_000 + seed())   # noise rng: separate, only used if label_noise > 0
     crng = np.random.default_rng(20_000 + seed())                      # flow-cap rng: separate, only used if flow_cap > 0
+    wrng = np.random.default_rng(30_000 + seed()); nP0, nA0 = len(P), len(A)   # evidence-window rng: only used if keep != "fifo" or att_cap > 0
+    def fitset(Z, n0, cap, kept):                                  # evidence passed to a fit
+        if not kept or len(Z) <= cap: return Z[-cap:]              # FIFO: the most recent flows
+        on = Z[n0:]; return np.vstack([Z[:n0], on[np.sort(wrng.choice(len(on), cap - n0, replace=False))]])   # anchor + uniform sample of the online evidence
+    fit_args = lambda: (fitset(P, nP0, 2 * c["n_pos_max"], "P" in c["keep"]), fitset(A, nA0, 4 * c["n_known_max"], "A" in c["keep"]))
     F_ref = np.load(ROOT + f"exp/results/{ds}__{c['replay']}__s{seed()}.npz")["flag"].astype(bool) if c["replay"] else None
     m.eps = c["eps_mult"] * np.quantile(NearestNeighbors(n_neighbors=2).fit(P).kneighbors(P[:5000])[0][:, 1], 0.9)
     t0 = time.time(); m.fit(P, A); t_fit.append(time.time() - t0)
     tau = calib_upper(m.score(X[ho])) if c["fpr"] == 0.01 else float(np.quantile(m.score(X[ho]), 1 - c["fpr"]))   # operating point
+    if c["rule"] == "post": tau = 0.0                              # posterior of the trained mixture > 1/2; no holdout quantile
     day = stream_periods(df, s_idx, c["period"]); s = np.zeros(len(s_idx)); F = np.zeros(len(s_idx), bool); n_lab = 0; n_flow = 0; audit = []
     refit_at = stream_periods(df, s_idx, c["refit"])               # analytic mode: refit only when this block ends
     order = list(dict.fromkeys(day)); last_of_block = {}
@@ -173,13 +192,13 @@ def run(ds, **cfg):
             if len(nb):                        # frog-boiling exploits; no analyst labels are used
                 nb = nb[rng.choice(len(nb), min(c["n_self"], len(nb)), replace=False)]
                 P = np.vstack([P, X[nb]]); m.conf = np.vstack(([m.conf] if m.conf is not None else []) + [X[nb]])
-                t0 = time.time(); m.fit(P[-2 * c["n_pos_max"]:], A[-4 * c["n_known_max"]:]); t_fit.append(time.time() - t0)
+                t0 = time.time(); m.fit(*fit_args()); t_fit.append(time.time() - t0)
             continue
         if c["budget"] <= 0: continue                              # no online labels -> q never changes (P1)
         al = s_idx[idx][F_ref[idx] if F_ref is not None else s[idx] > tau]; Bk = period_budget(d, c["period"], c["budget"])   # = budget when daily
         if len(al) < 2 or Bk <= 0:
             if c["analytic"] and last_of_block[d]:                 # block ends without new labels: refit on what accrued
-                t0 = time.time(); m.fit(P[-2 * c["n_pos_max"]:], A[-4 * c["n_known_max"]:]); t_fit.append(time.time() - t0)
+                t0 = time.time(); m.fit(*fit_args()); t_fit.append(time.time() - t0)
             if not c["delay"]: continue
             k = 0                                                  # no decision now; delayed decisions may still arrive
         else: k = min(Bk, len(al)); km = MiniBatchKMeans(k, random_state=seed(), n_init=3).fit(X[al])
@@ -195,6 +214,8 @@ def run(ds, **cfg):
                 grp = X[mem[(fam[mem] == "BENIGN") == (fam[rep] == "BENIGN")]]
             is_ben = fam[rep] == "BENIGN"
             if c["label_noise"] > 0 and nrng.random() < c["label_noise"]: is_ben = not is_ben   # analyst error
+            if c["att_cap"] and not is_ben and len(grp) > c["att_cap"]:   # one attack decision adds a bounded number of flows
+                grp = X[np.r_[rep, wrng.choice(mem[mem != rep], c["att_cap"] - 1, replace=False)]]
             (addP if is_ben else addA).append(grp); n_flow += len(grp)
             if c["evidence"] == "cluster":      # logging only (ground truth never used for decisions): group purity
                 bad = fam[mem] != "BENIGN" if is_ben else fam[mem] == "BENIGN"
@@ -209,7 +230,7 @@ def run(ds, **cfg):
             P = np.vstack([P] + addP); m.conf = np.vstack(([m.conf] if m.conf is not None else []) + addP)
         if addA: A = np.vstack([A] + addA)
         if c["analytic"] and not last_of_block[d]: continue        # evidence already acts through r_t at inference
-        t0 = time.time(); m.fit(P[-2 * c["n_pos_max"]:], A[-4 * c["n_known_max"]:]); t_fit.append(time.time() - t0)
+        t0 = time.time(); m.fit(*fit_args()); t_fit.append(time.time() - t0)
         if c["protocol"] == "ssf":                                 # SSF's native protocol: predict after learning the day
             s[idx] = m.score(X[s_idx[idx]]); F[idx] = s[idx] > tau
     info = dict(cfg={k: v for k, v in c.items()}, tau=tau, eps=m.eps, labels_used=n_lab, audit=audit, flows_in_evidence=n_flow,

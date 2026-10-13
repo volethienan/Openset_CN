@@ -258,6 +258,17 @@ def real_jobs(seed):
         jobs += [("gpu", ds, m, ["baselines/sota.py", ds, m]) for m in SOTA5 + ["owad_lr3", "cade_t1", "trident_t1"]]
     return jobs
 
+def stab_jobs(seed):
+    """stability study (development seeds first): three changes to ERNP and their combinations, on all seven datasets.
+    keepA: the anchor attacks never leave the attack evidence and one attack decision adds at most 100 flows (with the
+    FIFO window, one large attack family evicts every earlier one); K5: five prior draws per fit, scores averaged;
+    post: decision by the model's own posterior (score > 0) instead of the 1% holdout quantile. Cheap variants first."""
+    KA, K5, PO = ["--keep", "A", "--att_cap", "100"], ["--n_prior", "5"], ["--rule", "post"]
+    V = (("ernp_keepA", KA), ("ernp_post", PO), ("ernp_keepA_post", KA + PO), ("ernp_keepAP", ["--keep", "AP", "--att_cap", "100"]),
+         ("ernp_K5", K5), ("ernp_keepA_K5", KA + K5), ("ernp_K5_post", K5 + PO), ("ernp_keepA_K5_post", KA + K5 + PO))
+    dss = [f"{b}" + ("" if seed == 0 else f"_s{seed}") for b in ("SIMARGL", "CTU13")] + [ds_names(seed)[k] for k in ("CIDDS", "CIC17", "ToN", "CIC18")] +           ["APPRAISE" + ("" if seed == 0 else f"_s{seed}")]
+    return [("cpu", ds, n, ["ernp.py", ds, *a, "--name", n]) for n, a in V for ds in dss]
+
 def t1_jobs(seed):
     """review 2: CADE and Trident with the threshold at 1% FPR on held-out anchor flows (same models)"""
     return [("gpu", ds, m, ["baselines/sota.py", ds, m]) for ds in ds_names(seed).values() for m in ("cade_t1", "trident_t1")]
@@ -307,7 +318,7 @@ if __name__ == "__main__":
     ap.add_argument("--pool", choices=("all", "cpu", "gpu"), default="all", help="run only the CPU or only the GPU jobs")
     a = ap.parse_args(); GPU_IDS[:] = [g.strip() for g in a.gpu_ids.split(",") if g.strip()]; THREADS = a.threads
     GEN = {"rq1": rq1_jobs, "rq2": rq2_jobs, "rq3": rq3_jobs, "rq4": rq4_jobs, "rq5": rq5_jobs, "cad": cad_jobs, "ext": ext_jobs, "ext1": ext1_jobs, "rq2lb": rq2lb_jobs, "noise": noise_jobs,
-           "scale": scale_jobs, "opf": opf_jobs, "x10": x10_jobs, "camo": camo_jobs, "rq2rep": rq2rep_jobs, "scarf": scarf_jobs, "audit": audit_jobs, "rq2gate": rq2gate_jobs, "t1": t1_jobs, "e23": e23_jobs, "e5": e5_jobs, "e4": e4_jobs, "real": real_jobs, "realsens": realsens_jobs, "diam": diam_jobs}
+           "scale": scale_jobs, "opf": opf_jobs, "x10": x10_jobs, "camo": camo_jobs, "rq2rep": rq2rep_jobs, "scarf": scarf_jobs, "audit": audit_jobs, "rq2gate": rq2gate_jobs, "t1": t1_jobs, "e23": e23_jobs, "e5": e5_jobs, "e4": e4_jobs, "real": real_jobs, "stab": stab_jobs, "realsens": realsens_jobs, "diam": diam_jobs}
     jobs = [(j, s) for rq in a.rq.split("+") for s in a.seeds for j in GEN[rq](s) if a.pool in ("all", j[0])]
     if a.rq == "cad":   # most informative first: ToN, then CIC18, CIC17, CIDDS; 1 h before 4 h
         prio = {"ToN": 0, "CIC18": 1, "CIC17": 2, "CIDDS": 3}

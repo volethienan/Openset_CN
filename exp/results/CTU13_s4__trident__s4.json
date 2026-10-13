@@ -1,0 +1,1 @@
+{"classes": ["BENIGN", "Neris"], "labels_used": 74698, "seconds": 130, "timing": {"init_s": 128.22194743156433, "score_flows_per_s": 978193.4052295184, "update_s_mean": 0.0, "n_updates": 0}, "peak_mem_mb": 1289}

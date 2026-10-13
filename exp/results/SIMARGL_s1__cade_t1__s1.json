@@ -1,0 +1,1 @@
+{"classes": ["BENIGN", "SYN Scan"], "labels_used": 0, "anchor_threshold": 5.5200300216674805, "seconds": 898, "timing": {"init_s": 893.6288607120514, "score_flows_per_s": 2936783.197199792, "update_s_mean": 0.0, "n_updates": 0}, "peak_mem_mb": 1301}

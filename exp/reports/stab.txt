@@ -2,110 +2,181 @@ Stability study (run_jobs group `stab`): ERNP with the anchored attack evidence 
 the posterior decision rule (post) and their combinations, against the saved ERNP run and the references.
 
 seeds [0, 1]; runs per dataset and method
-dataset       APPRAISE  CIC17  CIC18  CIDDS_ctx  CTU13  SIMARGL  ToN_ctx
-method                                                                  
-ernp                 2      2      2          2      2        2        2
-ernp_B0              2      2      2          2      2        2        2
-abl_evid_rep         2      2      2          2      2        2        2
-ssf_causal           2      2      2          2      2        2        2
-knn                  2      2      2          2      2        2        2
-ernp_keepA           0      0      0          1      1        2        0
-ernp_post            0      1      0          1      1        1        0
-ernp_K5              0      0      0          1      1        1        0
-ernp_K5_post         0      0      0          1      1        1        0
+dataset             APPRAISE  CIC17  CIC18  CIDDS_ctx  CTU13  SIMARGL  ToN_ctx
+method                                                                        
+ernp                       2      2      2          2      2        2        2
+ernp_B0                    2      2      2          2      2        2        2
+abl_evid_rep               2      2      2          2      2        2        2
+ssf_causal                 2      2      2          2      2        2        2
+knn                        2      2      2          2      2        2        2
+ernp_keepA                 2      2      2          2      2        2        2
+ernp_post                  2      2      2          2      2        2        2
+ernp_keepA_post            2      2      2          2      2        2        2
+ernp_keepAP                2      2      2          2      2        2        2
+ernp_K5                    2      2      2          2      2        2        2
+ernp_keepA_K5              2      2      2          2      2        2        2
+ernp_K5_post               2      2      2          2      2        2        2
+ernp_keepA_K5_post         2      2      2          2      2        2        2
 
 Mean over seeds
-                           F1    MCC    FPR  zero_day_recall  zd_recall_at1fpr  AUROC
-dataset   method                                                                     
-APPRAISE  ernp          0.983  0.976  0.013            0.994             0.994  1.000
-          ernp_B0       0.770  0.684  0.225            0.985             0.891  0.983
-          abl_evid_rep  0.981  0.974  0.015            0.996             0.996  1.000
-          ssf_causal    0.987  0.983  0.001            0.873             0.993  0.999
-          knn           0.934  0.908  0.022            0.985             0.981  0.985
-CIC17     ernp          0.968  0.950  0.026            0.982             0.959  0.996
-          ernp_B0       0.970  0.954  0.022            0.980             0.970  0.993
-          abl_evid_rep  0.971  0.955  0.022            0.980             0.969  0.995
-          ssf_causal    0.449  0.454  0.000            0.290             0.770  0.810
-          knn           0.980  0.969  0.022            0.999             0.597  0.993
-          ernp_post     0.981  0.970  0.008            0.976             0.981  0.995
-CIC18     ernp          0.904  0.903  0.007            0.973             0.976  0.990
-          ernp_B0       0.816  0.819  0.017            0.974             0.972  0.985
-          abl_evid_rep  0.889  0.888  0.009            0.976             0.976  0.993
-          ssf_causal    0.858  0.861  0.000            0.758             0.883  0.957
-          knn           0.814  0.818  0.018            0.984             0.694  0.990
-CIDDS_ctx ernp          0.977  0.974  0.005            0.643             0.668  0.998
-          ernp_B0       0.947  0.941  0.012            0.513             0.433  0.998
-          abl_evid_rep  0.970  0.967  0.006            0.603             0.651  0.998
-          ssf_causal    0.985  0.983  0.001            0.218             0.577  0.996
-          knn           0.947  0.941  0.011            0.458             0.399  0.998
-          ernp_keepA    0.976  0.974  0.004            0.485             0.618  0.998
-          ernp_post     0.978  0.975  0.003            0.357             0.599  0.998
-          ernp_K5       0.977  0.975  0.004            0.639             0.667  0.998
-          ernp_K5_post  0.981  0.979  0.002            0.111             0.529  0.998
-CTU13     ernp          0.657  0.647  0.010            0.766             0.766  0.941
-          ernp_B0       0.479  0.473  0.030            0.756             0.677  0.899
-          abl_evid_rep  0.646  0.636  0.014            0.802             0.783  0.946
-          ssf_causal    0.424  0.494  0.001            0.289             0.325  0.647
-          knn           0.266  0.243  0.024            0.428             0.377  0.846
-          ernp_keepA    0.655  0.645  0.010            0.754             0.758  0.943
-          ernp_post     0.663  0.654  0.008            0.711             0.743  0.954
-          ernp_K5       0.670  0.660  0.010            0.787             0.789  0.939
-          ernp_K5_post  0.683  0.676  0.007            0.791             0.805  0.944
-SIMARGL   ernp          0.892  0.842  0.109            0.988             0.755  0.991
-          ernp_B0       0.901  0.856  0.105            0.998             0.872  0.994
-          abl_evid_rep  0.899  0.853  0.105            0.994             0.785  0.993
-          ssf_causal    0.913  0.875  0.023            0.881             0.787  0.975
-          knn           0.905  0.857  0.066            0.939             0.657  0.984
-          ernp_keepA    0.897  0.851  0.110            1.000             0.809  0.994
-          ernp_post     0.935  0.904  0.060            0.988             0.860  0.993
-          ernp_K5       0.913  0.873  0.086            0.991             0.855  0.993
-          ernp_K5_post  0.931  0.899  0.064            0.988             0.880  0.994
-ToN_ctx   ernp          0.627  0.194  0.436            0.629             0.151  0.654
-          ernp_B0       0.289 -0.235  0.462            0.244             0.000  0.378
-          abl_evid_rep  0.461 -0.010  0.418            0.409             0.000  0.530
-          ssf_causal    0.352 -0.058  0.328            0.275             0.004  0.518
-          knn           0.506 -0.330  0.893            0.601             0.029  0.361
+                                 F1    MCC    FPR  zero_day_recall  zd_recall_at1fpr  AUROC
+dataset   method                                                                           
+APPRAISE  ernp                0.983  0.976  0.013            0.994             0.994  1.000
+          ernp_B0             0.770  0.684  0.225            0.985             0.891  0.983
+          abl_evid_rep        0.981  0.974  0.015            0.996             0.996  1.000
+          ssf_causal          0.987  0.983  0.001            0.873             0.993  0.999
+          knn                 0.934  0.908  0.022            0.985             0.981  0.985
+          ernp_keepA          0.986  0.981  0.011            0.994             0.994  1.000
+          ernp_post           0.990  0.986  0.007            0.992             0.993  1.000
+          ernp_keepA_post     0.965  0.952  0.007            0.630             0.883  0.997
+          ernp_keepAP         0.986  0.981  0.011            0.994             0.993  1.000
+          ernp_K5             0.984  0.978  0.012            0.995             0.995  1.000
+          ernp_keepA_K5       0.984  0.978  0.012            0.994             0.993  1.000
+          ernp_K5_post        0.991  0.987  0.007            0.988             0.991  0.999
+          ernp_keepA_K5_post  0.990  0.986  0.007            0.981             0.984  0.999
+CIC17     ernp                0.968  0.950  0.026            0.982             0.959  0.996
+          ernp_B0             0.970  0.954  0.022            0.980             0.970  0.993
+          abl_evid_rep        0.971  0.955  0.022            0.980             0.969  0.995
+          ssf_causal          0.449  0.454  0.000            0.290             0.770  0.810
+          knn                 0.980  0.969  0.022            0.999             0.597  0.993
+          ernp_keepA          0.970  0.952  0.028            0.987             0.965  0.998
+          ernp_post           0.972  0.957  0.006            0.955             0.969  0.994
+          ernp_keepA_post     0.971  0.956  0.006            0.955             0.969  0.995
+          ernp_keepAP         0.970  0.952  0.028            0.987             0.965  0.998
+          ernp_K5             0.973  0.957  0.026            0.990             0.977  0.998
+          ernp_keepA_K5       0.973  0.957  0.025            0.989             0.977  0.998
+          ernp_K5_post        0.976  0.964  0.004            0.961             0.978  0.994
+          ernp_keepA_K5_post  0.976  0.963  0.004            0.961             0.978  0.995
+CIC18     ernp                0.904  0.903  0.007            0.973             0.976  0.990
+          ernp_B0             0.816  0.819  0.017            0.974             0.972  0.985
+          abl_evid_rep        0.889  0.888  0.009            0.976             0.976  0.993
+          ssf_causal          0.858  0.861  0.000            0.758             0.883  0.957
+          knn                 0.814  0.818  0.018            0.984             0.694  0.990
+          ernp_keepA          0.902  0.900  0.007            0.961             0.971  0.989
+          ernp_post           0.941  0.939  0.001            0.919             0.965  0.986
+          ernp_keepA_post     0.921  0.918  0.002            0.887             0.959  0.992
+          ernp_keepAP         0.902  0.900  0.007            0.961             0.971  0.989
+          ernp_K5             0.923  0.921  0.006            0.978             0.982  0.995
+          ernp_keepA_K5       0.920  0.918  0.006            0.974             0.982  0.995
+          ernp_K5_post        0.944  0.942  0.001            0.918             0.977  0.994
+          ernp_keepA_K5_post  0.936  0.934  0.001            0.902             0.975  0.993
+CIDDS_ctx ernp                0.977  0.974  0.005            0.643             0.668  0.998
+          ernp_B0             0.947  0.941  0.012            0.513             0.433  0.998
+          abl_evid_rep        0.970  0.967  0.006            0.603             0.651  0.998
+          ssf_causal          0.985  0.983  0.001            0.218             0.577  0.996
+          knn                 0.947  0.941  0.011            0.458             0.399  0.998
+          ernp_keepA          0.975  0.972  0.005            0.569             0.646  0.998
+          ernp_post           0.977  0.975  0.003            0.258             0.549  0.998
+          ernp_keepA_post     0.980  0.978  0.003            0.514             0.622  0.998
+          ernp_keepAP         0.975  0.972  0.005            0.569             0.646  0.998
+          ernp_K5             0.978  0.975  0.004            0.642             0.666  0.998
+          ernp_keepA_K5       0.977  0.975  0.004            0.638             0.658  0.998
+          ernp_K5_post        0.982  0.980  0.002            0.277             0.580  0.998
+          ernp_keepA_K5_post  0.982  0.980  0.002            0.269             0.559  0.998
+CTU13     ernp                0.657  0.647  0.010            0.766             0.766  0.941
+          ernp_B0             0.479  0.473  0.030            0.756             0.677  0.899
+          abl_evid_rep        0.646  0.636  0.014            0.802             0.783  0.946
+          ssf_causal          0.424  0.494  0.001            0.289             0.325  0.647
+          knn                 0.266  0.243  0.024            0.428             0.377  0.846
+          ernp_keepA          0.657  0.647  0.010            0.766             0.766  0.941
+          ernp_post           0.674  0.665  0.009            0.753             0.772  0.957
+          ernp_keepA_post     0.674  0.665  0.009            0.753             0.772  0.957
+          ernp_keepAP         0.657  0.647  0.010            0.766             0.766  0.941
+          ernp_K5             0.676  0.666  0.010            0.801             0.801  0.947
+          ernp_keepA_K5       0.675  0.665  0.010            0.796             0.795  0.947
+          ernp_K5_post        0.690  0.682  0.007            0.792             0.804  0.949
+          ernp_keepA_K5_post  0.690  0.682  0.007            0.792             0.804  0.949
+SIMARGL   ernp                0.892  0.842  0.109            0.988             0.755  0.991
+          ernp_B0             0.901  0.856  0.105            0.998             0.872  0.994
+          abl_evid_rep        0.899  0.853  0.105            0.994             0.785  0.993
+          ssf_causal          0.913  0.875  0.023            0.881             0.787  0.975
+          knn                 0.905  0.857  0.066            0.939             0.657  0.984
+          ernp_keepA          0.897  0.851  0.110            1.000             0.809  0.994
+          ernp_post           0.932  0.899  0.062            0.985             0.810  0.993
+          ernp_keepA_post     0.931  0.898  0.065            0.988             0.798  0.994
+          ernp_keepAP         0.897  0.851  0.110            1.000             0.809  0.994
+          ernp_K5             0.915  0.876  0.086            0.995             0.854  0.993
+          ernp_keepA_K5       0.917  0.879  0.085            0.996             0.886  0.994
+          ernp_K5_post        0.934  0.903  0.059            0.985             0.875  0.994
+          ernp_keepA_K5_post  0.933  0.901  0.061            0.985             0.859  0.993
+ToN_ctx   ernp                0.627  0.194  0.436            0.629             0.151  0.654
+          ernp_B0             0.289 -0.235  0.462            0.244             0.000  0.378
+          abl_evid_rep        0.461 -0.010  0.418            0.409             0.000  0.530
+          ssf_causal          0.352 -0.058  0.328            0.275             0.004  0.518
+          knn                 0.506 -0.330  0.893            0.601             0.029  0.361
+          ernp_keepA          0.604  0.161  0.435            0.597             0.000  0.586
+          ernp_post           0.679  0.198  0.596            0.779             0.097  0.644
+          ernp_keepA_post     0.717  0.282  0.600            0.850             0.020  0.639
+          ernp_keepAP         0.604  0.161  0.435            0.597             0.000  0.586
+          ernp_K5             0.640  0.258  0.361            0.618             0.106  0.684
+          ernp_keepA_K5       0.635  0.249  0.362            0.611             0.024  0.649
+          ernp_K5_post        0.677  0.189  0.608            0.781             0.232  0.687
+          ernp_keepA_K5_post  0.699  0.234  0.612            0.822             0.126  0.663
 
 SIMARGL: recall per family (own rule)
-              rec::DoS RUDY  rec::DoS Slowloris  rec::FIN Scan  rec::NULL Scan  rec::UDP Scan  rec::XMAS Scan
-method                                                                                                       
-ernp                    1.0                 1.0           1.00            0.02           1.00            0.01
-ernp_B0                 1.0                 1.0           0.99            0.88           1.00            0.86
-abl_evid_rep            1.0                 1.0           1.00            0.56           1.00            0.50
-ssf_causal              1.0                 1.0           0.98            0.53           0.38            0.34
-knn                     1.0                 1.0           0.98            0.87           0.67            0.96
-ernp_keepA              1.0                 1.0           1.00            0.97           1.00            0.99
-ernp_post               1.0                 1.0           0.96            0.01           1.00            0.00
-ernp_K5                 1.0                 1.0           0.98            0.20           1.00            0.38
-ernp_K5_post            1.0                 1.0           0.97            0.00           1.00            0.00
+                    rec::DoS RUDY  rec::DoS Slowloris  rec::FIN Scan  rec::NULL Scan  rec::UDP Scan  rec::XMAS Scan
+method                                                                                                             
+ernp                          1.0                 1.0           1.00            0.02           1.00            0.01
+ernp_B0                       1.0                 1.0           0.99            0.88           1.00            0.86
+abl_evid_rep                  1.0                 1.0           1.00            0.56           1.00            0.50
+ssf_causal                    1.0                 1.0           0.98            0.53           0.38            0.34
+knn                           1.0                 1.0           0.98            0.87           0.67            0.96
+ernp_keepA                    1.0                 1.0           1.00            0.97           1.00            0.99
+ernp_post                     1.0                 1.0           0.48            0.01           1.00            0.00
+ernp_keepA_post               1.0                 1.0           0.99            0.02           1.00            0.01
+ernp_keepAP                   1.0                 1.0           1.00            0.97           1.00            0.99
+ernp_K5                       1.0                 1.0           0.99            0.57           1.00            0.69
+ernp_keepA_K5                 1.0                 1.0           0.99            0.69           1.00            0.68
+ernp_K5_post                  1.0                 1.0           0.48            0.00           1.00            0.00
+ernp_keepA_K5_post            1.0                 1.0           0.49            0.00           1.00            0.00
 
 CTU13: recall per family (own rule)
-              rec::Menti  rec::Murlo  rec::NSIS.ay  rec::Neris  rec::Rbot  rec::Sogou  rec::Virut
-method                                                                                           
-ernp                0.98        0.73          0.02        0.48       0.88        0.06        0.86
-ernp_B0             0.95        0.46          0.05        0.41       0.99        0.07        0.58
-abl_evid_rep        0.97        0.70          0.03        0.53       0.96        0.06        0.84
-ssf_causal          0.88        0.73          0.00        0.26       0.18        0.02        0.17
-knn                 0.00        0.01          0.05        0.03       0.80        0.05        0.03
-ernp_keepA          0.98        0.75          0.02        0.47       0.85        0.08        0.87
-ernp_post           0.98        0.71          0.03        0.51       0.77        0.11        0.85
-ernp_K5             0.97        0.75          0.03        0.47       0.92        0.10        0.84
-ernp_K5_post        0.95        0.74          0.01        0.40       0.94        0.06        0.83
+                    rec::Menti  rec::Murlo  rec::NSIS.ay  rec::Neris  rec::Rbot  rec::Sogou  rec::Virut
+method                                                                                                 
+ernp                      0.98        0.73          0.02        0.48       0.88        0.06        0.86
+ernp_B0                   0.95        0.46          0.05        0.41       0.99        0.07        0.58
+abl_evid_rep              0.97        0.70          0.03        0.53       0.96        0.06        0.84
+ssf_causal                0.88        0.73          0.00        0.26       0.18        0.02        0.17
+knn                       0.00        0.01          0.05        0.03       0.80        0.05        0.03
+ernp_keepA                0.98        0.73          0.02        0.48       0.88        0.06        0.86
+ernp_post                 0.98        0.72          0.03        0.49       0.87        0.09        0.82
+ernp_keepA_post           0.98        0.72          0.03        0.49       0.87        0.09        0.82
+ernp_keepAP               0.98        0.73          0.02        0.48       0.88        0.06        0.86
+ernp_K5                   0.99        0.76          0.03        0.50       0.94        0.10        0.84
+ernp_keepA_K5             0.99        0.76          0.03        0.50       0.93        0.10        0.84
+ernp_K5_post              0.96        0.73          0.02        0.43       0.94        0.06        0.83
+ernp_keepA_K5_post        0.96        0.73          0.02        0.43       0.94        0.06        0.83
 
 Per variant, paired with the reference on the same dataset and seed, then averaged per dataset: datasets won, mean difference, one-sided Wilcoxon p
-  ernp_keepA           vs ssf_causal F1              : wins 1/3, mean diff +0.071, p = 0.6250
-  ernp_keepA           vs ssf_causal zero_day_recall : wins 3/3, mean diff +0.263, p = 0.1250
-  ernp_keepA           vs ernp       F1              : wins 1/3, mean diff +0.001, p = 0.5000
-  ernp_keepA           vs ernp       zero_day_recall : wins 1/3, mean diff -0.043, p = 0.7500
-  ernp_post            vs ssf_causal F1              : wins 3/4, mean diff +0.198, p = 0.1250
-  ernp_post            vs ssf_causal zero_day_recall : wins 4/4, mean diff +0.322, p = 0.0625
-  ernp_post            vs ernp       F1              : wins 4/4, mean diff +0.015, p = 0.0625
-  ernp_post            vs ernp       zero_day_recall : wins 0/4, mean diff -0.081, p = 1.0000
-  ernp_K5              vs ssf_causal F1              : wins 2/3, mean diff +0.083, p = 0.3750
-  ernp_K5              vs ssf_causal zero_day_recall : wins 3/3, mean diff +0.323, p = 0.1250
-  ernp_K5              vs ernp       F1              : wins 3/3, mean diff +0.012, p = 0.1250
-  ernp_K5              vs ernp       zero_day_recall : wins 3/3, mean diff +0.016, p = 0.1250
-  ernp_K5_post         vs ssf_causal F1              : wins 2/3, mean diff +0.094, p = 0.2500
-  ernp_K5_post         vs ssf_causal zero_day_recall : wins 2/3, mean diff +0.146, p = 0.3750
-  ernp_K5_post         vs ernp       F1              : wins 3/3, mean diff +0.024, p = 0.1250
-  ernp_K5_post         vs ernp       zero_day_recall : wins 1/3, mean diff -0.160, p = 0.7500
+  ernp_keepA           vs ssf_causal F1              : wins 4/7, mean diff +0.146, p = 0.1094
+  ernp_keepA           vs ssf_causal zero_day_recall : wins 7/7, mean diff +0.327, p = 0.0078
+  ernp_keepA           vs ernp       F1              : wins 3/7, mean diff -0.002, p = 0.5000
+  ernp_keepA           vs ernp       zero_day_recall : wins 2/7, mean diff -0.015, p = 0.8438
+  ernp_post            vs ssf_causal F1              : wins 6/7, mean diff +0.171, p = 0.0234
+  ernp_post            vs ssf_causal zero_day_recall : wins 7/7, mean diff +0.294, p = 0.0078
+  ernp_post            vs ernp       F1              : wins 7/7, mean diff +0.022, p = 0.0078
+  ernp_post            vs ernp       zero_day_recall : wins 1/7, mean diff -0.048, p = 0.9219
+  ernp_keepA_post      vs ssf_causal F1              : wins 5/7, mean diff +0.170, p = 0.0547
+  ernp_keepA_post      vs ssf_causal zero_day_recall : wins 6/7, mean diff +0.284, p = 0.0391
+  ernp_keepA_post      vs ernp       F1              : wins 6/7, mean diff +0.022, p = 0.0781
+  ernp_keepA_post      vs ernp       zero_day_recall : wins 1/7, mean diff -0.057, p = 0.9219
+  ernp_keepAP          vs ssf_causal F1              : wins 4/7, mean diff +0.146, p = 0.1094
+  ernp_keepAP          vs ssf_causal zero_day_recall : wins 7/7, mean diff +0.327, p = 0.0078
+  ernp_keepAP          vs ernp       F1              : wins 3/7, mean diff -0.002, p = 0.5000
+  ernp_keepAP          vs ernp       zero_day_recall : wins 2/7, mean diff -0.015, p = 0.8438
+  ernp_K5              vs ssf_causal F1              : wins 5/7, mean diff +0.160, p = 0.0781
+  ernp_K5              vs ssf_causal zero_day_recall : wins 7/7, mean diff +0.348, p = 0.0078
+  ernp_K5              vs ernp       F1              : wins 7/7, mean diff +0.011, p = 0.0078
+  ernp_K5              vs ernp       zero_day_recall : wins 5/7, mean diff +0.006, p = 0.1875
+  ernp_keepA_K5        vs ssf_causal F1              : wins 5/7, mean diff +0.159, p = 0.0547
+  ernp_keepA_K5        vs ssf_causal zero_day_recall : wins 7/7, mean diff +0.345, p = 0.0078
+  ernp_keepA_K5        vs ernp       F1              : wins 7/7, mean diff +0.010, p = 0.0078
+  ernp_keepA_K5        vs ernp       zero_day_recall : wins 4/7, mean diff +0.003, p = 0.2891
+  ernp_K5_post         vs ssf_causal F1              : wins 6/7, mean diff +0.175, p = 0.0156
+  ernp_K5_post         vs ssf_causal zero_day_recall : wins 7/7, mean diff +0.302, p = 0.0078
+  ernp_K5_post         vs ernp       F1              : wins 7/7, mean diff +0.027, p = 0.0078
+  ernp_K5_post         vs ernp       zero_day_recall : wins 2/7, mean diff -0.039, p = 0.7656
+  ernp_keepA_K5_post   vs ssf_causal F1              : wins 6/7, mean diff +0.177, p = 0.0234
+  ernp_keepA_K5_post   vs ssf_causal zero_day_recall : wins 7/7, mean diff +0.304, p = 0.0078
+  ernp_keepA_K5_post   vs ernp       F1              : wins 7/7, mean diff +0.028, p = 0.0078
+  ernp_keepA_K5_post   vs ernp       zero_day_recall : wins 2/7, mean diff -0.038, p = 0.7656

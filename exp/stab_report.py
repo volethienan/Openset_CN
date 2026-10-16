@@ -5,7 +5,7 @@ Per run: the metrics of evaluate.run_metrics. Tables: mean over the available se
 table shows how many; means over different seed sets are not comparable), recall per family on SIMARGL and CTU-13, and
 per variant the number of datasets on which it beats SSF and ERNP (F1 and zero-day recall), paired by dataset and seed.
 Output: reports/stab_runs.csv, reports/stab.txt
-usage: python stab_report.py [seeds ...]     (default: 0 1)
+usage: python stab_report.py [seeds ...]     (default: 0 1; e.g. 0 1 2 3 4 once the k5 / k5abl groups are done)
 """
 import os, sys, io, contextlib, numpy as np, pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -15,7 +15,8 @@ from scipy.stats import wilcoxon
 
 DS = ["CIDDS_ctx", "ToN_ctx", "CIC17", "CIC18", "CTU13", "SIMARGL", "APPRAISE"]
 VAR = ["ernp_keepA", "ernp_post", "ernp_keepA_post", "ernp_keepAP", "ernp_K5", "ernp_keepA_K5", "ernp_K5_post", "ernp_keepA_K5_post",
-       "ernp_K5_mut", "ernp_K5_keepA0", "ernp_K5_keepA1k", "ernp_K5_mut_keepA0"]
+       "ernp_K5_mut", "ernp_K5_keepA0", "ernp_K5_keepA1k", "ernp_K5_mut_keepA0",
+       "ernp_B0_K5", "abl_evid_rep_K5", "abl_retr_none_K5", "abl_prior_scarf_K5"]
 REF = ["ernp", "ernp_B0", "abl_evid_rep", "ssf_causal", "knn"]
 COLS = ["F1", "MCC", "FPR", "zero_day_recall", "zd_recall_at1fpr", "AUROC"]
 

@@ -279,6 +279,21 @@ def stab2_jobs(seed):
     dss = [f"{b}" + ("" if seed == 0 else f"_s{seed}") for b in ("SIMARGL", "CTU13")] + [ds_names(seed)[k] for k in ("CIDDS", "CIC17", "ToN", "CIC18")] +           ["APPRAISE" + ("" if seed == 0 else f"_s{seed}")]
     return [("cpu", ds, n, ["ernp.py", ds, *a, "--name", n]) for n, a in V for ds in dss]
 
+def k5_dss(seed):
+    sfx = "" if seed == 0 else f"_s{seed}"
+    return [f"SIMARGL{sfx}", f"CTU13{sfx}"] + [ds_names(seed)[k] for k in ("CIDDS", "CIC17", "ToN", "CIC18")] + [f"APPRAISE{sfx}"]
+
+def k5_jobs(seed):
+    """main configuration from 10/2026 on: ERNP with five prior draws per fit (scores averaged), seven datasets"""
+    return [("cpu", ds, "ernp_K5", ["ernp.py", ds, "--n_prior", "5", "--name", "ernp_K5"]) for ds in k5_dss(seed)]
+
+def k5abl_jobs(seed):
+    """the main ablations rerun on the K5 base: no online labels, representative-only evidence, no retraction, and the
+    SCARF prior (the no-prior ablation has no prior draw, so the existing abl_prior_none run is the K5 counterpart)"""
+    V = (("ernp_B0_K5", ["--budget", "0"]), ("abl_evid_rep_K5", ["--evidence", "rep"]),
+         ("abl_retr_none_K5", ["--retraction", "none"]), ("abl_prior_scarf_K5", ["--prior", "scarf"]))
+    return [("cpu", ds, n, ["ernp.py", ds, "--n_prior", "5", *a, "--name", n]) for n, a in V for ds in k5_dss(seed)]
+
 def t1_jobs(seed):
     """review 2: CADE and Trident with the threshold at 1% FPR on held-out anchor flows (same models)"""
     return [("gpu", ds, m, ["baselines/sota.py", ds, m]) for ds in ds_names(seed).values() for m in ("cade_t1", "trident_t1")]
@@ -328,7 +343,7 @@ if __name__ == "__main__":
     ap.add_argument("--pool", choices=("all", "cpu", "gpu"), default="all", help="run only the CPU or only the GPU jobs")
     a = ap.parse_args(); GPU_IDS[:] = [g.strip() for g in a.gpu_ids.split(",") if g.strip()]; THREADS = a.threads
     GEN = {"rq1": rq1_jobs, "rq2": rq2_jobs, "rq3": rq3_jobs, "rq4": rq4_jobs, "rq5": rq5_jobs, "cad": cad_jobs, "ext": ext_jobs, "ext1": ext1_jobs, "rq2lb": rq2lb_jobs, "noise": noise_jobs,
-           "scale": scale_jobs, "opf": opf_jobs, "x10": x10_jobs, "camo": camo_jobs, "rq2rep": rq2rep_jobs, "scarf": scarf_jobs, "audit": audit_jobs, "rq2gate": rq2gate_jobs, "t1": t1_jobs, "e23": e23_jobs, "e5": e5_jobs, "e4": e4_jobs, "real": real_jobs, "stab": stab_jobs, "stab2": stab2_jobs, "realsens": realsens_jobs, "diam": diam_jobs}
+           "scale": scale_jobs, "opf": opf_jobs, "x10": x10_jobs, "camo": camo_jobs, "rq2rep": rq2rep_jobs, "scarf": scarf_jobs, "audit": audit_jobs, "rq2gate": rq2gate_jobs, "t1": t1_jobs, "e23": e23_jobs, "e5": e5_jobs, "e4": e4_jobs, "real": real_jobs, "stab": stab_jobs, "stab2": stab2_jobs, "k5": k5_jobs, "k5abl": k5abl_jobs, "realsens": realsens_jobs, "diam": diam_jobs}
     jobs = [(j, s) for rq in a.rq.split("+") for s in a.seeds for j in GEN[rq](s) if a.pool in ("all", j[0])]
     if a.rq == "cad":   # most informative first: ToN, then CIC18, CIC17, CIDDS; 1 h before 4 h
         prio = {"ToN": 0, "CIC18": 1, "CIC17": 2, "CIDDS": 3}

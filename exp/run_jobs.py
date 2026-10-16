@@ -274,8 +274,8 @@ def stab2_jobs(seed):
     (25% of prior rows get 1-2 feature values outside what benign has shown), the anchored attack evidence without a
     per-decision cap or with a cap of 1000 flows (the cap of 100 in `stab` cost ToN and CIDDS), and mutation + anchor."""
     K5 = ["--n_prior", "5"]
-    V = (("ernp_K5_mut", K5 + ["--mut", "0.25"]), ("ernp_K5_keepA0", K5 + ["--keep", "A"]),
-         ("ernp_K5_keepA1k", K5 + ["--keep", "A", "--att_cap", "1000"]), ("ernp_K5_mut_keepA0", K5 + ["--mut", "0.25", "--keep", "A"]))
+    V = (("ernp_K5_keepA0", K5 + ["--keep", "A"]), ("ernp_K5_keepA1k", K5 + ["--keep", "A", "--att_cap", "1000"]),
+         ("ernp_K5_mut", K5 + ["--mut", "0.25"]), ("ernp_K5_mut_keepA0", K5 + ["--mut", "0.25", "--keep", "A"]))   # anchored evidence first
     dss = [f"{b}" + ("" if seed == 0 else f"_s{seed}") for b in ("SIMARGL", "CTU13")] + [ds_names(seed)[k] for k in ("CIDDS", "CIC17", "ToN", "CIC18")] +           ["APPRAISE" + ("" if seed == 0 else f"_s{seed}")]
     return [("cpu", ds, n, ["ernp.py", ds, *a, "--name", n]) for n, a in V for ds in dss]
 

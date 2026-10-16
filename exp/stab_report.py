@@ -14,7 +14,8 @@ from common import RESULTS
 from scipy.stats import wilcoxon
 
 DS = ["CIDDS_ctx", "ToN_ctx", "CIC17", "CIC18", "CTU13", "SIMARGL", "APPRAISE"]
-VAR = ["ernp_keepA", "ernp_post", "ernp_keepA_post", "ernp_keepAP", "ernp_K5", "ernp_keepA_K5", "ernp_K5_post", "ernp_keepA_K5_post"]
+VAR = ["ernp_keepA", "ernp_post", "ernp_keepA_post", "ernp_keepAP", "ernp_K5", "ernp_keepA_K5", "ernp_K5_post", "ernp_keepA_K5_post",
+       "ernp_K5_mut", "ernp_K5_keepA0", "ernp_K5_keepA1k", "ernp_K5_mut_keepA0"]
 REF = ["ernp", "ernp_B0", "abl_evid_rep", "ssf_causal", "knn"]
 COLS = ["F1", "MCC", "FPR", "zero_day_recall", "zd_recall_at1fpr", "AUROC"]
 

@@ -27,14 +27,16 @@ DEFAULTS = dict(rho=0.3, prior_mass=1.0, budget=200, prior="partial", retraction
                 label_noise=0.0, fpr=0.01,                   # analyst flips each representative label w.p. label_noise
                 analytic=0, refit=24, knn=32,                # analytic: 3-class model, retraction applied at inference; refit: hours between refits
                 replay="", flow_cap=0, delay=0,              # replay: take the alerts that form the groups from a saved run
-                n_prior=1, rule="q1", keep="fifo", att_cap=0)
+                n_prior=1, rule="q1", keep="fifo", att_cap=0, mut=0.0)
 # (fixed feedback schedule, E3/mechanism control); flow_cap: max flows entering the evidence per period (E2);
 # delay: periods between an analyst decision and the refit that uses it (E5);
 # n_prior: models per fit, each trained against its own draw of the prior, scores averaged (Monte-Carlo variance of the
 # prior sample); rule: "q1" = threshold at the 1% holdout quantile, "post" = the model's own Bayes rule (score > 0);
 # keep: which evidence a fit sees once it exceeds its size limit: "fifo" = the most recent flows (the anchor can be
 # evicted), "A" / "P" / "AP" = the anchor attacks / anchor benign flows always stay and the online evidence is sampled
-# uniformly; att_cap: max flows of one attack-confirmed group entering the attack evidence (0 = the whole group)
+# uniformly; att_cap: max flows of one attack-confirmed group entering the attack evidence (0 = the whole group);
+# mut: fraction of prior rows in which 1-2 features take a value drawn uniformly from the standardised box [-10, 10]
+# (a value benign need not have shown; the crossover alone only recombines values already seen in benign)
 
 class ERNP:
     def __init__(self, cfg, rng):
@@ -51,7 +53,11 @@ class ERNP:
         base = P[rng.choice(len(P), n)]
         if self.c["prior"] == "partial":       # ERNP: row-wise crossover with one donor, each feature w.p. rho
             donor = base[rng.integers(0, len(base), len(base))]; mask = rng.random(base.shape) < self.c["rho"]
-            return np.where(mask, donor, base)
+            Q = np.where(mask, donor, base)
+            if self.c["mut"] > 0:                 # mutation: values outside what benign has shown
+                m = int(self.c["mut"] * n); i = rng.choice(n, m, replace=False); j = rng.integers(0, P.shape[1], (m, 2))
+                Q[i, j[:, 0]] = rng.uniform(-10, 10, m); two = rng.random(m) < 0.5; Q[i[two], j[two, 1]] = rng.uniform(-10, 10, two.sum())
+            return Q
         if self.c["prior"] == "scarf":         # SCARF/VIME corruption: each feature w.p. rho from its own random donor
             mask = rng.random(base.shape) < self.c["rho"]
             repl = np.stack([base[rng.integers(0, n, n), j] for j in range(P.shape[1])], 1)

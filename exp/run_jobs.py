@@ -294,6 +294,35 @@ def k5abl_jobs(seed):
          ("abl_retr_none_K5", ["--retraction", "none"]), ("abl_prior_scarf_K5", ["--prior", "scarf"]))
     return [("cpu", ds, n, ["ernp.py", ds, "--n_prior", "5", *a, "--name", n]) for n, a in V for ds in k5_dss(seed)]
 
+def k5rq_jobs(seed):
+    """every ERNP run of the secondary experiments (RQ2-RQ5, operating point, E2-E5, scale, label noise,
+    camouflage, the self-evidence counterfactual, SIMARGL published labels; the cadence study is k5cad) rerun on the K5 base: same arguments plus
+    --n_prior 5, name suffixed _K5 (ernp -> ernp_K5), replays of ERNP's feedback schedule replay ernp_K5. Baselines are
+    not rerun. The no-prior ablation draws no prior, so its existing runs stand for K5; the random-forest sensitivity run
+    stays at K = 1 (K > 1 is implemented for the GBM only). Most important groups first."""
+    groups = (rq2_jobs, camo_jobs, rq2gate_jobs, e4_jobs, noise_jobs, rq2lb_jobs, e5_jobs, e23_jobs, rq3_jobs, rq5_jobs,
+              rq4_jobs, opf_jobs, ext_jobs, realsens_jobs, scale_jobs, x10_jobs)
+    return k5_variant(groups, seed)
+
+def k5_variant(groups, seed):
+    jobs, seen = [], set()
+    for g in groups:
+        for pool, ds, name, args in g(seed):
+            if args[0] != "ernp.py" or ("--prior" in args and args[args.index("--prior") + 1] == "none") or "--clf" in args: continue
+            nm = "ernp_K5" if name == "ernp" else name + "_K5"
+            if (ds, nm) in seen: continue
+            a = list(args)
+            if "--replay" in a: a[a.index("--replay") + 1] += "_K5"
+            if "--name" in a: a[a.index("--name") + 1] = nm
+            else: a += ["--name", nm]
+            jobs.append(("cpu", ds, nm, a + ["--n_prior", "5"])); seen.add((ds, nm))
+    return jobs
+
+def k5cad_jobs(seed):
+    """the cadence study on the K5 base, kept apart from k5rq because it costs more than all of k5rq together
+    (the 1 h cadence refits 24 times a day): the 4 h cadence first, then the 1 h cadence"""
+    return [j for j in k5_variant((cad_jobs,), seed) if j[2] == "ernp_P4_K5"] + [j for j in k5_variant((cad_jobs,), seed) if j[2] == "ernp_P1_K5"]
+
 def t1_jobs(seed):
     """review 2: CADE and Trident with the threshold at 1% FPR on held-out anchor flows (same models)"""
     return [("gpu", ds, m, ["baselines/sota.py", ds, m]) for ds in ds_names(seed).values() for m in ("cade_t1", "trident_t1")]
@@ -343,7 +372,7 @@ if __name__ == "__main__":
     ap.add_argument("--pool", choices=("all", "cpu", "gpu"), default="all", help="run only the CPU or only the GPU jobs")
     a = ap.parse_args(); GPU_IDS[:] = [g.strip() for g in a.gpu_ids.split(",") if g.strip()]; THREADS = a.threads
     GEN = {"rq1": rq1_jobs, "rq2": rq2_jobs, "rq3": rq3_jobs, "rq4": rq4_jobs, "rq5": rq5_jobs, "cad": cad_jobs, "ext": ext_jobs, "ext1": ext1_jobs, "rq2lb": rq2lb_jobs, "noise": noise_jobs,
-           "scale": scale_jobs, "opf": opf_jobs, "x10": x10_jobs, "camo": camo_jobs, "rq2rep": rq2rep_jobs, "scarf": scarf_jobs, "audit": audit_jobs, "rq2gate": rq2gate_jobs, "t1": t1_jobs, "e23": e23_jobs, "e5": e5_jobs, "e4": e4_jobs, "real": real_jobs, "stab": stab_jobs, "stab2": stab2_jobs, "k5": k5_jobs, "k5abl": k5abl_jobs, "realsens": realsens_jobs, "diam": diam_jobs}
+           "scale": scale_jobs, "opf": opf_jobs, "x10": x10_jobs, "camo": camo_jobs, "rq2rep": rq2rep_jobs, "scarf": scarf_jobs, "audit": audit_jobs, "rq2gate": rq2gate_jobs, "t1": t1_jobs, "e23": e23_jobs, "e5": e5_jobs, "e4": e4_jobs, "real": real_jobs, "stab": stab_jobs, "stab2": stab2_jobs, "k5": k5_jobs, "k5abl": k5abl_jobs, "k5rq": k5rq_jobs, "k5cad": k5cad_jobs, "realsens": realsens_jobs, "diam": diam_jobs}
     jobs = [(j, s) for rq in a.rq.split("+") for s in a.seeds for j in GEN[rq](s) if a.pool in ("all", j[0])]
     if a.rq == "cad":   # most informative first: ToN, then CIC18, CIC17, CIDDS; 1 h before 4 h
         prio = {"ToN": 0, "CIC18": 1, "CIC17": 2, "CIDDS": 3}

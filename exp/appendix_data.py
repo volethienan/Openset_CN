@@ -7,11 +7,12 @@
 import os, sys, json, glob, importlib, numpy as np, pandas as pd
 EXP = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, EXP)
 REP = os.path.join(EXP, "reports"); RES = os.path.join(EXP, "results")
-DS = ["CIDDS_ctx", "ToN_ctx", "CIC17", "CIC18"]
+DS = ["CIDDS_ctx", "ToN_ctx", "CIC17", "CIC18", "CTU13", "SIMARGL", "APPRAISE"]
 M = ["ernp", "ssf_causal", "owad", "cade", "trident", "memstream", "knn"]
 
 def family_table():
-    r = pd.concat([pd.read_csv(os.path.join(REP, "rq1_runs.csv")), pd.read_csv(os.path.join(REP, "rq1_ext_runs.csv"))])
+    r = pd.concat([pd.read_csv(os.path.join(REP, f)) for f in ("rq1_runs.csv", "rq1_ext_runs.csv", "real_runs.csv")
+                   if os.path.exists(os.path.join(REP, f))])
     r = r.drop_duplicates(["dataset", "method", "seed"])
     os.environ["EXP_SEED"] = "0"; import common; importlib.reload(common)
     rows = []

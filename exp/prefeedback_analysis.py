@@ -21,6 +21,7 @@ from sklearn.cluster import MiniBatchKMeans
 from evaluate import seeded_name
 
 BASES = ["CIDDS_ctx", "ToN_ctx", "CIC17", "CIC18"]
+REAL = ["CTU13", "SIMARGL", "APPRAISE"]                                  # real networks: analysed on request (argv), reported when present
 REPLAY = ["ernp", "abl_retr_none", "abl_evid_rep"]                     # ERNP variants with group decisions (B = 200)
 OTHER = ["ernp_B0", "ssf_causal", "owad", "owad_lr3", "memstream", "trident", "trident_t1", "cade", "cade_t1",
          "knn", "iforest", "ae_static"]
@@ -82,8 +83,9 @@ def analyse(base):
         pd.DataFrame(gate).to_csv(os.path.join(OUT, f"prefeedback_gate_{base}.csv"), index=False)
 
 def report():
-    fr = pd.concat([pd.read_csv(os.path.join(OUT, f"prefeedback_family_{b}.csv")) for b in BASES])
-    gt = pd.concat([pd.read_csv(os.path.join(OUT, f"prefeedback_gate_{b}.csv")) for b in BASES])
+    bases = BASES + [b for b in REAL if os.path.exists(os.path.join(OUT, f"prefeedback_family_{b}.csv"))]
+    fr = pd.concat([pd.read_csv(os.path.join(OUT, f"prefeedback_family_{b}.csv")) for b in bases])
+    gt = pd.concat([pd.read_csv(os.path.join(OUT, f"prefeedback_gate_{b}.csv")) for b in bases])
     fr.to_csv(os.path.join(OUT, "prefeedback_family.csv"), index=False); gt.to_csv(os.path.join(OUT, "prefeedback_gate.csv"), index=False)
     def per_run(g):                         # macro over families of one run, pooled over flows of one run
         o = dict(n_fam=len(g), macro_rec_first=g["rec_first"].mean(),

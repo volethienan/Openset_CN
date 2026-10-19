@@ -10,3 +10,4 @@ mock/streams/*injcamo*.parquet
 logs/
 mock/streams/_raw_cache*.pkl
 Huong_dan_*.docx
+exp_k5/

@@ -337,6 +337,14 @@ def k5a_jobs(seed):
         out.append((pool, ds, nm, a + ["--keep", "A"]))
     return out
 
+def k5a_confirm_jobs(seed):
+    """held-out confirmation of the anchored attack evidence: --keep A was adopted after CIC17 unsampled seeds 0-2, so
+    seeds 3-4 of that stream (never looked at) are run with K5 (FIFO) and K5A"""
+    if seed < 3: return []
+    ds = "CIC17_full"
+    return [("cpu", ds, "ernp_K5", ["ernp.py", ds, "--n_prior", "5", "--name", "ernp_K5"]),
+            ("cpu", ds, "ernp_K5A", ["ernp.py", ds, "--n_prior", "5", "--keep", "A", "--name", "ernp_K5A"])]
+
 def t1_jobs(seed):
     """review 2: CADE and Trident with the threshold at 1% FPR on held-out anchor flows (same models)"""
     return [("gpu", ds, m, ["baselines/sota.py", ds, m]) for ds in ds_names(seed).values() for m in ("cade_t1", "trident_t1")]
@@ -386,7 +394,7 @@ if __name__ == "__main__":
     ap.add_argument("--pool", choices=("all", "cpu", "gpu"), default="all", help="run only the CPU or only the GPU jobs")
     a = ap.parse_args(); GPU_IDS[:] = [g.strip() for g in a.gpu_ids.split(",") if g.strip()]; THREADS = a.threads
     GEN = {"rq1": rq1_jobs, "rq2": rq2_jobs, "rq3": rq3_jobs, "rq4": rq4_jobs, "rq5": rq5_jobs, "cad": cad_jobs, "ext": ext_jobs, "ext1": ext1_jobs, "rq2lb": rq2lb_jobs, "noise": noise_jobs,
-           "scale": scale_jobs, "opf": opf_jobs, "x10": x10_jobs, "camo": camo_jobs, "rq2rep": rq2rep_jobs, "scarf": scarf_jobs, "audit": audit_jobs, "rq2gate": rq2gate_jobs, "t1": t1_jobs, "e23": e23_jobs, "e5": e5_jobs, "e4": e4_jobs, "real": real_jobs, "stab": stab_jobs, "stab2": stab2_jobs, "k5": k5_jobs, "k5abl": k5abl_jobs, "k5rq": k5rq_jobs, "k5cad": k5cad_jobs, "k5a": k5a_jobs, "realsens": realsens_jobs, "diam": diam_jobs}
+           "scale": scale_jobs, "opf": opf_jobs, "x10": x10_jobs, "camo": camo_jobs, "rq2rep": rq2rep_jobs, "scarf": scarf_jobs, "audit": audit_jobs, "rq2gate": rq2gate_jobs, "t1": t1_jobs, "e23": e23_jobs, "e5": e5_jobs, "e4": e4_jobs, "real": real_jobs, "stab": stab_jobs, "stab2": stab2_jobs, "k5": k5_jobs, "k5abl": k5abl_jobs, "k5rq": k5rq_jobs, "k5cad": k5cad_jobs, "k5a": k5a_jobs, "k5a_confirm": k5a_confirm_jobs, "realsens": realsens_jobs, "diam": diam_jobs}
     jobs = [(j, s) for rq in a.rq.split("+") for s in a.seeds for j in GEN[rq](s) if a.pool in ("all", j[0])]
     if a.rq == "cad":   # most informative first: ToN, then CIC18, CIC17, CIDDS; 1 h before 4 h
         prio = {"ToN": 0, "CIC18": 1, "CIC17": 2, "CIDDS": 3}

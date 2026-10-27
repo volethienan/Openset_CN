@@ -345,6 +345,40 @@ def k5a_confirm_jobs(seed):
     return [("cpu", ds, "ernp_K5", ["ernp.py", ds, "--n_prior", "5", "--name", "ernp_K5"]),
             ("cpu", ds, "ernp_K5A", ["ernp.py", ds, "--n_prior", "5", "--keep", "A", "--name", "ernp_K5A"])]
 
+def k5afill_jobs(seed):
+    """the two ERNP-family runs the K5A conversion missed: the no-prior ablation (GBM+AL; it draws no prior, so K is moot,
+    but --keep A changes its attack evidence wherever the FIFO window overflowed) on every stream where it was run, and
+    RQ2 with representative-only labels (group rq2rep was not part of k5rq), both with --keep A, name suffix _K5A"""
+    out, seen = [], set()
+    for g in (rq4_jobs, real_jobs, rq2gate_jobs, camo_jobs, rq2_jobs, e4_jobs, e5_jobs, e23_jobs):
+        for pool, ds, name, args in g(seed):
+            if name != "abl_prior_none" or ds in seen: continue
+            seen.add(ds); out.append(("cpu", ds, "abl_prior_none_K5A", ["ernp.py", ds, "--prior", "none", "--keep", "A", "--name", "abl_prior_none_K5A"]))
+    out += [("cpu", ds, "abl_evid_rep_K5A", ["ernp.py", ds, "--evidence", "rep", "--n_prior", "5", "--keep", "A", "--name", "abl_evid_rep_K5A"])
+            for pool, ds, name, args in rq2rep_jobs(seed)]
+    return out
+
+NAIVE_LEVELS = (50, 100)      # naive analyst: ramp flows with a < 0.5 (benign ports/flags/ToS) or every ramp flow -> BENIGN
+
+def naive_jobs(seed):
+    """RQ2 with a naive analyst (common.naive_ramp_mask): on the protocol-valid poisoning streams the analyst answers
+    BENIGN for injected ramp flows whose ramp fraction a is below 0.5 (records that keep the benign template's ports,
+    flags and ToS) or below 1.0 (the whole ramp; only the payload is recognised). Ground truth for evaluation is
+    unchanged. K5A configuration and its two evidence-gated controls that matter for this channel (no retraction,
+    no prior = GBM+AL), and SSF with the same analyst. Reference runs (a correct analyst) are the existing ernp_K5A,
+    abl_retr_none_K5A, abl_prior_none_K5A and ssf_causal runs of the same streams. Report: exp/naive_report.py"""
+    jobs = []
+    for v in ("injvalidinit_bf", "injvalidresp_bf"):
+        ds = f"{cidds(seed)}_{v}"
+        for r in NAIVE_LEVELS:
+            nr = ["--naive_ramp", str(r / 100)]
+            jobs += [("cpu", ds, n, ["ernp.py", ds, *a, *nr, "--name", n]) for n, a in
+                     ((f"ernp_K5A_R{r}", ["--n_prior", "5", "--keep", "A"]),
+                      (f"abl_retr_none_K5A_R{r}", ["--n_prior", "5", "--keep", "A", "--retraction", "none"]),
+                      (f"abl_prior_none_K5A_R{r}", ["--prior", "none", "--keep", "A"]))]
+            jobs.append(("gpu", ds, f"ssf_causal_R{r}", ["baselines/sota.py", ds, f"ssf_causal_R{r}"]))
+    return jobs
+
 def t1_jobs(seed):
     """review 2: CADE and Trident with the threshold at 1% FPR on held-out anchor flows (same models)"""
     return [("gpu", ds, m, ["baselines/sota.py", ds, m]) for ds in ds_names(seed).values() for m in ("cade_t1", "trident_t1")]
@@ -394,7 +428,7 @@ if __name__ == "__main__":
     ap.add_argument("--pool", choices=("all", "cpu", "gpu"), default="all", help="run only the CPU or only the GPU jobs")
     a = ap.parse_args(); GPU_IDS[:] = [g.strip() for g in a.gpu_ids.split(",") if g.strip()]; THREADS = a.threads
     GEN = {"rq1": rq1_jobs, "rq2": rq2_jobs, "rq3": rq3_jobs, "rq4": rq4_jobs, "rq5": rq5_jobs, "cad": cad_jobs, "ext": ext_jobs, "ext1": ext1_jobs, "rq2lb": rq2lb_jobs, "noise": noise_jobs,
-           "scale": scale_jobs, "opf": opf_jobs, "x10": x10_jobs, "camo": camo_jobs, "rq2rep": rq2rep_jobs, "scarf": scarf_jobs, "audit": audit_jobs, "rq2gate": rq2gate_jobs, "t1": t1_jobs, "e23": e23_jobs, "e5": e5_jobs, "e4": e4_jobs, "real": real_jobs, "stab": stab_jobs, "stab2": stab2_jobs, "k5": k5_jobs, "k5abl": k5abl_jobs, "k5rq": k5rq_jobs, "k5cad": k5cad_jobs, "k5a": k5a_jobs, "k5a_confirm": k5a_confirm_jobs, "realsens": realsens_jobs, "diam": diam_jobs}
+           "scale": scale_jobs, "opf": opf_jobs, "x10": x10_jobs, "camo": camo_jobs, "rq2rep": rq2rep_jobs, "scarf": scarf_jobs, "audit": audit_jobs, "rq2gate": rq2gate_jobs, "t1": t1_jobs, "e23": e23_jobs, "e5": e5_jobs, "e4": e4_jobs, "real": real_jobs, "stab": stab_jobs, "stab2": stab2_jobs, "k5": k5_jobs, "k5abl": k5abl_jobs, "k5rq": k5rq_jobs, "k5cad": k5cad_jobs, "k5a": k5a_jobs, "k5a_confirm": k5a_confirm_jobs, "k5afill": k5afill_jobs, "naive": naive_jobs, "realsens": realsens_jobs, "diam": diam_jobs}
     jobs = [(j, s) for rq in a.rq.split("+") for s in a.seeds for j in GEN[rq](s) if a.pool in ("all", j[0])]
     if a.rq == "cad":   # most informative first: ToN, then CIC18, CIC17, CIDDS; 1 h before 4 h
         prio = {"ToN": 0, "CIC18": 1, "CIC17": 2, "CIDDS": 3}

@@ -5,7 +5,9 @@ Anchor period (known attacks) / stream (zero-day evaluation):
   CIC17*  : before 2017-07-06     CIC18* : before 2018-02-17
   CTU13*  : before 2011-08-12     SIMARGL*: before 2021-04-12     APPRAISE*: before 2023-01-25   (real-network datasets)
 Anchor BENIGN flows -> 80% reference / 20% holdout (seeded by EXP_SEED). Features are standardised with reference stats.
-Every score-based threshold is set at FPR_TARGET on the holdout.
+ERNP and calibrated baseline thresholds use anchor holdout; native baseline rules can differ.
+The existing streams replay complete flow records ordered by flow START time. Completed bytes/duration and
+same-timestamp context are retrospective features. Causal model feedback does not imply packet-time causality.
 """
 import os, numpy as np, pandas as pd
 
@@ -17,6 +19,29 @@ N_CTX = 10                                # last 10 feature columns are the temp
 
 def seed():
     return int(os.environ.get("EXP_SEED", 0))
+
+# Schedule of the protocol-valid poisoning streams (data/inject_valid.py: START, RAMP, ATTACK, RATE_PER_H); the
+# test tests/test_naive_ramp.py checks that these constants equal the generator's.
+INJ_START_D, INJ_RAMP_D, INJ_ATTACK_D, INJ_RATE_H = 4.0, 7.0, 2.0, 30
+
+def naive_ramp_mask(ds, df, a_max):
+    """Analyst model for RQ2 (`naive analyst`): True for the injected ramp flows whose ramp fraction a is below a_max.
+    Ground truth marks every ramp flow INJ_ramp (an attack), even at a ~ 0 where the record is a copy of the host's
+    benign behaviour; a naive analyst answers BENIGN for such flows. a is recovered from the flow start time exactly as
+    data/inject_valid.py generates it, a = (t - t0 - START) / RAMP with t0 = the stream's first time stamp; for
+    a < 0.5 the generator also keeps the ports, flags and ToS of the benign template. Used ONLY for the analyst's
+    answer; evaluation keeps the ground truth. a_max <= 0 -> all False."""
+    fam = df["fam"].values; m = np.zeros(len(df), bool)
+    if a_max <= 0: return m
+    assert "_injvalid" in ds, f"naive analyst is defined for the protocol-valid poisoning streams only, not {ds}"
+    t = df["t"].values; t0 = t.min(); inj = np.char.startswith(fam.astype(str), "INJ_")
+    ramp, pay = fam == "INJ_ramp", fam == "INJ_attack"
+    k = (t[inj] - t0 - INJ_START_D * 86400) / (3600 / INJ_RATE_H)       # injection slot index: integer by construction
+    assert np.abs(k - np.round(k)).max() < 1e-6, "injected flows are off the generator's time grid (t0 differs?)"
+    assert ramp.sum() == INJ_RAMP_D * 24 * INJ_RATE_H and pay.sum() == INJ_ATTACK_D * 24 * INJ_RATE_H, (ramp.sum(), pay.sum())
+    a = (t - t0 - INJ_START_D * 86400) / (INJ_RAMP_D * 86400)
+    assert a[ramp].min() > -1e-9 and a[ramp].max() < 1 and a[pay].min() > 1 - 1e-9, "ramp/payload labels do not match the schedule"
+    return ramp & (a < a_max - 1e-7)                 # flows exactly at a = a_max are not naive (the generator uses a < 0.5)
 
 def anchor_end(ds, t0):
     if ds.startswith("CIC17"): return pd.Timestamp("2017-07-06").value / 1e9
@@ -61,6 +86,11 @@ def period_budget(p, hours, B):
 
 def save(ds, method, score, flag, info):
     import json
+    info.setdefault('protocol_scope', dict(record_order='flow_start_timestamp',
+                    features='complete_flow_records_retrospective_context_with_timestamp_ties',
+                    feedback='predict_then_update_if_cfg_protocol_causal',
+                    packet_causal_verified=False,
+                    roc_at_1fpr='test_label_diagnostic_not_a_deployment_threshold'))
     os.makedirs(RESULTS, exist_ok=True); tag = f"{ds}__{method}__s{seed()}"
     try:                                  # peak resident memory of the whole run (cost reporting, RQ5)
         import psutil; mi = psutil.Process().memory_info()

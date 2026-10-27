@@ -20,7 +20,7 @@ import numpy as np, pandas as pd, torch
 _EXP = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SOTA = os.environ.get("ERNP_ROOT", os.path.dirname(_EXP)).replace("\\", "/").rstrip("/") + "/sota/"
 sys.path.insert(0, _EXP); sys.path.insert(0, os.path.join(_EXP, "baselines"))
-from common import load, calib_upper, FPR_TARGET, save, seed, stream_periods, period_budget
+from common import load, calib_upper, FPR_TARGET, save, seed, stream_periods, period_budget, naive_ramp_mask
 LBL = 200
 CAUSAL = False
 PERIOD = 24                                          # update cadence in hours (cadence study; 24 = daily)
@@ -28,6 +28,8 @@ dev = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 EPOCH_1 = 20                                         # SSF epoch_1 (suffix _E{n}; the authors' UNSW command uses 180)
 WINDOW = 0                                           # SSF native protocol: windows of WINDOW flows (suffix _W{n}; 0 = off)
 NOISE = 0.0                                          # oracle label noise (suffix _N{pct}); 0 = exact labels
+NAIVE = 0.0                                          # RQ2 analyst model (suffix _R{pct}, SSF only): ramp flows with fraction
+                                                     # a < pct/100 are labelled BENIGN by the analyst (common.naive_ramp_mask)
 DELAY = 0                                            # label delay in periods (suffix _D{n}): the labelled batch of period
                                                      # i - DELAY is used by the update at the end of period i (E5)
 TIMING = dict(init_s=0.0, score_s=0.0, n_scored=0, update_s=0.0, n_updates=0)   # cost reporting only (RQ5)
@@ -150,6 +152,8 @@ def run_ssf(ds, epochs=200, epoch_1=None, opt_old_lr=24, opt_new_lr=50, new_samp
     from torch.utils.data import TensorDataset, DataLoader
     df, X, src, dst, tr, ho, s_idx, anc = load(ds)
     y = (df["fam"].values != "BENIGN").astype(int)
+    nv = naive_ramp_mask(ds, df, NAIVE)                       # all False unless suffix _R (analyst answers only)
+    assert not (nv & anc).any(); y[nv] = 0
     U.setup_seed(5011)
     init = np.sort(np.concatenate([tr, np.where(anc & (y == 1))[0]]))
     xtr = torch.tensor(X[init], device=dev); ytr = torch.tensor(y[init], device=dev).long()
@@ -279,13 +283,14 @@ def run_cade(ds, anchor_thr=False):
 if __name__ == "__main__":
     ds, method = sys.argv[1], sys.argv[2]; t0 = time.time()
     import re                                            # suffixes: _P{hours} update cadence, _B{n} labels per day
-    mm = re.fullmatch(r"(.+?)(?:_W(\d+))?(?:_E(\d+))?(?:_P(\d+))?(?:_B(\d+))?(?:_N(\d+))?(?:_D(\d+))?", method); base = mm[1]
+    mm = re.fullmatch(r"(.+?)(?:_W(\d+))?(?:_E(\d+))?(?:_P(\d+))?(?:_B(\d+))?(?:_N(\d+))?(?:_D(\d+))?(?:_R(\d+))?", method); base = mm[1]
     if mm[2]: WINDOW = int(mm[2])      # _W{n}: SSF windows of n flows, _E{n}: SSF epoch_1 (e.g. ssf_causal_W20000,
     if mm[3]: EPOCH_1 = int(mm[3])     # ssf_causal_E180), _P{h}: update cadence (owad_P1), _B{n}: labels/day (owad_B100)
     if mm[4]: PERIOD = int(mm[4])
     if mm[5]: LBL = int(mm[5])
     if mm[6]: NOISE = int(mm[6]) / 100
     if mm[7]: DELAY = int(mm[7])
+    if mm[8]: NAIVE = int(mm[8]) / 100; assert base == "ssf_causal", "_R (naive analyst) is implemented for ssf_causal only"
     if base == "ssf_causal": CAUSAL = True
     fn = {"memstream": run_memstream, "memstream_fn": run_memstream_fixnorm, "owad": run_owad, "owad_lr3": lambda d: run_owad(d, ae_lr=1e-3), "ssf": run_ssf,
           "ssf_causal": run_ssf, "trident": run_trident, "cade": run_cade,

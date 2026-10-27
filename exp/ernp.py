@@ -4,18 +4,23 @@ Detector: density-ratio classifier g_t between benign evidence P_t and {attack e
           s_t(x) = logit g_t(x); alert iff s_t(x) > tau (tau: 1% FPR on the anchor holdout, fixed).
 Novelty prior q_0: benign flows whose features are swapped, each with probability rho, with the same feature of another
           benign flow (benign marginals kept, joint structure broken).
-Adaptation (the ONLY channel): trusted evidence retracts prior mass
-          q_{t+1}(x) = q_t(x) * (1 - kappa(x; E_t)),  kappa = exp(-d(x, E_t)^2 / (2 eps^2)),
-          E_t = analyst-confirmed benign alert groups, eps = 90th pct 1-NN spacing of the benign reference.
+Adaptation: analyst group decisions extend P_t/A_t; benign confirmations additionally retract prior mass.
+          Each refit samples a FRESH q(P_t) and weights it by r_t(x) = 1 - exp(-d(x,E_t)^2/(2 eps^2)).
+          This is not recursive multiplication of all historical kernels. E_t contains flows in groups whose
+          representative was confirmed benign; group-label propagation can be wrong. eps is fixed from the anchor.
 Labels: each day the alerts are grouped into <= B clusters, the analyst labels one representative per cluster;
           the label applies to the whole alert group (SOC alert-group triage).
 Mass: benign 1/2 | attack evidence 1/2 | prior 1/2 * (retained fraction)   -- retraction removes mass, never renormalises.
 
-Ablation switches (RQ4) are explicit arguments; defaults = the final ERNP configuration.
+Ablation switches are explicit. The final configuration (K5A) is --n_prior 5 --keep A: five prior draws per fit and
+the anchor's known attacks kept in the attack evidence; the CLI defaults (n_prior=1, keep="fifo") stay the historical
+configuration so that earlier runs remain reproducible.
+Retraction is local in prior weights, not a guarantee that refitted GBM scores are unchanged elsewhere.
+The causal protocol concerns feedback order on retrospective complete-flow records, not packet-time causality.
 """
 import sys, time, argparse, numpy as np
 import os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import load, calib_upper, stream_days, stream_periods, period_budget, save, seed, N_CTX, ROOT
+from common import load, calib_upper, stream_days, stream_periods, period_budget, save, seed, N_CTX, ROOT, naive_ramp_mask
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.neighbors import NearestNeighbors
 from sklearn.cluster import MiniBatchKMeans
@@ -27,7 +32,8 @@ DEFAULTS = dict(rho=0.3, prior_mass=1.0, budget=200, prior="partial", retraction
                 label_noise=0.0, fpr=0.01,                   # analyst flips each representative label w.p. label_noise
                 analytic=0, refit=24, knn=32,                # analytic: 3-class model, retraction applied at inference; refit: hours between refits
                 replay="", flow_cap=0, delay=0,              # replay: take the alerts that form the groups from a saved run
-                n_prior=1, rule="q1", keep="fifo", att_cap=0, mut=0.0)
+                n_prior=1, rule="q1", keep="fifo", att_cap=0, mut=0.0,
+                naive_ramp=0.0)                              # RQ2 analyst model: ramp flows with fraction a < naive_ramp are answered BENIGN
 # (fixed feedback schedule, E3/mechanism control); flow_cap: max flows entering the evidence per period (E2);
 # delay: periods between an analyst decision and the refit that uses it (E5);
 # n_prior: models per fit, each trained against its own draw of the prior, scores averaged (Monte-Carlo variance of the
@@ -166,6 +172,7 @@ def _mlp_score(net, Z, bs=65536):
 def run(ds, **cfg):
     c = dict(DEFAULTS); c.update(cfg)
     df, X, src, dst, tr, ho, s_idx, anc = load(ds); fam = df["fam"].values
+    naive = naive_ramp_mask(ds, df, c["naive_ramp"]); n_naive = 0      # all False unless --naive_ramp > 0 (RQ2 analyst model)
     if c["features"] == "flow": X = X[:, :-N_CTX]               # ablation: per-flow features only
     rng = np.random.default_rng(seed()); t_fit, t_score, n_scored = [], 0.0, 0
     P = X[rng.choice(tr, min(c["n_pos_max"], len(tr)), replace=False)]
@@ -218,7 +225,8 @@ def run(ds, **cfg):
                 grp = X[np.r_[rep, crng.choice(mem[mem != rep], per - 1, replace=False)]]
             if c["evidence"] == "oracle_pure":   # DIAGNOSTIC upper bound only: perfectly pure groups (uses ground truth)
                 grp = X[mem[(fam[mem] == "BENIGN") == (fam[rep] == "BENIGN")]]
-            is_ben = fam[rep] == "BENIGN"
+            is_ben = fam[rep] == "BENIGN" or naive[rep]   # the analyst's answer; naive[] is all False by default
+            n_naive += int(bool(naive[rep]))
             if c["label_noise"] > 0 and nrng.random() < c["label_noise"]: is_ben = not is_ben   # analyst error
             if c["att_cap"] and not is_ben and len(grp) > c["att_cap"]:   # one attack decision adds a bounded number of flows
                 grp = X[np.r_[rep, wrng.choice(mem[mem != rep], c["att_cap"] - 1, replace=False)]]
@@ -240,6 +248,7 @@ def run(ds, **cfg):
         if c["protocol"] == "ssf":                                 # SSF's native protocol: predict after learning the day
             s[idx] = m.score(X[s_idx[idx]]); F[idx] = s[idx] > tau
     info = dict(cfg={k: v for k, v in c.items()}, tau=tau, eps=m.eps, labels_used=n_lab, audit=audit, flows_in_evidence=n_flow,
+                naive_ramp_answers=n_naive, naive_ramp_flows=int(naive.sum()),
                 timing=dict(fit_mean_s=float(np.mean(t_fit)), fit_max_s=float(np.max(t_fit)),
                             score_flows_per_s=n_scored / max(t_score, 1e-9)))
     return s, F, info

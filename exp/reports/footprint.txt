@@ -1,0 +1,33 @@
+Footprint of wrongly confirmed benign groups (Proposition 1(iii)) on the saved ERNP runs. No model is run.
+
+For each run of the final configuration (ernp_K5A, seven datasets, five seeds) the analyst decisions are replayed
+from the saved alerts with the grouping of ernp.run (MiniBatchKMeans, representative closest to the centroid). The
+replay must reproduce the run's own decision log (info["audit"]: day, label, size, wrong members, family of the
+representative, radius) on every day; a day it does not reproduce (clustering of many duplicate alerts
+can differ across machines) keeps the replayed groups and is counted in replay_off; above 0.5% of the decisions the
+report stops. A benign-labelled group is impure when at least one member is an attack.
+Proposition 1(iii): the points whose retained prior fraction drops by more than delta because of an impure group lie
+within r_G + R_delta of its representative, with r_G the largest member-to-representative distance and
+R_delta = eps * sqrt(2 ln(1/delta)) (the bound). The exact region is smaller: the points within R_delta of some member
+of an impure group (retention depends on the distance to the nearest confirmed flow). For every later stream day, the
+flows inside each region (groups decided on earlier days) are counted: benign flows, zero-day flows (families absent from the anchor) and their recall
+inside and outside. delta = 0.5 (more than half of the prior mass retracted) and delta = 0.1.
+Output: reports/footprint.txt, reports/footprint_runs.csv
+
+Mean over five seeds (shares and rates over stream days after the first update)
+                    eps  n_impure      n_zd  replay_off  bound_share_benign  bound_share_zd  bound_fpr_in  bound_zd_recall_in  bound_zd_recall_out  bound_n_zd_in  exact_share_benign  exact_share_zd  exact_fpr_in  exact_zd_recall_in  exact_zd_recall_out  exact_n_zd_in
+delta dataset                                                                                                                                                                                                                                                              
+0.1   APPRAISE   0.5055      10.2   13919.0         2.0              0.7982          0.9999        0.0088              0.9945               1.0000        13918.0              0.1102          0.0000        0.0029              1.0000               0.9945            0.6
+      CIC17      2.0630       8.8   36936.0         0.0              0.9614          0.4328        0.0078              0.9845               0.9883        15979.2              0.3166          0.0000        0.0019              1.0000               0.9856            0.2
+      CIC18      1.1840       3.0    9402.0         0.0              0.1924          0.0714        0.0139              0.9560               0.9744          669.8              0.0114          0.0001        0.2587              0.3333               0.9712            0.6
+      CIDDS_ctx  1.1957      16.4     590.8         0.0              0.9334          0.8897        0.0036              0.6730               0.2983          524.6              0.1848          0.2688        0.0029              0.7556               0.5931          158.4
+      CTU13      0.7969      36.0    5582.8         0.0              0.2900          0.3544        0.0139              0.6675               0.8355         1970.0              0.0610          0.0674        0.0306              0.4536               0.8147          374.8
+      SIMARGL    0.9790       8.0   19378.0         0.0              0.4475          0.5828        0.2803              0.9639               0.7973        11332.0              0.0003          0.0001        0.3808              0.7778               0.9668            2.4
+      ToN_ctx    0.7281      40.8  101665.0         0.0              0.4350          0.3978        0.4156              0.6927               0.5649        40430.6              0.0486          0.0088        0.0023              0.2443               0.6230          894.2
+0.5   APPRAISE   0.5055      10.2   13919.0         2.0              0.7922          0.9985        0.0088              0.9945               0.8333        13898.2              0.0295          0.0000        0.0102              1.0000               0.9945            0.4
+      CIC17      2.0630       8.8   36936.0         0.0              0.9349          0.3522        0.0074              0.9904               0.9856        13004.6              0.0804          0.0000        0.0015                 NaN               0.9856            0.0
+      CIC18      1.1840       3.0    9402.0         0.0              0.1699          0.0475        0.0208              0.9406               0.9741          444.0              0.0012          0.0000        0.0000              1.0000               0.9711            0.2
+      CIDDS_ctx  1.1957      16.4     590.8         0.0              0.8673          0.7740        0.0035              0.7034               0.2926          455.4              0.0414          0.0776        0.0042              0.7147               0.6309           45.6
+      CTU13      0.7969      36.0    5582.8         0.0              0.1798          0.2573        0.0176              0.5714               0.8412         1431.2              0.0089          0.0253        0.1015              0.4710               0.8042          140.6
+      SIMARGL    0.9790       8.0   19378.0         0.0              0.3278          0.3033        0.0815              0.8314               0.9665         5922.0              0.0000          0.0000        0.3333              1.0000               0.9668            0.6
+      ToN_ctx    0.7281      40.8  101665.0         0.0              0.4058          0.3721        0.4375              0.6801               0.5759        37826.2              0.0260          0.0038        0.0000              0.0602               0.6228          384.4

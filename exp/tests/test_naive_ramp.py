@@ -94,5 +94,24 @@ class SotaSuffixTests(unittest.TestCase):
         self.assertEqual((m[1], m[8]), ("ssf_causal", "100"))
 
 
+class JobTests(unittest.TestCase):
+    def test_naive_jobs(self):
+        import run_jobs
+        jobs = [j for s in range(5) for j in run_jobs.naive_jobs(s)]
+        self.assertEqual(len(jobs), 100)
+        self.assertEqual(sum(j[0] == "gpu" for j in jobs), 20)
+        for kind, ds, name, args in jobs:
+            self.assertIn("_injvalid", ds)
+            if kind == "cpu":    # every ERNP-family job carries its level and the K5A evidence window
+                lvl = int(name.rsplit("_R", 1)[1])
+                self.assertEqual(args[args.index("--naive_ramp") + 1], str(lvl / 100))
+                self.assertEqual(args[args.index("--keep") + 1], "A")
+                self.assertEqual(args[args.index("--name") + 1], name)
+        rep = [j for j in jobs if j[2].startswith("abl_evid_rep_K5A_R")]
+        self.assertEqual(len(rep), 20)
+        for _, _, _, a in rep:
+            self.assertEqual(a[a.index("--evidence") + 1], "rep"); self.assertEqual(a[a.index("--n_prior") + 1], "5")
+
+
 if __name__ == "__main__":
     unittest.main()

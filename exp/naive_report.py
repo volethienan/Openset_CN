@@ -4,7 +4,7 @@ Protocol-valid slow poisoning of CIDDS-001 (data/inject_valid.py, streams CIDDS_
 Ground truth marks every injected ramp flow as an attack (INJ_ramp), including the first ramp records, which are
 copies of the compromised host's benign behaviour. In the main protocol the analyst answers with that ground truth.
 Here the analyst answers BENIGN for ramp flows with ramp fraction a below a level (common.naive_ramp_mask):
-  R0   correct analyst (the existing runs: ernp_K5A, abl_retr_none_K5A, abl_prior_none_K5A, ssf_causal)
+  R0   correct analyst (the existing runs: ernp_K5A, abl_evid_rep_K5A, abl_retr_none_K5A, abl_prior_none_K5A, ssf_causal)
   R50  ramp flows with a < 0.5, whose ports, flags and ToS are those of the benign template, are answered BENIGN
   R100 every ramp flow is answered BENIGN; only the payload (a = 1) is recognised as an attack
 Evaluation always uses the ground truth. Context rows: ERNP without online labels (ernp_B0_K5A) and ERNP fed its own
@@ -14,7 +14,8 @@ test-benign diagnostic, absorption (ramp recall < 10% from some day on). For the
 are replayed from the saved alerts (same grouping as ernp.run) with the same analyst model; the replay must reproduce
 the run's own counts of decisions and of naive answers, or the report stops. It counts what the attacker obtains:
 decisions spent on injected representatives, naive BENIGN answers, injected flows entering the benign evidence P
-(and, of those, ramp flows with a < 0.5 and the payload) and injected flows entering the attack evidence A.
+(and, of those, ramp flows with a < 0.5 and the payload) and injected flows entering the attack evidence A. With
+representative-only labels (abl_evid_rep_K5A) only the representative of a decided group enters the evidence.
 Paired differences: level R50 / R100 minus R0 of the same method, stream and seed.
 Output: reports/naive_analyst.txt, reports/naive_runs.csv, reports/naive_channel.csv
 """
@@ -26,19 +27,20 @@ from evaluate import seeded_name, run_metrics
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reports")
 STREAMS = ["CIDDS_ctx_injvalidinit_bf", "CIDDS_ctx_injvalidresp_bf"]
-FAMILY = {"ERNP": "ernp_K5A", "ERNP, no retraction": "abl_retr_none_K5A", "GBM+AL (no prior)": "abl_prior_none_K5A",
-          "SSF": "ssf_causal"}
+FAMILY = {"ERNP": "ernp_K5A", "ERNP, rep.-only labels": "abl_evid_rep_K5A", "ERNP, no retraction": "abl_retr_none_K5A",
+          "GBM+AL (no prior)": "abl_prior_none_K5A", "SSF": "ssf_causal"}
 LEVELS = {"R0": 0.0, "R50": 0.5, "R100": 1.0}
 CONTEXT = {"ERNP, no online labels": "ernp_B0_K5A", "ERNP-self (counterfactual)": "abl_self_K5A"}
-GROUPED = {"ernp_K5A", "abl_retr_none_K5A", "abl_prior_none_K5A"}
+GROUPED = {"ernp_K5A", "abl_evid_rep_K5A", "abl_retr_none_K5A", "abl_prior_none_K5A"}
 
 
 def name_of(base, level):
     return base if level == "R0" else f"{base}_{level}"
 
 
-def label_channel(ds, df, X, s_idx, flag, s, budget, a_level):
-    """replays ERNP's grouping on the saved alerts with the analyst model of the run"""
+def label_channel(ds, df, X, s_idx, flag, s, budget, a_level, rep_only=False):
+    """replays ERNP's grouping on the saved alerts with the analyst model of the run; rep_only: only the representative
+    of a decided group enters the evidence (ernp.py --evidence rep)"""
     import common
     fam = df["fam"].values; naive = common.naive_ramp_mask(ds, df, a_level)
     half = common.naive_ramp_mask(ds, df, 0.5); pay = fam == "INJ_attack"
@@ -55,6 +57,7 @@ def label_channel(ds, df, X, s_idx, flag, s, budget, a_level):
             rep = mem[np.argmin(np.linalg.norm(X[mem] - km.cluster_centers_[cl], axis=1))]; o["decisions"] += 1
             is_ben = fam[rep] == "BENIGN" or naive[rep]; o["naive_answers"] += int(naive[rep])
             o["dec_on_injected_rep"] += int(inj[rep])
+            if rep_only: mem = np.array([rep])
             if is_ben:
                 o["injected_into_P"] += int(inj[mem].sum()); o["ramp_a_lt_half_into_P"] += int(half[mem].sum())
                 o["payload_into_P"] += int(pay[mem].sum())
@@ -85,7 +88,9 @@ def collect():
                                  payload_at1fpr=float((sc[pay] > np.quantile(sc[ben], 0.99)).mean()),
                                  absorbed=bool(r["absorption_day"] >= 0), labels=r["labels"]))
                 if m.split("_R")[0] in GROUPED:
-                    c = label_channel(ds, df, X, s_idx, fl, s, int(info["cfg"]["budget"]), LEVELS[lv])
+                    c = label_channel(ds, df, X, s_idx, fl, s, int(info["cfg"]["budget"]), LEVELS[lv],
+                                      rep_only=info["cfg"]["evidence"] == "rep")
+                    assert info["cfg"]["evidence"] in ("cluster", "rep"), (ds, m, info["cfg"]["evidence"])
                     assert c["decisions"] == int(info["labels_used"]), (ds, m, c["decisions"], info["labels_used"])
                     if "naive_ramp_answers" in info:
                         assert c["naive_answers"] == int(info["naive_ramp_answers"]), (ds, m, c["naive_answers"], info["naive_ramp_answers"])

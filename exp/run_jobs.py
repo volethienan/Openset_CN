@@ -364,9 +364,10 @@ def naive_jobs(seed):
     """RQ2 with a naive analyst (common.naive_ramp_mask): on the protocol-valid poisoning streams the analyst answers
     BENIGN for injected ramp flows whose ramp fraction a is below 0.5 (records that keep the benign template's ports,
     flags and ToS) or below 1.0 (the whole ramp; only the payload is recognised). Ground truth for evaluation is
-    unchanged. K5A configuration and its two evidence-gated controls that matter for this channel (no retraction,
-    no prior = GBM+AL), and SSF with the same analyst. Reference runs (a correct analyst) are the existing ernp_K5A,
-    abl_retr_none_K5A, abl_prior_none_K5A and ssf_causal runs of the same streams. Report: exp/naive_report.py"""
+    unchanged. K5A configuration and its evidence-gated controls that matter for this channel (no retraction,
+    no prior = GBM+AL, representative-only labels), and SSF with the same analyst. Reference runs (a correct analyst)
+    are the existing ernp_K5A, abl_retr_none_K5A, abl_prior_none_K5A, abl_evid_rep_K5A and ssf_causal runs of the
+    same streams. Report: exp/naive_report.py"""
     jobs = []
     for v in ("injvalidinit_bf", "injvalidresp_bf"):
         ds = f"{cidds(seed)}_{v}"
@@ -375,7 +376,8 @@ def naive_jobs(seed):
             jobs += [("cpu", ds, n, ["ernp.py", ds, *a, *nr, "--name", n]) for n, a in
                      ((f"ernp_K5A_R{r}", ["--n_prior", "5", "--keep", "A"]),
                       (f"abl_retr_none_K5A_R{r}", ["--n_prior", "5", "--keep", "A", "--retraction", "none"]),
-                      (f"abl_prior_none_K5A_R{r}", ["--prior", "none", "--keep", "A"]))]
+                      (f"abl_prior_none_K5A_R{r}", ["--prior", "none", "--keep", "A"]),
+                      (f"abl_evid_rep_K5A_R{r}", ["--n_prior", "5", "--keep", "A", "--evidence", "rep"]))]
             jobs.append(("gpu", ds, f"ssf_causal_R{r}", ["baselines/sota.py", ds, f"ssf_causal_R{r}"]))
     return jobs
 

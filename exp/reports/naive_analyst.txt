@@ -1,0 +1,122 @@
+RQ2 with a naive analyst (job group `naive`). No model is run.
+
+Protocol-valid slow poisoning of CIDDS-001 (data/inject_valid.py, streams CIDDS_ctx*_injvalid{init,resp}_bf, five seeds).
+Ground truth marks every injected ramp flow as an attack (INJ_ramp), including the first ramp records, which are
+copies of the compromised host's benign behaviour. In the main protocol the analyst answers with that ground truth.
+Here the analyst answers BENIGN for ramp flows with ramp fraction a below a level (common.naive_ramp_mask):
+  R0   correct analyst (the existing runs: ernp_K5A, abl_retr_none_K5A, abl_prior_none_K5A, ssf_causal)
+  R50  ramp flows with a < 0.5, whose ports, flags and ToS are those of the benign template, are answered BENIGN
+  R100 every ramp flow is answered BENIGN; only the payload (a = 1) is recognised as an attack
+Evaluation always uses the ground truth. Context rows: ERNP without online labels (ernp_B0_K5A) and ERNP fed its own
+verdicts (abl_self_K5A), as in RQ2.
+Per run: F1, FPR, AUROC, recall of the ramp and of the payload at the method's own rule, payload recall at the 1%
+test-benign diagnostic, absorption (ramp recall < 10% from some day on). For the ERNP-family runs the analyst decisions
+are replayed from the saved alerts (same grouping as ernp.run) with the same analyst model; the replay must reproduce
+the run's own counts of decisions and of naive answers, or the report stops. It counts what the attacker obtains:
+decisions spent on injected representatives, naive BENIGN answers, injected flows entering the benign evidence P
+(and, of those, ramp flows with a < 0.5 and the payload) and injected flows entering the attack evidence A.
+Paired differences: level R50 / R100 minus R0 of the same method, stream and seed.
+Output: reports/naive_analyst.txt, reports/naive_runs.csv, reports/naive_channel.csv
+
+Per scenario, method and analyst level (mean over seeds; payload_min = worst seed; absorbed = #seeds)
+scenario                     method level  payload_recall  payload_at1fpr  ramp_recall   FPR    F1  AUROC  payload_min  absorbed  n
+    init                       ERNP    R0           0.982           0.985        0.818 0.006 0.962  0.992        0.979         0  5
+    init                       ERNP  R100           0.026           0.042        0.116 0.004 0.893  0.897        0.019         5  5
+    init                       ERNP   R50           0.714           0.717        0.396 0.004 0.931  0.954        0.710         0  5
+    init        ERNP, no retraction    R0           0.983           0.985        0.816 0.007 0.959  0.989        0.981         0  5
+    init        ERNP, no retraction  R100           0.028           0.035        0.111 0.005 0.890  0.895        0.023         5  5
+    init        ERNP, no retraction   R50           0.715           0.717        0.389 0.005 0.927  0.949        0.713         0  5
+    init          GBM+AL (no prior)    R0           0.997           0.989        0.686 0.267 0.635  0.964        0.994         0  5
+    init          GBM+AL (no prior)  R100           0.429           0.297        0.296 0.204 0.726  0.936        0.200         0  5
+    init          GBM+AL (no prior)   R50           0.910           0.905        0.468 0.220 0.722  0.949        0.712         0  5
+    init                        SSF    R0           0.948           0.971        0.641 0.002 0.958  0.990        0.938         0  5
+    init                        SSF  R100           0.340           0.467        0.029 0.001 0.897  0.928        0.332         5  5
+    init                        SSF   R50           0.841           0.968        0.283 0.001 0.931  0.966        0.755         0  5
+    init     ERNP, no online labels    R0           0.112           0.099        0.393 0.012 0.893  0.963        0.089         0  5
+    init ERNP-self (counterfactual)    R0           0.045           0.049        0.199 0.006 0.890  0.921        0.043         2  5
+    resp                       ERNP    R0           0.991           0.995        0.618 0.006 0.948  0.986        0.980         0  5
+    resp                       ERNP  R100           0.023           0.043        0.091 0.004 0.891  0.908        0.016         5  5
+    resp                       ERNP   R50           0.705           0.712        0.373 0.005 0.929  0.961        0.703         0  5
+    resp        ERNP, no retraction    R0           0.972           0.977        0.611 0.007 0.944  0.983        0.882         0  5
+    resp        ERNP, no retraction  R100           0.018           0.035        0.093 0.005 0.888  0.908        0.010         5  5
+    resp        ERNP, no retraction   R50           0.705           0.709        0.376 0.005 0.926  0.954        0.704         0  5
+    resp          GBM+AL (no prior)    R0           0.943           0.938        0.493 0.236 0.689  0.955        0.778         0  5
+    resp          GBM+AL (no prior)  R100           0.483           0.322        0.293 0.202 0.730  0.933        0.048         1  5
+    resp          GBM+AL (no prior)   R50           0.832           0.823        0.395 0.206 0.744  0.948        0.703         0  5
+    resp                        SSF    R0           0.868           0.941        0.390 0.002 0.938  0.984        0.774         0  5
+    resp                        SSF  R100           0.338           0.457        0.049 0.001 0.899  0.940        0.319         5  5
+    resp                        SSF   R50           0.772           0.869        0.307 0.001 0.931  0.961        0.680         0  5
+    resp     ERNP, no online labels    R0           0.187           0.167        0.366 0.012 0.893  0.960        0.158         0  5
+    resp ERNP-self (counterfactual)    R0           0.047           0.049        0.224 0.006 0.892  0.941        0.044         3  5
+
+Label channel of the ERNP-family runs (replayed; mean over seeds)
+                                    n_injected  decisions  naive_answers  dec_on_injected_rep  injected_into_P  ramp_a_lt_half_into_P  payload_into_P  injected_into_A  share_dec_on_injected  share_injected_in_P
+scenario method              level                                                                                                                                                                                
+init     ERNP                R0         6480.0     2449.0            0.0                949.4             49.0                   24.8             5.4           5487.0                  0.388                0.008
+                             R100       6480.0     1874.2          281.0                308.4            534.6                  289.8             0.2             85.6                  0.165                0.082
+                             R50        6480.0     2283.4          168.6                798.6            303.6                  289.6             1.0           2718.6                  0.350                0.047
+         ERNP, no retraction R0         6480.0     2532.4            0.0                913.0             61.0                   33.0             3.8           5464.4                  0.361                0.009
+                             R100       6480.0     1944.2          273.8                303.8            516.8                  304.0             1.8             82.4                  0.156                0.080
+                             R50        6480.0     2349.2          167.6                780.0            318.8                  303.4             1.6           2672.8                  0.332                0.049
+         GBM+AL (no prior)   R0         6480.0     4843.0            0.0                364.6            279.8                  146.8            33.6           4615.6                  0.076                0.043
+                             R100       6480.0     3803.0          168.8                247.8           1477.4                  565.2            19.0            634.4                  0.069                0.228
+                             R50        6480.0     4109.2           50.2                401.4            650.4                  555.2            23.8           3018.0                  0.110                0.100
+resp     ERNP                R0         6480.0     2353.4            0.0                751.8             20.4                    7.8             1.6           4520.2                  0.320                0.003
+                             R100       6480.0     1804.0          193.6                218.6            431.6                  126.4             0.8             60.0                  0.121                0.067
+                             R50        6480.0     2208.8           58.8                696.4            133.6                  126.4             0.8           2762.8                  0.315                0.021
+         ERNP, no retraction R0         6480.0     2437.2            0.0                743.8             21.4                   10.4             3.4           4458.6                  0.305                0.003
+                             R100       6480.0     1872.8          183.4                203.8            448.2                  146.6             0.6             45.0                  0.109                0.069
+                             R50        6480.0     2290.4           60.6                683.2            152.0                  146.6             1.0           2757.8                  0.298                0.023
+         GBM+AL (no prior)   R0         6480.0     4257.8            0.0                361.6            327.4                  228.4            29.2           3512.8                  0.091                0.051
+                             R100       6480.0     3704.6          145.8                246.0           1460.4                  515.8            16.4            710.2                  0.071                0.225
+                             R50        6480.0     3848.8           20.8                384.2            596.2                  512.8            15.8           2592.0                  0.111                0.092
+
+Paired differences (level - R0, same method, stream and seed): mean, #seeds where the level is lower
+  payload_recall  R50  init  ERNP                   -0.268  lower on 5/5
+  payload_recall  R50  init  ERNP, no retraction    -0.268  lower on 5/5
+  payload_recall  R50  init  GBM+AL (no prior)      -0.087  lower on 4/5
+  payload_recall  R50  init  SSF                    -0.107  lower on 5/5
+  payload_recall  R50  resp  ERNP                   -0.286  lower on 5/5
+  payload_recall  R50  resp  ERNP, no retraction    -0.267  lower on 5/5
+  payload_recall  R50  resp  GBM+AL (no prior)      -0.111  lower on 3/5
+  payload_recall  R50  resp  SSF                    -0.096  lower on 4/5
+  payload_recall  R100 init  ERNP                   -0.957  lower on 5/5
+  payload_recall  R100 init  ERNP, no retraction    -0.955  lower on 5/5
+  payload_recall  R100 init  GBM+AL (no prior)      -0.568  lower on 4/5
+  payload_recall  R100 init  SSF                    -0.609  lower on 5/5
+  payload_recall  R100 resp  ERNP                   -0.967  lower on 5/5
+  payload_recall  R100 resp  ERNP, no retraction    -0.954  lower on 5/5
+  payload_recall  R100 resp  GBM+AL (no prior)      -0.460  lower on 4/5
+  payload_recall  R100 resp  SSF                    -0.530  lower on 5/5
+  FPR             R50  init  ERNP                   -0.002  lower on 5/5
+  FPR             R50  init  ERNP, no retraction    -0.002  lower on 5/5
+  FPR             R50  init  GBM+AL (no prior)      -0.048  lower on 4/5
+  FPR             R50  init  SSF                    -0.001  lower on 5/5
+  FPR             R50  resp  ERNP                   -0.002  lower on 5/5
+  FPR             R50  resp  ERNP, no retraction    -0.002  lower on 5/5
+  FPR             R50  resp  GBM+AL (no prior)      -0.030  lower on 3/5
+  FPR             R50  resp  SSF                    -0.001  lower on 5/5
+  FPR             R100 init  ERNP                   -0.002  lower on 5/5
+  FPR             R100 init  ERNP, no retraction    -0.002  lower on 5/5
+  FPR             R100 init  GBM+AL (no prior)      -0.064  lower on 5/5
+  FPR             R100 init  SSF                    -0.001  lower on 5/5
+  FPR             R100 resp  ERNP                   -0.002  lower on 5/5
+  FPR             R100 resp  ERNP, no retraction    -0.002  lower on 5/5
+  FPR             R100 resp  GBM+AL (no prior)      -0.034  lower on 4/5
+  FPR             R100 resp  SSF                    -0.001  lower on 5/5
+  F1              R50  init  ERNP                   -0.031  lower on 5/5
+  F1              R50  init  ERNP, no retraction    -0.032  lower on 5/5
+  F1              R50  init  GBM+AL (no prior)      +0.087  lower on 1/5
+  F1              R50  init  SSF                    -0.028  lower on 5/5
+  F1              R50  resp  ERNP                   -0.020  lower on 5/5
+  F1              R50  resp  ERNP, no retraction    -0.018  lower on 5/5
+  F1              R50  resp  GBM+AL (no prior)      +0.055  lower on 1/5
+  F1              R50  resp  SSF                    -0.007  lower on 5/5
+  F1              R100 init  ERNP                   -0.070  lower on 5/5
+  F1              R100 init  ERNP, no retraction    -0.069  lower on 5/5
+  F1              R100 init  GBM+AL (no prior)      +0.092  lower on 0/5
+  F1              R100 init  SSF                    -0.061  lower on 5/5
+  F1              R100 resp  ERNP                   -0.058  lower on 5/5
+  F1              R100 resp  ERNP, no retraction    -0.056  lower on 5/5
+  F1              R100 resp  GBM+AL (no prior)      +0.041  lower on 2/5
+  F1              R100 resp  SSF                    -0.038  lower on 5/5

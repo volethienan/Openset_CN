@@ -10,7 +10,7 @@ GPU_ID=${GPU_ID:-0}; CORES=${CORES:-0-18}; NGPU=${NGPU:-2}; NCPU=${NCPU:-7}; THR
 cd "$(dirname "$0")"; mkdir -p logs
 source ~/ernp_env/bin/activate 2>/dev/null || true
 echo "== $(date) tests"
-python -m pytest -q tests/test_naive_ramp.py
+python tests/test_naive_ramp.py          # plain unittest; pytest is not installed on the server
 n=$(python run_jobs.py naive --seeds 0 1 2 3 4 --dry | grep -cE " (cpu|gpu) CIDDS_ctx")
 [ "$n" -eq 80 ] || { echo "expected 80 jobs, got $n"; exit 1; }
 echo "== $(date) jobs (80) on GPU $GPU_ID, cores $CORES: --gpu $NGPU --cpu $NCPU --threads $THREADS"

@@ -13,6 +13,7 @@ warnings.filterwarnings("ignore")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from scipy.stats import friedmanchisquare, wilcoxon
 from evaluate import run_metrics, seeded_name
+from inference import stats
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reports")
 REAL = ["CTU13", "SIMARGL", "APPRAISE"]; OLD = ["CIDDS_ctx", "ToN_ctx", "CIC17", "CIC18"]
@@ -43,9 +44,10 @@ def tests(dm, label, fh):
     fh.write(f"\n{label}: {len(dm)} datasets\n" + dm.round(3).to_string() + "\n")
     ranks = dm.rank(axis=1, ascending=False).mean().round(2).to_dict()
     fh.write(f"mean rank {ranks}; Friedman p = {friedmanchisquare(*[dm[c] for c in dm.columns]).pvalue:.4f}\n")
-    for b in SOTA:
-        d = dm["ernp"] - dm[b]; p = wilcoxon(dm["ernp"], dm[b], alternative="greater").pvalue
-        fh.write(f"  ERNP vs {b:11s}: wins {int((d > 0).sum())}/{len(d)}, mean diff {d.mean():+.3f}, one-sided Wilcoxon p = {p:.4f}\n")
+    long = dm.rename_axis('dataset').reset_index().melt(id_vars='dataset', var_name='method', value_name='F1')
+    long['seed'] = 0  # input already contains dataset means; this is not an extra seed
+    t, _, meta = stats(long)
+    fh.write(f'Directional and two-sided tests; Holm within F1. {meta}\n{t.round(5).to_string()}\n')
 
 def main():
     pd.set_option("display.width", 260); pd.set_option("display.max_columns", 40); pd.set_option("display.max_rows", 300)

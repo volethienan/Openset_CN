@@ -4,18 +4,20 @@ Per run (dataset, method, seed): precision, recall, F1, FPR, AUROC, AUPRC, zero-
 in the anchor period), per-family recall, online labels used, and - for injection streams - payload recall and the
 absorption day (first stream day from which the ramp recall stays below 10%).
 
-Statistics (fixed before running the campaign):
-  * per dataset: mean +- std over seeds, and #seeds where ERNP > baseline
-  * primary test: one-sided Wilcoxon signed-rank ERNP > baseline over all (dataset x seed) pairs (n = 20 in RQ1)
-    (with 5 seeds a per-dataset two-sided Wilcoxon cannot reach p < 0.05 - min p = 0.0625 - so it is not used)
-  * ranking: Friedman test + Nemenyi critical difference over (dataset x seed) blocks
+Statistics revised 2026-10-23 (the historical outputs are not pre-registration of this revision):
+  * per dataset: mean +- std over seeds; seed wins are descriptive
+  * matched seed differences averaged within each source dataset before signed-rank inference
+  * historical directional hypothesis AND two-sided sensitivity; Holm across baselines within metric
+  * ranking: dataset means, never dataset x seed as independent blocks
 """
-import sys, os, json, glob, argparse, numpy as np, pandas as pd
+import sys, os, json, glob, argparse, re, numpy as np, pandas as pd
+from functools import lru_cache
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 os.environ.setdefault("EXP_SEED", "0")
 from common import RESULTS
 from sklearn.metrics import roc_auc_score, average_precision_score
 from scipy.stats import wilcoxon, friedmanchisquare
+from inference import stats
 
 Q_NEMENYI = {2: 1.960, 3: 2.343, 4: 2.569, 5: 2.728, 6: 2.850, 7: 2.949, 8: 3.031, 9: 3.102, 10: 3.164}   # alpha = 0.05
 
@@ -26,13 +28,22 @@ def seeded_name(base, s):
         if base.startswith(root): return f"{root}_s{s}" + base[len(root):]
     return f"{base}_s{s}"
 
+
+@lru_cache(maxsize=1)
+def metric_labels(path):
+    """One stream at a time, shared by methods; no feature matrix or fitted preprocessing is needed."""
+    return pd.read_parquet(path, columns=['t', 'fam'])
+
 def run_metrics(base, method, s):
     os.environ["EXP_SEED"] = str(s)
     import importlib, common; importlib.reload(common)
     ds = seeded_name(base, s)
     f = RESULTS + f"{ds}__{method}__s{s}.npz"
     if not os.path.exists(f): return None
-    df, X, src, dst, tr, ho, s_idx, anc = common.load(ds)
+    # Metrics require labels/time only. Do not refit feature preprocessing or allocate full X.
+    df = metric_labels(common.STREAMS + f'{ds}.parquet')
+    anc = df.t.to_numpy() < common.anchor_end(ds, df.t.min())
+    s_idx = np.flatnonzero(~anc)
     r = np.load(f); flag, score = r["flag"].astype(bool), r["score"]; info = json.load(open(f.replace(".npz", ".json")))
     fam = df["fam"].values[s_idx]; y = fam != "BENIGN"
     tp, fp = (flag & y).sum(), (flag & ~y).sum(); fn = (~flag & y).sum(); tn = (~flag & ~y).sum()
@@ -51,6 +62,33 @@ def run_metrics(base, method, s):
     thr = np.quantile(score[~y], 1 - 0.01) if (~y).any() else np.inf
     out["recall_at1fpr"] = float((score[y] > thr).mean()) if y.any() else np.nan
     out["zd_recall_at1fpr"] = float((score[unk] > thr).mean()) if unk.any() else np.nan
+    families = sorted(set(fam[unk]))
+    out['macro_zero_day_recall'] = float(np.mean([flag[fam == z].mean() for z in families])) if families else np.nan
+    out['macro_zd_recall_at1fpr'] = float(np.mean([(score[fam == z] > thr).mean() for z in families])) if families else np.nan
+    cfg = info.get('cfg', {})
+    cadence = re.search(r'_P(\d+)', method)
+    hours = int(cfg.get('period', 24)) if isinstance(cfg, dict) else 24
+    if cadence:
+        hours = int(cadence[1])
+    days = common.stream_periods(df, s_idx, hours)
+    first_flags, first_roc, first_n = [], [], []
+    for z in families:
+        zi = np.flatnonzero(fam == z)
+        first = zi[days[zi] == days[zi].min()]
+        first_flags.append(float(flag[first].mean()))
+        first_roc.append(float((score[first] > thr).mean()))
+        first_n.append(len(first))
+    out['macro_zd_first_period_recall'] = float(np.mean(first_flags)) if families else np.nan
+    out['macro_zd_first_period_at1fpr'] = float(np.mean(first_roc)) if families else np.nan
+    out['pooled_zd_first_period_recall'] = float(np.average(first_flags, weights=first_n)) if families else np.nan
+    causal = not (method == 'ssf' or (method.startswith('ssf_') and not method.startswith('ssf_causal'))
+                  or (isinstance(cfg, dict) and cfg.get('protocol') == 'ssf'))
+    order_note = 'before_period_feedback' if causal else 'native_predict_after_update_not_prefeedback'
+    out['first_period_scope'] = f'first_{hours}h_update_period_per_unseen_family_{order_note}'
+    out['operating_threshold_source'] = 'anchor_benign_holdout_or_native_baseline_rule'
+    out['roc_threshold_source'] = 'stream_benign_labels_retrospective_diagnostic'
+    out['zero_day_scope'] = 'families_absent_from_anchor_including_post_feedback'
+    out['feature_time_scope'] = 'retrospective_complete_flow_records_ordered_by_start_time'
     out["seconds"] = info.get("seconds", np.nan); out["peak_mem_mb"] = info.get("peak_mem_mb", np.nan)
     for f_ in sorted(set(fam) - {"BENIGN"}): out["rec::" + f_] = float(flag[fam == f_].mean())
     if (fam == "INJ_attack").any():                                   # RQ2 injection streams
@@ -70,19 +108,6 @@ def summary(df, metrics=("F1", "MCC", "zero_day_recall", "zd_recall_at1fpr", "FP
     g = df.groupby(["dataset", "method"])[list(metrics)]
     return g.mean().round(4).astype(str) + " ± " + g.std().round(4).astype(str)
 
-def stats(df, ours="ernp", metric="F1"):
-    piv = df.pivot_table(index=["dataset", "seed"], columns="method", values=metric).dropna()
-    res = {}
-    for b in [c for c in piv.columns if c != ours]:
-        d = piv[ours] - piv[b]
-        p = wilcoxon(piv[ours], piv[b], alternative="greater").pvalue if (d != 0).any() else 1.0
-        res[b] = dict(mean_diff=float(d.mean()), wins=int((d > 0).sum()), n=len(d), p_one_sided=float(p))
-    ranks = piv.rank(axis=1, ascending=False).mean().sort_values()
-    k, N = piv.shape[1], piv.shape[0]
-    fr = friedmanchisquare(*[piv[c] for c in piv.columns]).pvalue if k >= 3 else np.nan
-    cd = Q_NEMENYI.get(k, np.nan) * np.sqrt(k * (k + 1) / (6 * N))
-    return pd.DataFrame(res).T, ranks, dict(friedman_p=fr, nemenyi_CD=cd, n_blocks=N, k=k)
-
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--datasets", nargs="+", required=True); ap.add_argument("--methods", nargs="+", required=True)
@@ -97,5 +122,5 @@ if __name__ == "__main__":
     if "ernp" in dc["method"].values and dc["method"].nunique() > 1:
         print("\ntests/ranking over:", sorted(dc["method"].unique()))
         for metric in (a.metric, "MCC", "zero_day_recall", "zd_recall_at1fpr"):
-            t, ranks, fr = stats(dc, metric=metric); print(f"\n== {metric}: ERNP vs baselines (one-sided Wilcoxon over dataset x seed)\n", t.round(4).to_string())
+            t, ranks, fr = stats(dc, metric=metric); print(f"\n== {metric}: source-dataset means; directional and two-sided Wilcoxon, Holm within metric\n", t.round(4).to_string())
             print("mean rank:", ranks.round(2).to_dict(), fr)

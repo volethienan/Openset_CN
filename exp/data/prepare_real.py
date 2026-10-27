@@ -13,11 +13,12 @@
             three attack categories run in the network (reconnaissance from the first day, DDoS, brute force).
 
 Protocol identical to prepare_ctx.py: the 10 temporal-context features (counts and bytes per source, destination and
-pair in a short and a long window, and fan-out) are computed on the FULL data before sampling, over flows that started
+pair in a short and a long window, and fan-out) are computed retrospectively from COMPLETE records on the FULL data before sampling, over flows that started
 at or before the flow; sampling is uniform with rate r = TARGET / N, rare attack families kept up to MIN_FAM flows.
 Addresses are never features. The windows are 10 s and 120 s; time is counted in milliseconds for CTU13, in 10 ms
 ticks for SIMARGL, whose capture spans 67 days, and in seconds for APPRAISE, whose timestamps have a resolution of
 one second (flows of the same second are included in each other's windows).
+This replay convention does NOT verify feature availability at flow start or exporter arrival order.
 (LITNET-2020 was examined with this builder and is not used, see exp/reports/litnet_check.txt.)
 
 usage: ERNP_RAW=/path/to/dataraw python exp/data/prepare_real.py CTU13|SIMARGL|SIMARGL_all|APPRAISE [seeds ...]   (default: EXP_SEED)
@@ -158,18 +159,23 @@ def sim_chunks():
     tab = pq.read_table(RAW + "SIMARGL2021/simargl-2021-combined.parquet", columns=cols)
     for i in range(0, tab.num_rows, CHUNK): yield tab.slice(i, CHUNK).to_pandas()
 
-# Unlabelled scan. On 2021-05-31, between 04:58:17 and 06:56:05, host 10.9.3.238 sends 24,418,933 single-packet TCP flows
-# (flags FIN+RST+ACK) to all 65,535 ports of 32 hosts. The window is that of the labelled FIN scan (05:00:01-06:56:05), but
-# the flows are published as 'Normal flow': the dataset labels attacks by the address of one attacker (10.114.241.166).
-# They are 94% of that day's 'normal' flows. The stream SIMARGL leaves them out (they still count in the context windows
-# of other flows, since the scan took place); SIMARGL_all keeps the published labels, for the sensitivity analysis.
-SIM_SCAN_HOST, SIM_SCAN_FROM_MS = "10.9.3.238", 1622419200000        # 2021-05-31 00:00:00
+# Suspected label anomaly, NOT independently verified attack ground truth. Raw-field audit (2026-10-23) found
+# 24,418,933 published Normal flow records from this host in 04:58:17.290--06:56:05.513 on 2021-05-31,
+# covering 65,535 destination ports and 32 destinations. TCP/flags=21: 24,412,910 records with IN/OUT_PKTS=1/1,
+# 5,705 with 2/2; TCP/flags=1: 318 records with 1/0. Do not describe every record as a single-packet attack.
+# The bounded original-label/time mask below is identical on ALL 40,263,811 raw records to the old host/whole-day
+# rule (exp/reports/access/simargl_raw_audit.json). No old stream or predictions need replacement for this change.
+# Both the filtered cohort and SIMARGL_all (published labels) MUST be reported; excluded records still affect context.
+SIM_SCAN_HOST = "10.9.3.238"
+SIM_SCAN_FROM_MS, SIM_SCAN_TO_MS = 1622437097000, 1622444166000  # [04:58:17, 06:56:06) in dataset epoch time
 SIM_KEEP_SCAN = [False]
 
 def sim_fam(ch):
     lab = ch["LABEL"].astype(str).str.strip(); fam = lab.map(SIM_FAM).fillna(lab).values
     if SIM_KEEP_SCAN[0]: return fam
-    scan = (ch["IPV4_SRC_ADDR"].astype(str).values == SIM_SCAN_HOST) & (ch["FLOW_START_MILLISECONDS"].values >= SIM_SCAN_FROM_MS)
+    t = ch['FLOW_START_MILLISECONDS'].to_numpy()
+    scan = ((ch['IPV4_SRC_ADDR'].astype(str).to_numpy() == SIM_SCAN_HOST)
+            & (lab.to_numpy() == 'Normal flow') & (t >= SIM_SCAN_FROM_MS) & (t < SIM_SCAN_TO_MS))
     return np.where(scan, EXCLUDED, fam)
 
 def sim_pass1(ch):

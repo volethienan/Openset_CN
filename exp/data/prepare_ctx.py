@@ -1,5 +1,7 @@
 """Streams WITH temporal-context features (Kitsune/AfterImage-style), computed on the FULL data before sampling
-(so upsampling rare attack families cannot leak into rate features). Context uses only past/current flows.
+(so upsampling rare attack families cannot leak into rate features). Context uses start-time-ordered COMPLETE
+flow records, including timestamp ties. Total bytes may become available after flow start: this is retrospective
+record replay, not a claim of packet-causal feature availability. No future labels build these features.
 
 ctx features per flow, for W in {10 s, 120 s}:
   n_src, n_dst, n_pair  : number of flows with the same src / dst / (src,dst) pair in (t-W, t]

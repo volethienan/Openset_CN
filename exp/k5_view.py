@@ -5,6 +5,8 @@ were rerun with that setting under the name <run>_K5 (run_jobs groups k5, k5abl,
 paper tables address ERNP runs by their K = 1 names, so instead of renaming inside every script this view hard-links
   results/<stream>__<name>_K5__s<seed>.*  ->  exp_k5/results/<stream>__<name>__s<seed>.*   (ernp_K5 -> ernp)
 and every other result file unchanged (baselines; variants with no prior draw, e.g. abl_prior_none, are the same at any K).
+Copied cost text/CSV reports remain historical K1 measurements; they are NOT K5 benchmarks. Use benchmark_k5.py
+and exp/reports/access/benchmark_k5.json for explicitly measured K5 scoring. For revised inference, use access_report.py.
 The original K = 1 ERNP run is kept as <name>_K1 (used where a K = 1 variant must be compared with its own default, e.g. the
 random-forest sensitivity run). The report scripts are copied into exp_k5/ and write to exp_k5/reports/.
 usage: python exp/k5_view.py           then run the report scripts inside exp_k5/ with EXP_RESULTS=<root>/exp_k5/results/

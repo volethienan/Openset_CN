@@ -2,9 +2,9 @@
 
 Operationalisation (decided before reading the full results):
   RQ1  ranking/tests only over ERNP + 5 SOTA under the causal protocol (ernp_ssfproto/ssf = protocol (b), new_ip = sanity).
-       C1a  ERNP has the best mean rank (Friedman blocks = dataset x seed) on F1 and on zero-day recall @ 1% FPR.
-       C1b  zero-day recall @ 1% FPR higher than EVERY SOTA "significantly" on >= 3/4 datasets; per dataset n = 5 seeds,
-            exact one-sided Wilcoxon p < 0.05  <=>  ERNP wins on all 5 seeds (p = 1/32).
+       C1a  ERNP has the best mean rank (Friedman blocks = source dataset means) on F1 and zero-day recall @ 1% FPR.
+       C1b  historical five-seed consistency is reported descriptively, not as independent-dataset significance.
+            Inference revised 2026-10-23 uses dataset means and Holm; it is not retroactive pre-registration.
        C1c  mean F1 of ERNP >= best SOTA mean F1 - 0.01 on every dataset.
   RQ2  C2a  ERNP payload recall >= 0.9 x its recall on the same (real) payload family in the clean stream, every scenario
             (mean over seeds).
@@ -17,6 +17,7 @@ Operationalisation (decided before reading the full results):
 """
 import os, sys, re, glob, numpy as np, pandas as pd
 from scipy.stats import wilcoxon, friedmanchisquare
+from inference import stats, dataset_means
 REP = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reports")
 SOTA5 = ["ssf_causal", "owad", "memstream", "trident", "cade"]
 PAYLOAD = {"injinit": "dos", "injresp": "dos", "injinit_bf": "bruteForce", "injresp_bf": "bruteForce"}
@@ -27,8 +28,8 @@ def rd(name):
 def yes(b): return "PASS" if b else "FAIL"
 
 def mean_ranks(df, metric, methods):
-    piv = df[df.method.isin(methods)].pivot_table(index=["dataset", "seed"], columns="method", values=metric).dropna()
-    fr = friedmanchisquare(*[piv[c] for c in piv.columns]).pvalue
+    piv = dataset_means(df[df.method.isin(methods)], metric).dropna()
+    fr = friedmanchisquare(*[piv[c] for c in piv.columns]).pvalue if len(piv) >= 3 else np.nan
     return piv.rank(axis=1, ascending=False).mean().sort_values(), fr, len(piv)
 
 def rq1():
@@ -44,17 +45,16 @@ def rq1():
         print(f"\nmean rank on {met} (n={n} blocks, Friedman p={fr:.2e}): {r.round(2).to_dict()}")
     print(f"C1a ERNP best mean rank on F1 and zero-day@1%FPR: {yes(ok_rank)}")
     n_sig = 0
+    print('C1b below is historical five-seed consistency, not independent-dataset significance.')
     for ds, g in d.groupby("dataset"):
         piv = g.pivot_table(index="seed", columns="method", values="zd_recall_at1fpr")
         res = {}
         for b in SOTA5:
             x = piv[["ernp", b]].dropna(); dif = x["ernp"] - x[b]
-            p = wilcoxon(x["ernp"], x[b], alternative="greater").pvalue if (dif != 0).any() else 1.0
-            res[b] = (int((dif > 0).sum()), len(dif), p)
-        allsig = all(p < 0.05 for _, _, p in res.values()); n_sig += allsig
-        print(f"  {ds:10s} zd@1%FPR wins/n (p): " + ", ".join(f"{b} {w}/{n} ({p:.3f})" for b, (w, n, p) in res.items())
-              + f"  -> {'significant vs all' if allsig else 'not vs all'}")
-    print(f"C1b significant zero-day gain vs every SOTA on {n_sig}/4 datasets (need >= 3): {yes(n_sig >= 3)}")
+            res[b] = (int((dif > 0).sum()), len(dif))
+        allsig = all(w == n and n > 0 for w, n in res.values()); n_sig += allsig
+        print(f"  {ds:10s} zd@1%FPR seed wins/n: " + ", ".join(f"{b} {w}/{n}" for b, (w, n) in res.items()))
+    print(f'C1b descriptive consistency against all baselines in {n_sig} datasets; no population-level p-value from seeds.')
     m = d.groupby(["dataset", "method"])["F1"].mean().unstack(); ok = True
     for ds in m.index:
         best = m.loc[ds, SOTA5].max(); gap = m.loc[ds, "ernp"] - best; ok &= gap >= -0.01
@@ -68,12 +68,10 @@ def rq1():
         if deg: print(f"  {ds:10s} near alert-all SOTA (mean FPR > 50%): {deg}; best other: "
                       f"{m.loc[ds, valid].max():.3f} ({m.loc[ds, valid].idxmax()}); ERNP FPR {fpr.loc[ds, 'ernp']:.3f}")
     print(f"C1c' same, ignoring near alert-all operating points (reported separately, not a substitute): {yes(ok2)}")
-    # pooled one-sided Wilcoxon over dataset x seed (primary test of the design)
+    # Replaces historical pseudo-replicated tests; dataset is the inferential unit.
     for met in ("F1", "zd_recall_at1fpr"):
-        piv = d.pivot_table(index=["dataset", "seed"], columns="method", values=met)
-        s = ", ".join(f"{b}: {((piv.ernp - piv[b]) > 0).sum()}/{piv[['ernp', b]].dropna().shape[0]} "
-                      f"p={wilcoxon(piv.ernp, piv[b], alternative='greater', nan_policy='omit').pvalue:.2e}" for b in SOTA5)
-        print(f"pooled one-sided Wilcoxon {met}: {s}")
+        t, _, meta = stats(d[d.method.isin(M)], metric=met)
+        print(f'\nDataset-level inference {met}: {meta}\n{t.round(5).to_string()}')
     if {"ernp_ssfproto", "ssf"} <= set(d.method):
         print("protocol (b), SSF's native protocol: F1 ernp_ssfproto - ssf per dataset:",
               (m["ernp_ssfproto"] - m["ssf"]).round(3).to_dict())
@@ -139,10 +137,11 @@ def rq4():
         rows = {}
         for v in [c for c in piv.columns if c != "ernp"]:
             x = piv[["ernp", v]].dropna(); dif = x[v] - x["ernp"]
-            p = wilcoxon(x["ernp"], x[v], alternative="greater").pvalue if (dif != 0).any() else 1.0
             rows[v] = dict(**{ds: dif.xs(ds).mean() for ds in sorted(d.dataset.unique()) if ds in dif.index.get_level_values(0)},
-                           ernp_better=f"{(dif < 0).sum()}/{len(dif)}", p_one_sided=p)
+                           seed_wins_descriptive=f"{(dif < 0).sum()}/{len(dif)}")
         print(f"\n{met}\n{pd.DataFrame(rows).T.round(4).to_string()}")
+        t, _, meta = stats(d, metric=met)
+        print(f'Dataset-level inference: {meta}\n{t.round(5).to_string()}')
     print("\nP2/P3: see reports/analysis_p23.txt")
 
 def rq5():
@@ -197,11 +196,8 @@ def reviewer_checks():
     t = x.groupby(["dataset", "method"])[["F1", "MCC", "zd_recall_at1fpr", "FPR"]].mean().round(3)
     print("\n(a) label fairness: ERNP with representative-only labels (abl_evid_rep, same label semantics as SSF)")
     for met in ("F1", "MCC", "zd_recall_at1fpr"):
-        piv = x.pivot_table(index=["dataset", "seed"], columns="method", values=met)
-        s_ = ", ".join(f"{b}: {((piv.abl_evid_rep - piv[b]) > 0).sum()}/{piv[['abl_evid_rep', b]].dropna().shape[0]} "
-                       f"p={wilcoxon(piv.abl_evid_rep, piv[b], alternative='greater', nan_policy='omit').pvalue:.1e}"
-                       for b in SOTA5 if b in piv)
-        print(f"  {met}: strict ERNP vs SOTA (pooled one-sided Wilcoxon): {s_}")
+        t, _, meta = stats(x[x.method.isin(['abl_evid_rep'] + SOTA5)], ours='abl_evid_rep', metric=met)
+        print(f'  {met}: representative-only, dataset-level {meta}\n{t.round(5).to_string()}')
     print("\n(b) all methods (mean over seeds)\n" + t.unstack("dataset").to_string())
     for m in ("ssf_causal_E180", "ssf_causal_W20000"):
         if m in set(x.method):
@@ -213,11 +209,15 @@ def reviewer_checks():
         print("\n(d) scale check: CICIDS2017 without sampling (2.1M flows, seed 0) vs the 300k-flow streams (mean of 5 seeds)")
         ref = d[d.dataset == "CIC17"].groupby("method")[["F1", "zd_recall_at1fpr"]].mean()
         print(sc.set_index("method")[["F1", "zd_recall_at1fpr"]].join(ref, rsuffix="_300k").round(3).to_string())
-    bb = f"{REP}/bench_batch.txt"
-    if os.path.exists(bb): print("\n(f) ERNP scoring throughput on a fixed 100k-flow batch (idle machine)\n" + open(bb).read())
-    b = f"{REP}/bench_cost.csv"
+    b = os.path.join(os.path.dirname(os.path.dirname(REP)), 'exp', 'reports', 'access', 'benchmark_k5.json')
     if os.path.exists(b):
-        print("\n(e) clean cost benchmark (one job at a time, seed 0)\n" + pd.read_csv(b).round(2).to_string(index=False))
+        import json
+        bench = json.load(open(b))
+        print(f'\nExplicit K={bench["n_prior"]} score-only benchmark, threads={bench["threads"]}, median after warmup')
+        print(pd.DataFrame([{k: row[k] for k in ['dataset', 'batch_size', 'initial_fit_s', 'median_flows_per_s']}
+                            for row in bench['rows']]).round(2).to_string(index=False))
+    else:
+        print('\nK5 cost benchmark not yet available. Historical copied K1 costs are not used as K5 evidence.')
 
 def robust_stats(B=10000):
     """reviewer check W4 (pseudo-replication): seeds are sub-samples of the same dataset, so (dataset x seed) pooling

@@ -1,5 +1,21 @@
 # ERNP: Evidence-Retracted Novelty Prior
 
+## Current evaluation contract (23 October 2026)
+
+The Access readiness audit and corrections are documented in [ACCESS_PROTOCOL.md](ACCESS_PROTOCOL.md).
+Use `python exp/access_report.py` to regenerate the current K5 evidence, dataset-level inference, macro-family
+and first-period metrics, and all SIMARGL label-policy panels from saved predictions.
+Canonical revised outputs are in `exp/reports/access/`; older text reports retain their historical status.
+For inference throughput use `python exp/benchmark_k5.py --n-prior 5 --threads 4`; the historical K1 batch numbers
+are not a K5 speed claim. Main model runs explicitly pass `--n_prior 5`.
+
+The current streams replay **complete flow records ordered by flow start time**. Predict-then-update refers to
+model feedback order, not verified feature availability at packet/flow-start time. ROC recall at 1% FPR uses
+evaluation benign labels as a diagnostic; the deployed-rule FPR is reported separately. Whole-stream zero-day
+recall includes post-feedback flows of families absent from the anchor.
+SIMARGL's suspected-label exclusion is a sensitivity policy, not certified corrected ground truth; report both
+filtered and published-label results, plus the six-dataset panel excluding this uncertain dataset.
+
 Code, data streams and results for the manuscript
 
 > **Adapting Network Intrusion Detectors Only Through Trusted Evidence: Evidence-Retracted Novelty Priors for Zero-Day Detection under Benign Drift** (submitted to *Computer Networks*).
@@ -9,13 +25,14 @@ density ratio between benign evidence and the union of attack evidence and a nov
 are partially swapped with another benign flow). Benign confirmations retract the prior locally; no flow enters the
 model without an analyst decision on its group, at most `B` decisions per period.
 
-Every number in the manuscript is computed from the files in `exp/results/` and `exp/reports/` of this repository.
+Saved experiment outputs are in `exp/results/`. Revised evidence and statistical definitions are in
+`exp/reports/access/`; the manuscript has not yet been brought into alignment with this audit amendment.
 
 ## Repository layout
 
 | Path | Content |
 |---|---|
-| `exp/ernp.py` | The proposed method. Defaults are the final configuration; every ablation switch is a command-line option. |
+| `exp/ernp.py` | The proposed method; main K5 runs explicitly pass `--n_prior 5`. Ablations are command-line options. |
 | `exp/common.py` | Shared protocol: stream loading, anchor/holdout split per seed, standardisation, 1% FPR threshold, result files. |
 | `exp/baselines/sota.py` | Wrappers around the **official code** of SSF, OWAD, MemStream and Trident (in `sota/`). |
 | `exp/baselines/cade_port.py` | PyTorch port of CADE (the original runs on TensorFlow 1.12), validated against the authors' IDS2018 split. |

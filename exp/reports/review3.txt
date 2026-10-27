@@ -1,0 +1,103 @@
+Review 3 (28/10/2026): what retraction changes end to end, and the prior under ERNP K5A's feedback schedule.
+No model is run; every value comes from saved runs.
+
+1. Analyst load with and without retraction (seven datasets, five seeds): ernp_K5A against abl_retr_none_K5A, each
+   with its own feedback. Per run: decisions, benign decisions (groups the analyst confirms benign), flows in those
+   groups, benign alerts per stream day (as in e23_report.py), FPR and F1.
+2. The prior under a fixed feedback schedule (four testbeds, five seeds): ernp_K5A, rpl_retr_none_K5A (retention
+   weight one) and rpl_prior_none_K5A (no prior), the replays refitted on ernp_K5A's alerts, groups and decisions.
+   A replay must make as many decisions as the run it replays, or the report stops.
+3. ToN at the 4 h cadence: ernp_P4_K5A, the no-prior classifier with its own feedback (abl_prior_none_P4_K5A) and
+   replaying ernp_P4_K5A (rpl_prior_none_P4_K5A), next to the daily runs (ernp_K5A, abl_prior_none_K5A,
+   rpl_prior_none_K5A).
+Output: reports/review3.txt, reports/review3_retraction_load.csv, reports/review3_prior.csv
+
+1. Analyst load, mean over seeds
+                             benign_decisions  benign_confirmed_flows  benign_alerts_per_day     FPR      F1  decisions
+dataset   method                                                                                                       
+APPRAISE  abl_retr_none_K5A            1181.6                  3811.8                55.1971  0.0145  0.9815     5132.2
+          ernp_K5A                      884.0                  3025.6                44.1188  0.0116  0.9852     4859.4
+CIC17     abl_retr_none_K5A              68.4                  3917.6              1983.4000  0.0477  0.9549      400.0
+          ernp_K5A                       51.0                  2037.0              1038.8000  0.0250  0.9725      400.0
+CIC18     abl_retr_none_K5A             745.4                  3171.0               397.0250  0.0117  0.8692     1372.0
+          ernp_K5A                      533.2                  1337.4               167.6250  0.0049  0.9326     1330.4
+CIDDS_ctx abl_retr_none_K5A             605.2                  1210.4                49.2231  0.0053  0.9741     1726.4
+          ernp_K5A                      493.8                   991.6                40.0615  0.0043  0.9779     1624.2
+CTU13     abl_retr_none_K5A             960.8                  3786.6               486.9000  0.0130  0.6562     1406.0
+          ernp_K5A                      899.2                  3069.0               392.6000  0.0105  0.6691     1380.4
+SIMARGL   abl_retr_none_K5A             240.6                 17826.2              6045.7333  0.0890  0.9143      595.2
+          ernp_K5A                      247.6                 18116.6              6088.0667  0.0896  0.9120      598.0
+ToN_ctx   abl_retr_none_K5A             429.2                 34167.4              5760.9000  0.3883  0.6313     1190.8
+          ernp_K5A                      416.2                 34274.6              5787.1333  0.3901  0.6304     1157.8
+
+   no retraction minus ERNP (mean; seeds on which it is higher)
+  dataset                 metric  mean_diff  seeds_higher  seeds
+ APPRAISE       benign_decisions   297.6000             5      5
+    CIC17       benign_decisions    17.4000             5      5
+    CIC18       benign_decisions   212.2000             5      5
+CIDDS_ctx       benign_decisions   111.4000             5      5
+    CTU13       benign_decisions    61.6000             5      5
+  SIMARGL       benign_decisions    -7.0000             2      5
+  ToN_ctx       benign_decisions    13.0000             4      5
+ APPRAISE benign_confirmed_flows   786.2000             5      5
+    CIC17 benign_confirmed_flows  1880.6000             5      5
+    CIC18 benign_confirmed_flows  1833.6000             5      5
+CIDDS_ctx benign_confirmed_flows   218.8000             5      5
+    CTU13 benign_confirmed_flows   717.6000             5      5
+  SIMARGL benign_confirmed_flows  -290.4000             2      5
+  ToN_ctx benign_confirmed_flows  -107.2000             3      5
+ APPRAISE  benign_alerts_per_day    11.0783             5      5
+    CIC17  benign_alerts_per_day   944.6000             5      5
+    CIC18  benign_alerts_per_day   229.4000             5      5
+CIDDS_ctx  benign_alerts_per_day     9.1615             5      5
+    CTU13  benign_alerts_per_day    94.3000             5      5
+  SIMARGL  benign_alerts_per_day   -42.3333             2      5
+  ToN_ctx  benign_alerts_per_day   -26.2333             3      5
+ APPRAISE                    FPR     0.0029             5      5
+    CIC17                    FPR     0.0227             5      5
+    CIC18                    FPR     0.0068             5      5
+CIDDS_ctx                    FPR     0.0010             5      5
+    CTU13                    FPR     0.0025             5      5
+  SIMARGL                    FPR    -0.0006             2      5
+  ToN_ctx                    FPR    -0.0018             3      5
+ APPRAISE                     F1    -0.0037             0      5
+    CIC17                     F1    -0.0175             0      5
+    CIC18                     F1    -0.0634             0      5
+CIDDS_ctx                     F1    -0.0039             0      5
+    CTU13                     F1    -0.0128             1      5
+  SIMARGL                     F1     0.0022             3      5
+  ToN_ctx                     F1     0.0009             4      5
+
+2. Fixed feedback schedule of ernp_K5A, mean over seeds
+                                  F1     MCC     FPR   AUROC  zd_recall_at1fpr  benign_alerts_per_day  decisions
+dataset   method                                                                                                
+CIC17     ernp_K5A            0.9725  0.9567  0.0250  0.9966            0.9812              1038.8000      400.0
+          rpl_prior_none_K5A  0.6398  0.3764  0.4108  0.8660            0.7737             17084.7000      400.0
+          rpl_retr_none_K5A   0.9549  0.9294  0.0477  0.9973            0.9808              1983.4000      400.0
+CIC18     ernp_K5A            0.9326  0.9307  0.0049  0.9927            0.9792               167.6250     1330.4
+          rpl_prior_none_K5A  0.1681  0.2193  0.4374  0.9693            0.9255             14860.2250     1330.4
+          rpl_retr_none_K5A   0.8361  0.8403  0.0165  0.9900            0.9768               562.3250     1330.4
+CIDDS_ctx ernp_K5A            0.9779  0.9753  0.0043  0.9981            0.6704                40.0615     1624.2
+          rpl_prior_none_K5A  0.7722  0.7407  0.2063  0.9967            0.6167              1930.7385     1624.2
+          rpl_retr_none_K5A   0.9722  0.9690  0.0058  0.9975            0.6676                53.7769     1624.2
+ToN_ctx   ernp_K5A            0.6304  0.2279  0.3901  0.6388            0.0102              5787.1333     1157.8
+          rpl_prior_none_K5A  0.6633  0.4187  0.1659  0.8091            0.2270              2456.3667     1157.8
+          rpl_retr_none_K5A   0.6283  0.2265  0.3874  0.6352            0.0298              5747.6000     1157.8
+
+3. ToN, daily and 4 h cadence, mean over seeds
+                           F1     MCC     FPR   AUROC  zd_recall_at1fpr  benign_alerts_per_day  decisions
+method                                                                                                   
+abl_prior_none_K5A     0.5911  0.2628  0.2552  0.7152            0.1014              3786.1000      925.8
+abl_prior_none_P4_K5A  0.7888  0.5536  0.2276  0.8061            0.3231              3374.8333      643.4
+ernp_K5A               0.6304  0.2279  0.3901  0.6388            0.0102              5787.1333     1157.8
+ernp_P4_K5A            0.8089  0.5703  0.2822  0.7288            0.0004              4186.2333      820.2
+rpl_prior_none_K5A     0.6633  0.4187  0.1659  0.8091            0.2270              2456.3667     1157.8
+rpl_prior_none_P4_K5A  0.8031  0.5578  0.2849  0.8632            0.4392              4226.3667      820.2
+   per seed MCC
+method  abl_prior_none_K5A  abl_prior_none_P4_K5A  ernp_K5A  ernp_P4_K5A  rpl_prior_none_K5A  rpl_prior_none_P4_K5A
+seed                                                                                                               
+0                    0.315                  0.712     0.245        0.630               0.568                  0.634
+1                    0.257                  0.542     0.260        0.489               0.279                  0.441
+2                    0.200                  0.453     0.303        0.545               0.405                  0.535
+3                    0.272                  0.460     0.200        0.575               0.308                  0.563
+4                    0.269                  0.602     0.131        0.612               0.533                  0.615

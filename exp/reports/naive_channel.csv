@@ -2,6 +2,9 @@ scenario,method,level,seed,n_injected,decisions,naive_answers,dec_on_injected_re
 init,ERNP,R0,0,6480,2434,0,957,42,24,6,5558
 init,ERNP,R50,0,6480,2263,179,803,309,298,0,2738
 init,ERNP,R100,0,6480,1883,287,314,550,299,0,88
+init,"ERNP, rep.-only labels",R0,0,6480,2614,0,921,0,0,0,921
+init,"ERNP, rep.-only labels",R50,0,6480,2400,199,740,199,199,0,541
+init,"ERNP, rep.-only labels",R100,0,6480,2035,281,310,281,199,0,29
 init,"ERNP, no retraction",R0,0,6480,2511,0,928,53,17,7,5544
 init,"ERNP, no retraction",R50,0,6480,2354,170,770,322,310,3,2690
 init,"ERNP, no retraction",R100,0,6480,1951,278,309,513,311,3,88
@@ -11,6 +14,9 @@ init,GBM+AL (no prior),R100,0,6480,5200,163,212,5072,2510,84,1408
 init,ERNP,R0,1,6480,2476,0,942,52,22,8,5458
 init,ERNP,R50,1,6480,2277,170,796,310,298,0,2718
 init,ERNP,R100,1,6480,1889,285,305,566,298,0,78
+init,"ERNP, rep.-only labels",R0,1,6480,2689,0,911,0,0,0,911
+init,"ERNP, rep.-only labels",R50,1,6480,2509,197,785,197,197,0,588
+init,"ERNP, rep.-only labels",R100,1,6480,2110,290,317,290,197,0,27
 init,"ERNP, no retraction",R0,1,6480,2599,0,905,84,55,4,5442
 init,"ERNP, no retraction",R50,1,6480,2393,174,789,325,312,1,2656
 init,"ERNP, no retraction",R100,1,6480,1967,280,314,527,312,1,85
@@ -20,6 +26,9 @@ init,GBM+AL (no prior),R100,1,6480,4611,210,300,1140,202,4,636
 init,ERNP,R0,2,6480,2415,0,932,52,16,7,5413
 init,ERNP,R50,2,6480,2279,149,787,290,274,0,2718
 init,ERNP,R100,2,6480,1814,257,277,521,274,0,58
+init,"ERNP, rep.-only labels",R0,2,6480,2600,0,921,0,0,0,921
+init,"ERNP, rep.-only labels",R50,2,6480,2449,182,752,182,182,0,570
+init,"ERNP, rep.-only labels",R100,2,6480,2068,262,287,262,182,0,25
 init,"ERNP, no retraction",R0,2,6480,2516,0,925,73,38,3,5463
 init,"ERNP, no retraction",R50,2,6480,2336,180,801,344,322,3,2692
 init,"ERNP, no retraction",R100,2,6480,1945,293,321,570,323,2,76
@@ -29,6 +38,9 @@ init,GBM+AL (no prior),R100,2,6480,3491,172,255,456,37,2,443
 init,ERNP,R0,3,6480,2473,0,959,49,32,4,5557
 init,ERNP,R50,3,6480,2346,180,797,315,298,4,2681
 init,ERNP,R100,3,6480,1930,282,308,506,298,1,83
+init,"ERNP, rep.-only labels",R0,3,6480,2656,0,882,0,0,0,882
+init,"ERNP, rep.-only labels",R50,3,6480,2497,176,741,176,176,0,565
+init,"ERNP, rep.-only labels",R100,3,6480,2124,257,295,257,176,0,38
 init,"ERNP, no retraction",R0,3,6480,2542,0,867,35,21,2,5422
 init,"ERNP, no retraction",R50,3,6480,2347,144,747,293,274,1,2669
 init,"ERNP, no retraction",R100,3,6480,1936,230,255,481,275,2,68
@@ -38,6 +50,9 @@ init,GBM+AL (no prior),R100,3,6480,2814,178,254,528,46,5,302
 init,ERNP,R0,4,6480,2447,0,957,50,30,2,5449
 init,ERNP,R50,4,6480,2252,165,810,294,280,1,2738
 init,ERNP,R100,4,6480,1855,294,338,530,280,0,121
+init,"ERNP, rep.-only labels",R0,4,6480,2592,0,935,0,0,0,935
+init,"ERNP, rep.-only labels",R50,4,6480,2466,208,792,208,208,0,584
+init,"ERNP, rep.-only labels",R100,4,6480,2047,301,332,301,208,0,31
 init,"ERNP, no retraction",R0,4,6480,2494,0,940,60,34,3,5451
 init,"ERNP, no retraction",R50,4,6480,2316,170,793,310,299,0,2657
 init,"ERNP, no retraction",R100,4,6480,1922,288,320,493,299,1,95
@@ -47,6 +62,9 @@ init,GBM+AL (no prior),R100,4,6480,2899,121,218,191,31,0,383
 resp,ERNP,R0,0,6480,2306,0,763,10,4,0,4209
 resp,ERNP,R50,0,6480,2141,54,685,117,113,0,2762
 resp,ERNP,R100,0,6480,1760,180,200,406,113,1,59
+resp,"ERNP, rep.-only labels",R0,0,6480,2501,0,726,0,0,0,726
+resp,"ERNP, rep.-only labels",R50,0,6480,2310,74,660,74,74,0,586
+resp,"ERNP, rep.-only labels",R100,0,6480,1927,194,222,194,74,0,28
 resp,"ERNP, no retraction",R0,0,6480,2363,0,740,20,8,1,4138
 resp,"ERNP, no retraction",R50,0,6480,2278,45,667,131,130,0,2730
 resp,"ERNP, no retraction",R100,0,6480,1832,171,192,388,130,0,55
@@ -56,6 +74,9 @@ resp,GBM+AL (no prior),R100,0,6480,5199,128,187,5039,2520,78,1441
 resp,ERNP,R0,1,6480,2408,0,740,17,3,4,4565
 resp,ERNP,R50,1,6480,2224,56,694,125,123,2,2756
 resp,ERNP,R100,1,6480,1849,210,239,427,123,2,52
+resp,"ERNP, rep.-only labels",R0,1,6480,2636,0,723,0,0,0,723
+resp,"ERNP, rep.-only labels",R50,1,6480,2474,86,676,86,86,0,590
+resp,"ERNP, rep.-only labels",R100,1,6480,1995,197,206,197,86,0,9
 resp,"ERNP, no retraction",R0,1,6480,2490,0,754,23,16,4,4575
 resp,"ERNP, no retraction",R50,1,6480,2326,65,687,142,136,1,2757
 resp,"ERNP, no retraction",R100,1,6480,1923,195,214,452,136,2,37
@@ -65,6 +86,9 @@ resp,GBM+AL (no prior),R100,1,6480,4711,155,274,1013,52,2,918
 resp,ERNP,R0,2,6480,2326,0,759,19,14,1,4641
 resp,ERNP,R50,2,6480,2247,69,693,168,161,0,2763
 resp,ERNP,R100,2,6480,1815,199,219,468,161,0,54
+resp,"ERNP, rep.-only labels",R0,2,6480,2539,0,716,0,0,0,716
+resp,"ERNP, rep.-only labels",R50,2,6480,2340,58,648,58,58,0,590
+resp,"ERNP, rep.-only labels",R100,2,6480,2024,170,220,170,58,0,50
 resp,"ERNP, no retraction",R0,2,6480,2413,0,728,19,7,4,4354
 resp,"ERNP, no retraction",R50,2,6480,2254,56,689,155,148,2,2766
 resp,"ERNP, no retraction",R100,2,6480,1848,176,214,458,148,0,62
@@ -74,6 +98,9 @@ resp,GBM+AL (no prior),R100,2,6480,2856,249,432,705,4,1,631
 resp,ERNP,R0,3,6480,2384,0,729,43,7,3,4487
 resp,ERNP,R50,3,6480,2236,55,675,136,124,2,2764
 resp,ERNP,R100,3,6480,1797,182,209,454,124,1,66
+resp,"ERNP, rep.-only labels",R0,3,6480,2608,0,702,0,0,0,702
+resp,"ERNP, rep.-only labels",R50,3,6480,2464,65,641,65,65,0,576
+resp,"ERNP, rep.-only labels",R100,3,6480,2023,164,203,164,65,0,39
 resp,"ERNP, no retraction",R0,3,6480,2507,0,749,27,7,7,4837
 resp,"ERNP, no retraction",R50,3,6480,2325,73,681,180,173,2,2774
 resp,"ERNP, no retraction",R100,3,6480,1921,182,196,498,173,1,45
@@ -83,6 +110,9 @@ resp,GBM+AL (no prior),R100,3,6480,3236,165,265,486,0,0,491
 resp,ERNP,R0,4,6480,2343,0,768,13,11,0,4699
 resp,ERNP,R50,4,6480,2196,60,735,122,111,0,2769
 resp,ERNP,R100,4,6480,1799,197,226,403,111,0,69
+resp,"ERNP, rep.-only labels",R0,4,6480,2535,0,734,0,0,0,734
+resp,"ERNP, rep.-only labels",R50,4,6480,2313,97,674,97,97,0,577
+resp,"ERNP, rep.-only labels",R100,4,6480,1952,194,202,194,97,0,8
 resp,"ERNP, no retraction",R0,4,6480,2413,0,748,18,14,1,4389
 resp,"ERNP, no retraction",R50,4,6480,2269,64,692,152,146,0,2762
 resp,"ERNP, no retraction",R100,4,6480,1840,193,203,445,146,0,26

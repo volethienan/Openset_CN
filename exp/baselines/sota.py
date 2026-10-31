@@ -30,6 +30,11 @@ WINDOW = 0                                           # SSF native protocol: wind
 NOISE = 0.0                                          # oracle label noise (suffix _N{pct}); 0 = exact labels
 NAIVE = 0.0                                          # RQ2 analyst model (suffix _R{pct}, SSF only): ramp flows with fraction
                                                      # a < pct/100 are labelled BENIGN by the analyst (common.naive_ramp_mask)
+GROUP = False                                        # suffix _G (SSF only): ERNP's feedback channel instead of SSF's query
+                                                     # selection - the period's alerts (prob > 0.5) are grouped into
+                                                     # min(B, #alerts) mini-batch k-means clusters, the analyst labels the
+                                                     # member closest to each centroid, and the label covers the group
+GROUP_CAP = 0.5                                      # at most this fraction of SSF's memory is replaced per period
 DELAY = 0                                            # label delay in periods (suffix _D{n}): the labelled batch of period
                                                      # i - DELAY is used by the update at the end of period i (E5)
 TIMING = dict(init_s=0.0, score_s=0.0, n_scored=0, update_s=0.0, n_updates=0)   # cost reporting only (RQ5)
@@ -168,8 +173,12 @@ def run_ssf(ds, epochs=200, epoch_1=None, opt_old_lr=24, opt_new_lr=50, new_samp
             opt.zero_grad(); _, rv, cl = model(xb)
             loss = crit(rv, yb).mean() + bce(cl.squeeze(-1), yb.float()).mean(); loss.backward(); opt.step()
     teacher.load_state_dict(model.state_dict()); TIMING["init_s"] += _now() - t_init
-    day = days_of(df, s_idx); prob = np.zeros(len(s_idx)); n_lab = 0; n_drift = 0
+    day = days_of(df, s_idx); prob = np.zeros(len(s_idx)); n_lab = 0; n_drift = 0; n_dec_flows = 0; n_used_flows = 0; n_period_nolab = 0
     days = list(pd.unique(day)); assert CAUSAL or not DELAY, "label delay needs the causal protocol"
+    if GROUP:
+        assert CAUSAL and not DELAY and not WINDOW, "_G: causal daily (or _P) protocol without delay"
+        from sklearn.cluster import MiniBatchKMeans
+        grng = np.random.default_rng(20_000 + seed())
     for j, d in enumerate(days):
         m = np.where(day == d)[0]; xte = torch.tensor(X[s_idx[m]], device=dev); yte = torch.tensor(noisy(y[s_idx[m]], d), device=dev).long()
         if CAUSAL:
@@ -185,18 +194,46 @@ def run_ssf(ds, epochs=200, epoch_1=None, opt_old_lr=24, opt_new_lr=50, new_samp
             if not CAUSAL:
                 with torch.no_grad(): prob[m] = model(xte)[2].squeeze(-1).cpu().numpy()
             continue
+        if GROUP:                                                  # group feedback on SSF's own alerts of this period
+            al = m[prob[m] > 0.5]
+            if len(al) < 2: n_period_nolab += 1; continue         # as ERNP: fewer than two alerts -> no decision, no update
         t_upd = _now()
         with torch.no_grad():
             tl = model(xte)[2].squeeze(-1); trl = model(xtr)[2].squeeze(-1)
         drift = U.detect_drift(tl, trl, len(m), 0.05)
         M_c = U.optimize_old_mask(trl.cpu().numpy(), tl.cpu().numpy(), dev, initialization="0.5-1", lr=opt_old_lr)
         M_t = U.optimize_new_mask(trl.cpu().numpy(), tl.cpu().numpy(), M_c, dev, initialization="0-0.5", lr=opt_new_lr)
-        if drift:
-            n_drift += 1
+        if drift: n_drift += 1
+        if GROUP:
+            k = min(lb, len(al)); Xa = X[s_idx[al]]
+            km = MiniBatchKMeans(k, random_state=seed(), n_init=3).fit(Xa)
+            gi, gy = [], []
+            for cl in range(k):
+                mem = np.where(km.labels_ == cl)[0]
+                if not len(mem): continue
+                rep = mem[np.argmin(np.linalg.norm(Xa[mem] - km.cluster_centers_[cl], axis=1))]
+                ans = noisy(y[s_idx[al[[rep]]]], (d, cl))[0]       # the analyst's answer on the representative
+                gi.append(al[mem]); gy.append(np.full(len(mem), ans)); n_lab += 1
+            gi, gy = np.concatenate(gi), np.concatenate(gy); n_dec_flows += len(gi)
+            cap = int(GROUP_CAP * memory)
+            if len(gi) > cap:                                      # bounded replacement of SSF's fixed-size memory
+                keep = np.sort(grng.choice(len(gi), cap, replace=False)); gi, gy = gi[keep], gy[keep]
+            n_used_flows += len(gi)
+            Mc = torch.as_tensor(M_c).to(dev).flatten()
+            old = torch.where(Mc < 0.5)[0]                         # SSF's forgetting: drop non-representative old samples
+            if len(old) < len(gi):
+                old = torch.cat([old, torch.where(Mc >= 0.5)[0][torch.argsort(Mc[Mc >= 0.5])][:len(gi) - len(old)]])
+            else:
+                old = old[torch.randperm(len(old), device=old.device)[:len(gi)]]
+            keep_old = torch.ones(len(xtr), dtype=torch.bool, device=dev); keep_old[old] = False
+            xtr = torch.cat([xtr[keep_old], torch.tensor(X[s_idx[gi]], device=dev)])
+            ytr = torch.cat([ytr[keep_old], torch.tensor(gy, device=dev).long()])
+            new_mask = torch.cat([torch.zeros(int(keep_old.sum()), device=dev), torch.ones(len(gi), device=dev)])
+        elif drift:
             xtr, ytr, _, new_mask = U.select_and_update_representative_samples_when_drift(xtr, ytr, xte, yte, M_c, M_t, lb, dev, memory, model)
         else:
             xtr, ytr, _, new_mask = U.select_and_update_representative_samples(xtr, ytr, xte, yte, M_c, M_t, lb, dev)
-        n_lab += lb
+        if not GROUP: n_lab += lb
         loader = DataLoader(TensorDataset(xtr, ytr, new_mask), batch_size=128, shuffle=True); model.train()
         for ep in range(epoch_1):
             for xb, yb, nm in loader:
@@ -211,7 +248,9 @@ def run_ssf(ds, epochs=200, epoch_1=None, opt_old_lr=24, opt_new_lr=50, new_samp
         teacher.load_state_dict(model.state_dict()); TIMING["update_s"] += _now() - t_upd; TIMING["n_updates"] += 1
         if not CAUSAL:
             with torch.no_grad(): prob[m] = model(xte)[2].squeeze(-1).cpu().numpy()   # official: predict after update
-    return prob, prob > 0.5, dict(labels_used=n_lab, drift_intervals=n_drift)
+    info = dict(labels_used=n_lab, drift_intervals=n_drift)
+    if GROUP: info.update(group_decisions=n_lab, group_labeled_flows=n_dec_flows, group_flows_used=n_used_flows, periods_without_decision=n_period_nolab, group_cap=GROUP_CAP)
+    return prob, prob > 0.5, info
 
 # ---------------------------------------------------------------- Trident (official model + EVT)
 def _ae_err(mdl, Xn, bs=65536):
@@ -283,7 +322,8 @@ def run_cade(ds, anchor_thr=False):
 if __name__ == "__main__":
     ds, method = sys.argv[1], sys.argv[2]; t0 = time.time()
     import re                                            # suffixes: _P{hours} update cadence, _B{n} labels per day
-    mm = re.fullmatch(r"(.+?)(?:_W(\d+))?(?:_E(\d+))?(?:_P(\d+))?(?:_B(\d+))?(?:_N(\d+))?(?:_D(\d+))?(?:_R(\d+))?", method); base = mm[1]
+    mm = re.fullmatch(r"(.+?)(?:_W(\d+))?(?:_E(\d+))?(?:_P(\d+))?(?:_B(\d+))?(?:_N(\d+))?(?:_D(\d+))?(?:_R(\d+))?(_G)?", method); base = mm[1]
+    if mm[9]: GROUP = True; assert base == "ssf_causal", "_G (group feedback) is implemented for ssf_causal only"
     if mm[2]: WINDOW = int(mm[2])      # _W{n}: SSF windows of n flows, _E{n}: SSF epoch_1 (e.g. ssf_causal_W20000,
     if mm[3]: EPOCH_1 = int(mm[3])     # ssf_causal_E180), _P{h}: update cadence (owad_P1), _B{n}: labels/day (owad_B100)
     if mm[4]: PERIOD = int(mm[4])

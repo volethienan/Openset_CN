@@ -186,7 +186,7 @@ def run(ds, **cfg):
         on = Z[n0:]; return np.vstack([Z[:n0], on[np.sort(wrng.choice(len(on), cap - n0, replace=False))]])   # anchor + uniform sample of the online evidence
     fit_args = lambda: (fitset(P, nP0, 2 * c["n_pos_max"], "P" in c["keep"]), fitset(A, nA0, 4 * c["n_known_max"], "A" in c["keep"]))
     F_ref = np.load(ROOT + f"exp/results/{ds}__{c['replay']}__s{seed()}.npz")["flag"].astype(bool) if c["replay"] else None
-    m.eps = c["eps_mult"] * np.quantile(NearestNeighbors(n_neighbors=2).fit(P).kneighbors(P[:5000])[0][:, 1], 0.9)
+    m.eps = max(c["eps_mult"] * np.quantile(NearestNeighbors(n_neighbors=2).fit(P).kneighbors(P[:5000])[0][:, 1], 0.9), 1e-6)   # floor: duplicate-heavy anchors
     t0 = time.time(); m.fit(P, A); t_fit.append(time.time() - t0)
     tau = calib_upper(m.score(X[ho])) if c["fpr"] == 0.01 else float(np.quantile(m.score(X[ho]), 1 - c["fpr"]))   # operating point
     if c["rule"] == "post": tau = 0.0                              # posterior of the trained mixture > 1/2; no holdout quantile

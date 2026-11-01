@@ -1,0 +1,1436 @@
+dataset,seed,method,family,n,ttd_h,missed,first100
+CIDDS_ctx,0,ernp_K5A,bruteForce,613,0.3763636110888587,False,0.64
+CIDDS_ctx,0,ssf_causal,bruteForce,613,0.3424313888947169,False,0.17
+CIDDS_ctx,0,cade,bruteForce,613,0.3424313888947169,False,0.64
+CIDDS_ctx,0,trident,bruteForce,613,0.0,False,0.98
+CIDDS_ctx,0,memstream,bruteForce,613,0.0038911111487282646,False,0.66
+CIDDS_ctx,0,owad,bruteForce,613,,True,0.0
+CIDDS_ctx,0,knn,bruteForce,613,0.001265277796321445,False,0.34
+CIDDS_ctx,1,ernp_K5A,bruteForce,592,0.35924027774069045,False,0.6
+CIDDS_ctx,1,ssf_causal,bruteForce,592,0.40269361105230117,False,0.02
+CIDDS_ctx,1,cade,bruteForce,592,0.35924027774069045,False,0.64
+CIDDS_ctx,1,trident,bruteForce,592,0.006418055494626363,False,0.75
+CIDDS_ctx,1,memstream,bruteForce,592,0.033069444364971584,False,0.44
+CIDDS_ctx,1,owad,bruteForce,592,99.3493466666672,False,0.0
+CIDDS_ctx,1,knn,bruteForce,592,0.033069444364971584,False,0.54
+CIDDS_ctx,2,ernp_K5A,bruteForce,609,0.3543172221713596,False,0.56
+CIDDS_ctx,2,ssf_causal,bruteForce,609,0.3543172221713596,False,0.18
+CIDDS_ctx,2,cade,bruteForce,609,0.006060833268695408,False,0.64
+CIDDS_ctx,2,trident,bruteForce,609,0.009375555515289307,False,0.68
+CIDDS_ctx,2,memstream,bruteForce,609,0.3543172221713596,False,0.59
+CIDDS_ctx,2,owad,bruteForce,609,,True,0.0
+CIDDS_ctx,2,knn,bruteForce,609,0.015918611023161146,False,0.3
+CIDDS_ctx,3,ernp_K5A,bruteForce,571,0.3665222222275204,False,0.72
+CIDDS_ctx,3,ssf_causal,bruteForce,571,0.40128249996238285,False,0.05
+CIDDS_ctx,3,cade,bruteForce,571,0.3491355555587345,False,0.76
+CIDDS_ctx,3,trident,bruteForce,571,0.0,False,0.87
+CIDDS_ctx,3,memstream,bruteForce,571,0.013535277711020576,False,0.48
+CIDDS_ctx,3,owad,bruteForce,571,99.34793555557728,False,0.0
+CIDDS_ctx,3,knn,bruteForce,571,0.006420277754465739,False,0.41
+CIDDS_ctx,4,ernp_K5A,bruteForce,569,0.37622138884332446,False,0.69
+CIDDS_ctx,4,ssf_causal,bruteForce,569,0.35097861104541356,False,0.28
+CIDDS_ctx,4,cade,bruteForce,569,0.35097861104541356,False,0.69
+CIDDS_ctx,4,trident,bruteForce,569,0.35097861104541356,False,0.72
+CIDDS_ctx,4,memstream,bruteForce,569,0.0197202777200275,False,0.66
+CIDDS_ctx,4,owad,bruteForce,569,99.35089111109575,False,0.0
+CIDDS_ctx,4,knn,bruteForce,569,0.0197202777200275,False,0.44
+ToN_ctx,0,ernp_K5A,Backdoor,2284,0.7510494444767634,False,0.01
+ToN_ctx,0,ernp_K5A,ddos,45244,0.0037605555852254233,False,0.7
+ToN_ctx,0,ernp_K5A,dos,2229,0.014513888888888889,False,0.14
+ToN_ctx,0,ernp_K5A,injection,4152,0.0,False,0.36
+ToN_ctx,0,ernp_K5A,mitm,567,0.024881111118528577,False,0.17
+ToN_ctx,0,ernp_K5A,password,17430,0.0,False,0.86
+ToN_ctx,0,ernp_K5A,ransomware,590,0.3904577777783076,False,0.01
+ToN_ctx,0,ernp_K5A,xss,30702,5.25000360276964e-05,False,0.93
+ToN_ctx,0,ssf_causal,Backdoor,2284,0.7510494444767634,False,0.02
+ToN_ctx,0,ssf_causal,ddos,45244,0.0037605555852254233,False,0.89
+ToN_ctx,0,ssf_causal,dos,2229,5.759668611089388,False,0.0
+ToN_ctx,0,ssf_causal,injection,4152,0.3277652778228124,False,0.05
+ToN_ctx,0,ssf_causal,mitm,567,0.023519166707992555,False,0.08
+ToN_ctx,0,ssf_causal,password,17430,0.002365833322207133,False,0.2
+ToN_ctx,0,ssf_causal,ransomware,590,1.3174161111646228,False,0.0
+ToN_ctx,0,ssf_causal,xss,30702,0.0005299999978807238,False,0.78
+ToN_ctx,0,cade,Backdoor,2284,0.0,False,0.87
+ToN_ctx,0,cade,ddos,45244,0.0,False,0.56
+ToN_ctx,0,cade,dos,2229,0.02238194445768992,False,0.29
+ToN_ctx,0,cade,injection,4152,0.0898841667175293,False,0.12
+ToN_ctx,0,cade,mitm,567,0.0033377777867847017,False,0.53
+ToN_ctx,0,cade,password,17430,0.0,False,0.34
+ToN_ctx,0,cade,ransomware,590,0.0,False,0.4
+ToN_ctx,0,cade,xss,30702,0.0,False,0.15
+ToN_ctx,0,trident,Backdoor,2284,0.0,False,1.0
+ToN_ctx,0,trident,ddos,45244,0.0,False,1.0
+ToN_ctx,0,trident,dos,2229,0.0,False,1.0
+ToN_ctx,0,trident,injection,4152,0.0,False,1.0
+ToN_ctx,0,trident,mitm,567,0.0,False,1.0
+ToN_ctx,0,trident,password,17430,0.0,False,1.0
+ToN_ctx,0,trident,ransomware,590,0.0,False,1.0
+ToN_ctx,0,trident,xss,30702,0.0,False,1.0
+ToN_ctx,0,memstream,Backdoor,2284,,True,0.0
+ToN_ctx,0,memstream,ddos,45244,0.0039777778254614935,False,0.01
+ToN_ctx,0,memstream,dos,2229,0.0,False,0.46
+ToN_ctx,0,memstream,injection,4152,0.041119722260369196,False,0.25
+ToN_ctx,0,memstream,mitm,567,0.0,False,0.45
+ToN_ctx,0,memstream,password,17430,0.004461388852861192,False,0.33
+ToN_ctx,0,memstream,ransomware,590,0.0,False,0.66
+ToN_ctx,0,memstream,xss,30702,0.0008666667011049059,False,0.03
+ToN_ctx,0,owad,Backdoor,2284,0.0,False,0.94
+ToN_ctx,0,owad,ddos,45244,0.0,False,0.01
+ToN_ctx,0,owad,dos,2229,0.0,False,0.16
+ToN_ctx,0,owad,injection,4152,0.041119722260369196,False,0.84
+ToN_ctx,0,owad,mitm,567,0.02334222224023607,False,0.14
+ToN_ctx,0,owad,password,17430,0.0,False,0.79
+ToN_ctx,0,owad,ransomware,590,0.16400416672229767,False,0.58
+ToN_ctx,0,owad,xss,30702,0.0002649999989403619,False,0.04
+ToN_ctx,0,knn,Backdoor,2284,0.0,False,0.94
+ToN_ctx,0,knn,ddos,45244,0.0,False,0.09
+ToN_ctx,0,knn,dos,2229,0.0,False,0.66
+ToN_ctx,0,knn,injection,4152,0.0,False,0.98
+ToN_ctx,0,knn,mitm,567,0.0,False,0.6
+ToN_ctx,0,knn,password,17430,0.0,False,0.81
+ToN_ctx,0,knn,ransomware,590,0.16400416672229767,False,0.99
+ToN_ctx,0,knn,xss,30702,0.0,False,0.91
+ToN_ctx,1,ernp_K5A,Backdoor,2189,0.4316483333375719,False,0.03
+ToN_ctx,1,ernp_K5A,ddos,45220,0.008176388872994317,False,0.88
+ToN_ctx,1,ernp_K5A,dos,2200,0.04627277778254615,False,0.02
+ToN_ctx,1,ernp_K5A,injection,4129,0.17325833333863153,False,0.27
+ToN_ctx,1,ernp_K5A,mitm,605,0.45594944443967605,False,0.0
+ToN_ctx,1,ernp_K5A,password,17405,0.0019052777687708538,False,0.77
+ToN_ctx,1,ernp_K5A,ransomware,633,0.16400388889842563,False,0.49
+ToN_ctx,1,ernp_K5A,xss,30753,8.000002966986762e-05,False,0.93
+ToN_ctx,1,ssf_causal,Backdoor,2189,0.286400833328565,False,0.78
+ToN_ctx,1,ssf_causal,ddos,45220,0.008529166645473905,False,0.86
+ToN_ctx,1,ssf_causal,dos,2200,5.770849166711171,False,0.0
+ToN_ctx,1,ssf_causal,injection,4129,0.36426333334710864,False,0.07
+ToN_ctx,1,ssf_causal,mitm,605,7.111112276713053e-05,False,0.06
+ToN_ctx,1,ssf_causal,password,17405,0.03480111108885871,False,0.04
+ToN_ctx,1,ssf_causal,ransomware,633,0.43328166670269436,False,0.01
+ToN_ctx,1,ssf_causal,xss,30753,0.0,False,0.84
+ToN_ctx,1,cade,Backdoor,2189,,True,0.0
+ToN_ctx,1,cade,ddos,45220,0.01491472217771742,False,0.06
+ToN_ctx,1,cade,dos,2200,0.0,False,0.22
+ToN_ctx,1,cade,injection,4129,0.0,False,0.08
+ToN_ctx,1,cade,mitm,605,0.023460000024901496,False,0.05
+ToN_ctx,1,cade,password,17405,0.005369444423251682,False,0.05
+ToN_ctx,1,cade,ransomware,633,0.16446805556615193,False,0.14
+ToN_ctx,1,cade,xss,30753,0.0003311111529668172,False,0.56
+ToN_ctx,1,trident,Backdoor,2189,0.0,False,1.0
+ToN_ctx,1,trident,ddos,45220,0.0,False,1.0
+ToN_ctx,1,trident,dos,2200,0.0,False,0.99
+ToN_ctx,1,trident,injection,4129,0.0,False,1.0
+ToN_ctx,1,trident,mitm,605,0.0,False,1.0
+ToN_ctx,1,trident,password,17405,0.0,False,1.0
+ToN_ctx,1,trident,ransomware,633,0.0,False,1.0
+ToN_ctx,1,trident,xss,30753,0.0,False,1.0
+ToN_ctx,1,memstream,Backdoor,2189,0.4316483333375719,False,0.03
+ToN_ctx,1,memstream,ddos,45220,0.01768805550204383,False,0.0
+ToN_ctx,1,memstream,dos,2200,0.013505277766121758,False,0.3
+ToN_ctx,1,memstream,injection,4129,0.0,False,0.09
+ToN_ctx,1,memstream,mitm,605,0.0,False,0.18
+ToN_ctx,1,memstream,password,17405,0.0029952777756585016,False,0.5
+ToN_ctx,1,memstream,ransomware,633,0.16399888892968495,False,0.2
+ToN_ctx,1,memstream,xss,30753,0.00039305554495917426,False,0.14
+ToN_ctx,1,owad,Backdoor,2189,0.0,False,0.93
+ToN_ctx,1,owad,ddos,45220,0.0,False,0.06
+ToN_ctx,1,owad,dos,2200,0.013505277766121758,False,0.18
+ToN_ctx,1,owad,injection,4129,0.04807444446616703,False,0.81
+ToN_ctx,1,owad,mitm,605,7.111112276713053e-05,False,0.18
+ToN_ctx,1,owad,password,17405,0.0019052777687708538,False,0.84
+ToN_ctx,1,owad,ransomware,633,0.16399888892968495,False,0.67
+ToN_ctx,1,owad,xss,30753,0.00039305554495917426,False,0.14
+ToN_ctx,1,knn,Backdoor,2189,0.0,False,0.93
+ToN_ctx,1,knn,ddos,45220,0.0,False,0.13
+ToN_ctx,1,knn,dos,2200,0.0,False,0.55
+ToN_ctx,1,knn,injection,4129,0.04807444446616703,False,0.96
+ToN_ctx,1,knn,mitm,605,7.111112276713053e-05,False,0.52
+ToN_ctx,1,knn,password,17405,0.0019052777687708538,False,0.85
+ToN_ctx,1,knn,ransomware,633,0.16399888892968495,False,0.99
+ToN_ctx,1,knn,xss,30753,0.0,False,0.89
+ToN_ctx,2,ernp_K5A,Backdoor,2290,0.12323472221692403,False,0.96
+ToN_ctx,2,ernp_K5A,ddos,45417,0.008927777740690443,False,0.45
+ToN_ctx,2,ernp_K5A,dos,2161,0.0496719444460339,False,0.05
+ToN_ctx,2,ernp_K5A,injection,4142,0.05316444443331825,False,0.36
+ToN_ctx,2,ernp_K5A,mitm,614,0.02334222224023607,False,0.16
+ToN_ctx,2,ernp_K5A,password,17156,0.002604722181955973,False,0.99
+ToN_ctx,2,ernp_K5A,ransomware,634,0.05435666667090522,False,0.48
+ToN_ctx,2,ernp_K5A,xss,30560,6.055553754170736e-05,False,0.94
+ToN_ctx,2,ssf_causal,Backdoor,2290,0.2698202777571148,False,0.03
+ToN_ctx,2,ssf_causal,ddos,45417,0.008757499986224705,False,0.9
+ToN_ctx,2,ssf_causal,dos,2161,0.0386299999554952,False,0.01
+ToN_ctx,2,ssf_causal,injection,4142,0.09605222218566471,False,0.09
+ToN_ctx,2,ssf_causal,mitm,614,0.0011547222402360704,False,0.16
+ToN_ctx,2,ssf_causal,password,17156,0.0037544444534513685,False,0.02
+ToN_ctx,2,ssf_causal,ransomware,634,0.05435666667090522,False,0.79
+ToN_ctx,2,ssf_causal,xss,30560,0.0,False,0.85
+ToN_ctx,2,cade,Backdoor,2290,0.12323472221692403,False,0.98
+ToN_ctx,2,cade,ddos,45417,0.0,False,0.43
+ToN_ctx,2,cade,dos,2161,0.0,False,0.7
+ToN_ctx,2,cade,injection,4142,0.0,False,0.9
+ToN_ctx,2,cade,mitm,614,0.0,False,0.74
+ToN_ctx,2,cade,password,17156,0.0,False,0.84
+ToN_ctx,2,cade,ransomware,634,0.05435666667090522,False,0.95
+ToN_ctx,2,cade,xss,30560,0.0,False,0.93
+ToN_ctx,2,trident,Backdoor,2290,0.0,False,1.0
+ToN_ctx,2,trident,ddos,45417,0.0,False,1.0
+ToN_ctx,2,trident,dos,2161,0.0,False,1.0
+ToN_ctx,2,trident,injection,4142,0.0,False,1.0
+ToN_ctx,2,trident,mitm,614,0.0,False,1.0
+ToN_ctx,2,trident,password,17156,0.0,False,1.0
+ToN_ctx,2,trident,ransomware,634,0.0,False,1.0
+ToN_ctx,2,trident,xss,30560,0.0,False,1.0
+ToN_ctx,2,memstream,Backdoor,2290,0.0,False,0.39
+ToN_ctx,2,memstream,ddos,45417,0.020542499952846103,False,0.0
+ToN_ctx,2,memstream,dos,2161,0.0106877777311537,False,0.43
+ToN_ctx,2,memstream,injection,4142,0.01815916664070553,False,0.13
+ToN_ctx,2,memstream,mitm,614,0.0008341666724946764,False,0.61
+ToN_ctx,2,memstream,password,17156,0.003256111078792148,False,0.37
+ToN_ctx,2,memstream,ransomware,634,0.0,False,0.95
+ToN_ctx,2,memstream,xss,30560,0.0,False,0.9
+ToN_ctx,2,owad,Backdoor,2290,0.0,False,0.94
+ToN_ctx,2,owad,ddos,45417,0.0,False,0.01
+ToN_ctx,2,owad,dos,2161,0.0106877777311537,False,0.19
+ToN_ctx,2,owad,injection,4142,0.04341555555661519,False,0.81
+ToN_ctx,2,owad,mitm,614,0.0,False,0.2
+ToN_ctx,2,owad,password,17156,0.0,False,0.73
+ToN_ctx,2,owad,ransomware,634,0.05435666667090522,False,0.57
+ToN_ctx,2,owad,xss,30560,0.0004424999819861518,False,0.12
+ToN_ctx,2,knn,Backdoor,2290,0.0,False,0.94
+ToN_ctx,2,knn,ddos,45417,0.0,False,0.04
+ToN_ctx,2,knn,dos,2161,0.0,False,0.59
+ToN_ctx,2,knn,injection,4142,0.04341555555661519,False,0.96
+ToN_ctx,2,knn,mitm,614,0.0,False,0.61
+ToN_ctx,2,knn,password,17156,0.0,False,0.73
+ToN_ctx,2,knn,ransomware,634,0.05435666667090522,False,0.99
+ToN_ctx,2,knn,xss,30560,0.0,False,0.88
+ToN_ctx,3,ernp_K5A,Backdoor,2237,0.8723586110936271,False,0.08
+ToN_ctx,3,ernp_K5A,ddos,45161,0.0016513888703452216,False,0.4
+ToN_ctx,3,ernp_K5A,dos,2285,0.01584805554813809,False,0.06
+ToN_ctx,3,ernp_K5A,injection,4224,0.034221944411595664,False,0.23
+ToN_ctx,3,ernp_K5A,mitm,594,0.025576944483651054,False,0.03
+ToN_ctx,3,ernp_K5A,password,17526,0.0021277777353922527,False,0.95
+ToN_ctx,3,ernp_K5A,ransomware,651,0.18291777776347265,False,0.11
+ToN_ctx,3,ernp_K5A,xss,30858,2.805557515886095e-05,False,0.92
+ToN_ctx,3,ssf_causal,Backdoor,2237,0.035061111119058394,False,0.17
+ToN_ctx,3,ssf_causal,ddos,45161,0.0013113888767030504,False,0.95
+ToN_ctx,3,ssf_causal,dos,2285,5.758681111137072,False,0.0
+ToN_ctx,3,ssf_causal,injection,4224,0.09415249996715122,False,0.03
+ToN_ctx,3,ssf_causal,mitm,594,0.0013108333614137437,False,0.04
+ToN_ctx,3,ssf_causal,password,17526,0.034404444429609514,False,0.07
+ToN_ctx,3,ssf_causal,ransomware,651,0.08273083335823483,False,0.19
+ToN_ctx,3,ssf_causal,xss,30858,2.805557515886095e-05,False,0.87
+ToN_ctx,3,cade,Backdoor,2237,0.42182250003019967,False,0.01
+ToN_ctx,3,cade,ddos,45161,0.0013113888767030504,False,0.95
+ToN_ctx,3,cade,dos,2285,0.3554833333359824,False,0.02
+ToN_ctx,3,cade,injection,4224,0.031802222198910185,False,0.21
+ToN_ctx,3,cade,mitm,594,0.00023027777671813965,False,0.05
+ToN_ctx,3,cade,password,17526,0.11055666665236155,False,0.01
+ToN_ctx,3,cade,ransomware,651,0.05766305552588569,False,0.53
+ToN_ctx,3,cade,xss,30858,2.805557515886095e-05,False,0.79
+ToN_ctx,3,trident,Backdoor,2237,0.0,False,1.0
+ToN_ctx,3,trident,ddos,45161,0.0,False,1.0
+ToN_ctx,3,trident,dos,2285,0.0,False,1.0
+ToN_ctx,3,trident,injection,4224,0.0,False,1.0
+ToN_ctx,3,trident,mitm,594,0.0,False,1.0
+ToN_ctx,3,trident,password,17526,0.0,False,1.0
+ToN_ctx,3,trident,ransomware,651,0.0,False,1.0
+ToN_ctx,3,trident,xss,30858,0.0,False,1.0
+ToN_ctx,3,memstream,Backdoor,2237,0.0,False,0.01
+ToN_ctx,3,memstream,ddos,45161,0.0044969444142447575,False,0.01
+ToN_ctx,3,memstream,dos,2285,0.005273611148198446,False,0.58
+ToN_ctx,3,memstream,injection,4224,0.034221944411595664,False,0.11
+ToN_ctx,3,memstream,mitm,594,0.0,False,0.47
+ToN_ctx,3,memstream,password,17526,0.008821666638056436,False,0.13
+ToN_ctx,3,memstream,ransomware,651,0.0,False,0.51
+ToN_ctx,3,memstream,xss,30858,0.0,False,0.74
+ToN_ctx,3,owad,Backdoor,2237,0.0,False,0.92
+ToN_ctx,3,owad,ddos,45161,0.0,False,0.02
+ToN_ctx,3,owad,dos,2285,0.005273611148198446,False,0.2
+ToN_ctx,3,owad,injection,4224,0.0,False,0.81
+ToN_ctx,3,owad,mitm,594,0.0,False,0.23
+ToN_ctx,3,owad,password,17526,0.0,False,0.82
+ToN_ctx,3,owad,ransomware,651,0.05719527774386936,False,0.51
+ToN_ctx,3,owad,xss,30858,0.0010116666555404664,False,0.08
+ToN_ctx,3,knn,Backdoor,2237,0.0,False,0.92
+ToN_ctx,3,knn,ddos,45161,0.0,False,0.08
+ToN_ctx,3,knn,dos,2285,0.005273611148198446,False,0.55
+ToN_ctx,3,knn,injection,4224,0.0,False,0.97
+ToN_ctx,3,knn,mitm,594,0.0,False,0.75
+ToN_ctx,3,knn,password,17526,0.0,False,0.84
+ToN_ctx,3,knn,ransomware,651,0.05719527774386936,False,0.99
+ToN_ctx,3,knn,xss,30858,0.0,False,0.79
+ToN_ctx,4,ernp_K5A,Backdoor,2188,0.43587166666984556,False,0.07
+ToN_ctx,4,ernp_K5A,ddos,44692,0.00617611116833157,False,0.57
+ToN_ctx,4,ernp_K5A,dos,2181,0.025415833327505324,False,0.06
+ToN_ctx,4,ernp_K5A,injection,4167,0.043940000004238554,False,0.24
+ToN_ctx,4,ernp_K5A,mitm,595,0.023422500027550593,False,0.1
+ToN_ctx,4,ernp_K5A,password,17494,0.0,False,0.99
+ToN_ctx,4,ernp_K5A,ransomware,603,8.333325386047363e-06,False,0.35
+ToN_ctx,4,ernp_K5A,xss,30866,0.0,False,0.9
+ToN_ctx,4,ssf_causal,Backdoor,2188,5.681166944503784,False,0.0
+ToN_ctx,4,ssf_causal,ddos,44692,0.00617611116833157,False,0.44
+ToN_ctx,4,ssf_causal,dos,2181,5.758179444471995,False,0.0
+ToN_ctx,4,ssf_causal,injection,4167,0.413025833302074,False,0.01
+ToN_ctx,4,ssf_causal,mitm,595,0.0008344444301393297,False,0.04
+ToN_ctx,4,ssf_causal,password,17494,0.10729111115137736,False,0.01
+ToN_ctx,4,ssf_causal,ransomware,603,0.02553805556562212,False,0.35
+ToN_ctx,4,ssf_causal,xss,30866,0.0,False,0.79
+ToN_ctx,4,cade,Backdoor,2188,0.0,False,0.92
+ToN_ctx,4,cade,ddos,44692,0.0,False,0.64
+ToN_ctx,4,cade,dos,2181,0.019032222231229145,False,0.23
+ToN_ctx,4,cade,injection,4167,0.11699361112382677,False,0.49
+ToN_ctx,4,cade,mitm,595,0.0,False,0.5
+ToN_ctx,4,cade,password,17494,0.00533138891061147,False,0.53
+ToN_ctx,4,cade,ransomware,603,0.0,False,0.81
+ToN_ctx,4,cade,xss,30866,0.0,False,0.87
+ToN_ctx,4,trident,Backdoor,2188,0.0,False,1.0
+ToN_ctx,4,trident,ddos,44692,0.0,False,1.0
+ToN_ctx,4,trident,dos,2181,0.0,False,0.99
+ToN_ctx,4,trident,injection,4167,0.0,False,1.0
+ToN_ctx,4,trident,mitm,595,0.0,False,1.0
+ToN_ctx,4,trident,password,17494,0.0,False,0.91
+ToN_ctx,4,trident,ransomware,603,0.0,False,1.0
+ToN_ctx,4,trident,xss,30866,0.0,False,1.0
+ToN_ctx,4,memstream,Backdoor,2188,0.0,False,0.01
+ToN_ctx,4,memstream,ddos,44692,0.007556666665607029,False,0.05
+ToN_ctx,4,memstream,dos,2181,0.0,False,0.41
+ToN_ctx,4,memstream,injection,4167,0.13611166662640042,False,0.06
+ToN_ctx,4,memstream,mitm,595,0.0,False,0.51
+ToN_ctx,4,memstream,password,17494,0.0,False,0.76
+ToN_ctx,4,memstream,ransomware,603,1.3888544506496854e-06,False,0.54
+ToN_ctx,4,memstream,xss,30866,0.0005758333206176757,False,0.07
+ToN_ctx,4,owad,Backdoor,2188,0.0,False,0.94
+ToN_ctx,4,owad,ddos,44692,0.0,False,0.09
+ToN_ctx,4,owad,dos,2181,0.0211272222465939,False,0.15
+ToN_ctx,4,owad,injection,4167,0.04372555553913116,False,0.85
+ToN_ctx,4,owad,mitm,595,5.555815166897244e-07,False,0.22
+ToN_ctx,4,owad,password,17494,0.0,False,0.83
+ToN_ctx,4,owad,ransomware,603,0.0,False,0.61
+ToN_ctx,4,owad,xss,30866,0.0014530555407206217,False,0.1
+ToN_ctx,4,knn,Backdoor,2188,0.0,False,0.94
+ToN_ctx,4,knn,ddos,44692,0.0,False,0.17
+ToN_ctx,4,knn,dos,2181,0.019032222231229145,False,0.48
+ToN_ctx,4,knn,injection,4167,0.04372555553913116,False,0.95
+ToN_ctx,4,knn,mitm,595,0.0,False,0.57
+ToN_ctx,4,knn,password,17494,0.0,False,0.86
+ToN_ctx,4,knn,ransomware,603,0.0,False,1.0
+ToN_ctx,4,knn,xss,30866,1.4722214804755316e-05,False,0.83
+CIC17,0,ernp_K5A,Botnet,608,0.0,False,0.67
+CIC17,0,ernp_K5A,DDoS,13652,0.0,False,1.0
+CIC17,0,ernp_K5A,Infiltration,36,0.1584960522254308,False,0.7222222222222222
+CIC17,0,ernp_K5A,Infiltration - Portscan,10236,0.0,False,0.97
+CIC17,0,ernp_K5A,Portscan,22742,0.0,False,0.8
+CIC17,0,ernp_K5A,Web Attack - Brute Force,73,0.0,False,1.0
+CIC17,0,ernp_K5A,Web Attack - SQL Injection,13,0.0,False,0.9230769230769231
+CIC17,0,ernp_K5A,Web Attack - XSS,18,0.0,False,1.0
+CIC17,0,ssf_causal,Botnet,608,,True,0.0
+CIC17,0,ssf_causal,DDoS,13652,0.0,False,0.89
+CIC17,0,ssf_causal,Infiltration,36,0.19183167609903548,False,0.19444444444444445
+CIC17,0,ssf_causal,Infiltration - Portscan,10236,1.1295449380079905,False,0.0
+CIC17,0,ssf_causal,Portscan,22742,0.31416171107027263,False,0.07
+CIC17,0,ssf_causal,Web Attack - Brute Force,73,0.03151589724752638,False,0.9863013698630136
+CIC17,0,ssf_causal,Web Attack - SQL Injection,13,0.0,False,0.8461538461538461
+CIC17,0,ssf_causal,Web Attack - XSS,18,0.0,False,1.0
+CIC17,0,cade,Botnet,608,0.3487616405222151,False,0.06
+CIC17,0,cade,DDoS,13652,0.0,False,1.0
+CIC17,0,cade,Infiltration,36,0.1584960522254308,False,0.8333333333333334
+CIC17,0,cade,Infiltration - Portscan,10236,0.0,False,1.0
+CIC17,0,cade,Portscan,22742,0.0,False,0.98
+CIC17,0,cade,Web Attack - Brute Force,73,0.0,False,1.0
+CIC17,0,cade,Web Attack - SQL Injection,13,0.0,False,1.0
+CIC17,0,cade,Web Attack - XSS,18,0.0,False,1.0
+CIC17,0,trident,Botnet,608,0.0,False,1.0
+CIC17,0,trident,DDoS,13652,0.0,False,1.0
+CIC17,0,trident,Infiltration,36,0.0,False,1.0
+CIC17,0,trident,Infiltration - Portscan,10236,0.0,False,1.0
+CIC17,0,trident,Portscan,22742,0.0,False,1.0
+CIC17,0,trident,Web Attack - Brute Force,73,0.0,False,1.0
+CIC17,0,trident,Web Attack - SQL Injection,13,0.0,False,1.0
+CIC17,0,trident,Web Attack - XSS,18,0.0,False,1.0
+CIC17,0,memstream,Botnet,608,,True,0.0
+CIC17,0,memstream,DDoS,13652,0.11929378052552542,False,0.0
+CIC17,0,memstream,Infiltration,36,0.1584960522254308,False,0.25
+CIC17,0,memstream,Infiltration - Portscan,10236,0.0,False,0.12
+CIC17,0,memstream,Portscan,22742,0.0,False,0.22
+CIC17,0,memstream,Web Attack - Brute Force,73,,True,0.0
+CIC17,0,memstream,Web Attack - SQL Injection,13,,True,0.0
+CIC17,0,memstream,Web Attack - XSS,18,,True,0.0
+CIC17,0,owad,Botnet,608,0.3487616405222151,False,0.06
+CIC17,0,owad,DDoS,13652,,True,0.0
+CIC17,0,owad,Infiltration,36,0.1584960522254308,False,0.3333333333333333
+CIC17,0,owad,Infiltration - Portscan,10236,2.515991528828939e-05,False,0.88
+CIC17,0,owad,Portscan,22742,0.937037144170867,False,0.34
+CIC17,0,owad,Web Attack - Brute Force,73,,True,0.0
+CIC17,0,owad,Web Attack - SQL Injection,13,,True,0.0
+CIC17,0,owad,Web Attack - XSS,18,,True,0.0
+CIC17,0,knn,Botnet,608,0.0,False,1.0
+CIC17,0,knn,DDoS,13652,0.0,False,1.0
+CIC17,0,knn,Infiltration,36,0.1584960522254308,False,0.9722222222222222
+CIC17,0,knn,Infiltration - Portscan,10236,0.0,False,1.0
+CIC17,0,knn,Portscan,22742,0.0,False,0.93
+CIC17,0,knn,Web Attack - Brute Force,73,0.03151589724752638,False,0.9863013698630136
+CIC17,0,knn,Web Attack - SQL Injection,13,,True,0.0
+CIC17,0,knn,Web Attack - XSS,18,0.0,False,1.0
+CIC17,1,ernp_K5A,Botnet,619,0.06714802357885573,False,0.01
+CIC17,1,ernp_K5A,DDoS,13454,0.0,False,1.0
+CIC17,1,ernp_K5A,Infiltration,36,0.1584960522254308,False,0.5833333333333334
+CIC17,1,ernp_K5A,Infiltration - Portscan,10266,2.7662780549791123e-05,False,0.91
+CIC17,1,ernp_K5A,Portscan,22735,0.0,False,0.94
+CIC17,1,ernp_K5A,Web Attack - Brute Force,73,0.0,False,1.0
+CIC17,1,ernp_K5A,Web Attack - SQL Injection,13,0.0,False,0.9230769230769231
+CIC17,1,ernp_K5A,Web Attack - XSS,18,0.0,False,1.0
+CIC17,1,ssf_causal,Botnet,619,,True,0.0
+CIC17,1,ssf_causal,DDoS,13454,0.0,False,1.0
+CIC17,1,ssf_causal,Infiltration,36,0.1584960522254308,False,0.3055555555555556
+CIC17,1,ssf_causal,Infiltration - Portscan,10266,1.0816667817036312,False,0.0
+CIC17,1,ssf_causal,Portscan,22735,0.3259336888790131,False,0.03
+CIC17,1,ssf_causal,Web Attack - Brute Force,73,0.03151589724752638,False,0.9863013698630136
+CIC17,1,ssf_causal,Web Attack - SQL Injection,13,0.0,False,0.6153846153846154
+CIC17,1,ssf_causal,Web Attack - XSS,18,0.0,False,1.0
+CIC17,1,cade,Botnet,619,0.0,False,0.12
+CIC17,1,cade,DDoS,13454,0.0,False,1.0
+CIC17,1,cade,Infiltration,36,0.1584960522254308,False,0.5833333333333334
+CIC17,1,cade,Infiltration - Portscan,10266,0.0,False,1.0
+CIC17,1,cade,Portscan,22735,0.0,False,1.0
+CIC17,1,cade,Web Attack - Brute Force,73,0.0,False,1.0
+CIC17,1,cade,Web Attack - SQL Injection,13,0.0,False,1.0
+CIC17,1,cade,Web Attack - XSS,18,0.0,False,1.0
+CIC17,1,trident,Botnet,619,0.0,False,1.0
+CIC17,1,trident,DDoS,13454,0.0,False,1.0
+CIC17,1,trident,Infiltration,36,0.1584960522254308,False,0.9722222222222222
+CIC17,1,trident,Infiltration - Portscan,10266,0.0,False,1.0
+CIC17,1,trident,Portscan,22735,0.0,False,1.0
+CIC17,1,trident,Web Attack - Brute Force,73,0.0,False,1.0
+CIC17,1,trident,Web Attack - SQL Injection,13,0.07269057386451297,False,0.5384615384615384
+CIC17,1,trident,Web Attack - XSS,18,0.0,False,1.0
+CIC17,1,memstream,Botnet,619,0.0,False,0.82
+CIC17,1,memstream,DDoS,13454,0.022880812486012776,False,0.0
+CIC17,1,memstream,Infiltration,36,0.1584960522254308,False,0.8055555555555556
+CIC17,1,memstream,Infiltration - Portscan,10266,0.0,False,0.94
+CIC17,1,memstream,Portscan,22735,0.0,False,0.94
+CIC17,1,memstream,Web Attack - Brute Force,73,,True,0.0
+CIC17,1,memstream,Web Attack - SQL Injection,13,,True,0.0
+CIC17,1,memstream,Web Attack - XSS,18,,True,0.0
+CIC17,1,owad,Botnet,619,0.3487616405222151,False,0.05
+CIC17,1,owad,DDoS,13454,,True,0.0
+CIC17,1,owad,Infiltration,36,0.1584960522254308,False,0.3611111111111111
+CIC17,1,owad,Infiltration - Portscan,10266,0.0,False,0.86
+CIC17,1,owad,Portscan,22735,0.9359545774592294,False,0.38
+CIC17,1,owad,Web Attack - Brute Force,73,,True,0.0
+CIC17,1,owad,Web Attack - SQL Injection,13,,True,0.0
+CIC17,1,owad,Web Attack - XSS,18,,True,0.0
+CIC17,1,knn,Botnet,619,0.0,False,1.0
+CIC17,1,knn,DDoS,13454,0.0,False,1.0
+CIC17,1,knn,Infiltration,36,0.1584960522254308,False,0.9722222222222222
+CIC17,1,knn,Infiltration - Portscan,10266,0.0,False,1.0
+CIC17,1,knn,Portscan,22735,0.0,False,0.97
+CIC17,1,knn,Web Attack - Brute Force,73,0.03151589724752638,False,0.9863013698630136
+CIC17,1,knn,Web Attack - SQL Injection,13,,True,0.0
+CIC17,1,knn,Web Attack - XSS,18,0.0,False,1.0
+CIC17,2,ernp_K5A,Botnet,582,0.5251110200087229,False,0.0
+CIC17,2,ernp_K5A,DDoS,13594,0.0,False,1.0
+CIC17,2,ernp_K5A,Infiltration,36,0.1584960522254308,False,0.6111111111111112
+CIC17,2,ernp_K5A,Infiltration - Portscan,10175,2.3852454291449654e-06,False,0.96
+CIC17,2,ernp_K5A,Portscan,22718,0.0011707310544119942,False,0.87
+CIC17,2,ernp_K5A,Web Attack - Brute Force,73,0.0,False,1.0
+CIC17,2,ernp_K5A,Web Attack - SQL Injection,13,0.0,False,1.0
+CIC17,2,ernp_K5A,Web Attack - XSS,18,0.0,False,1.0
+CIC17,2,ssf_causal,Botnet,582,,True,0.0
+CIC17,2,ssf_causal,DDoS,13594,0.0,False,0.97
+CIC17,2,ssf_causal,Infiltration,36,0.1584960522254308,False,0.2777777777777778
+CIC17,2,ssf_causal,Infiltration - Portscan,10175,1.0817233828041288,False,0.0
+CIC17,2,ssf_causal,Portscan,22718,0.3156258124775357,False,0.04
+CIC17,2,ssf_causal,Web Attack - Brute Force,73,0.03151589724752638,False,0.9863013698630136
+CIC17,2,ssf_causal,Web Attack - SQL Injection,13,0.07992547717359332,False,0.38461538461538464
+CIC17,2,ssf_causal,Web Attack - XSS,18,0.0,False,1.0
+CIC17,2,cade,Botnet,582,0.37447801808516185,False,0.02
+CIC17,2,cade,DDoS,13594,0.0,False,1.0
+CIC17,2,cade,Infiltration,36,0.19183167609903548,False,0.3888888888888889
+CIC17,2,cade,Infiltration - Portscan,10175,0.0,False,1.0
+CIC17,2,cade,Portscan,22718,0.0,False,0.99
+CIC17,2,cade,Web Attack - Brute Force,73,0.0,False,1.0
+CIC17,2,cade,Web Attack - SQL Injection,13,0.0,False,1.0
+CIC17,2,cade,Web Attack - XSS,18,0.0,False,1.0
+CIC17,2,trident,Botnet,582,0.0,False,1.0
+CIC17,2,trident,DDoS,13594,0.0,False,0.69
+CIC17,2,trident,Infiltration,36,0.1584960522254308,False,0.9722222222222222
+CIC17,2,trident,Infiltration - Portscan,10175,0.0,False,1.0
+CIC17,2,trident,Portscan,22718,0.0,False,1.0
+CIC17,2,trident,Web Attack - Brute Force,73,0.0,False,1.0
+CIC17,2,trident,Web Attack - SQL Injection,13,,True,0.0
+CIC17,2,trident,Web Attack - XSS,18,0.0,False,1.0
+CIC17,2,memstream,Botnet,582,0.0,False,0.93
+CIC17,2,memstream,DDoS,13594,0.043304824961556326,False,0.0
+CIC17,2,memstream,Infiltration,36,0.1584960522254308,False,0.6944444444444444
+CIC17,2,memstream,Infiltration - Portscan,10175,0.0,False,0.98
+CIC17,2,memstream,Portscan,22718,0.9370381291045083,False,0.49
+CIC17,2,memstream,Web Attack - Brute Force,73,,True,0.0
+CIC17,2,memstream,Web Attack - SQL Injection,13,,True,0.0
+CIC17,2,memstream,Web Attack - XSS,18,,True,0.0
+CIC17,2,owad,Botnet,582,0.3487616405222151,False,0.05
+CIC17,2,owad,DDoS,13594,,True,0.0
+CIC17,2,owad,Infiltration,36,0.1584960522254308,False,0.3611111111111111
+CIC17,2,owad,Infiltration - Portscan,10175,0.0,False,0.86
+CIC17,2,owad,Portscan,22718,0.9370381291045083,False,0.49
+CIC17,2,owad,Web Attack - Brute Force,73,,True,0.0
+CIC17,2,owad,Web Attack - SQL Injection,13,,True,0.0
+CIC17,2,owad,Web Attack - XSS,18,,True,0.0
+CIC17,2,knn,Botnet,582,0.0,False,1.0
+CIC17,2,knn,DDoS,13594,0.0,False,1.0
+CIC17,2,knn,Infiltration,36,0.1584960522254308,False,0.9722222222222222
+CIC17,2,knn,Infiltration - Portscan,10175,0.0,False,1.0
+CIC17,2,knn,Portscan,22718,0.0,False,0.96
+CIC17,2,knn,Web Attack - Brute Force,73,0.03151589724752638,False,0.9863013698630136
+CIC17,2,knn,Web Attack - SQL Injection,13,,True,0.0
+CIC17,2,knn,Web Attack - XSS,18,0.0,False,1.0
+CIC17,3,ernp_K5A,Botnet,616,0.3211367491218779,False,0.01
+CIC17,3,ernp_K5A,DDoS,13650,0.0,False,1.0
+CIC17,3,ernp_K5A,Infiltration,36,0.1584960522254308,False,0.7222222222222222
+CIC17,3,ernp_K5A,Infiltration - Portscan,10215,0.0,False,1.0
+CIC17,3,ernp_K5A,Portscan,22611,0.0,False,0.99
+CIC17,3,ernp_K5A,Web Attack - Brute Force,73,0.0,False,1.0
+CIC17,3,ernp_K5A,Web Attack - SQL Injection,13,0.0,False,1.0
+CIC17,3,ernp_K5A,Web Attack - XSS,18,0.0,False,1.0
+CIC17,3,ssf_causal,Botnet,616,,True,0.0
+CIC17,3,ssf_causal,DDoS,13650,0.0,False,1.0
+CIC17,3,ssf_causal,Infiltration,36,0.1584960522254308,False,0.2777777777777778
+CIC17,3,ssf_causal,Infiltration - Portscan,10215,1.081636451681455,False,0.0
+CIC17,3,ssf_causal,Portscan,22611,0.30927243140008714,False,0.06
+CIC17,3,ssf_causal,Web Attack - Brute Force,73,0.03151589724752638,False,0.9863013698630136
+CIC17,3,ssf_causal,Web Attack - SQL Injection,13,0.0,False,0.8461538461538461
+CIC17,3,ssf_causal,Web Attack - XSS,18,0.0,False,1.0
+CIC17,3,cade,Botnet,616,,True,0.0
+CIC17,3,cade,DDoS,13650,0.0,False,1.0
+CIC17,3,cade,Infiltration,36,0.1584960522254308,False,0.8333333333333334
+CIC17,3,cade,Infiltration - Portscan,10215,0.0,False,1.0
+CIC17,3,cade,Portscan,22611,0.0,False,1.0
+CIC17,3,cade,Web Attack - Brute Force,73,0.0,False,1.0
+CIC17,3,cade,Web Attack - SQL Injection,13,0.0,False,1.0
+CIC17,3,cade,Web Attack - XSS,18,0.0,False,1.0
+CIC17,3,trident,Botnet,616,0.0,False,1.0
+CIC17,3,trident,DDoS,13650,0.0,False,0.26
+CIC17,3,trident,Infiltration,36,0.1584960522254308,False,0.9722222222222222
+CIC17,3,trident,Infiltration - Portscan,10215,0.0,False,1.0
+CIC17,3,trident,Portscan,22611,0.0,False,0.98
+CIC17,3,trident,Web Attack - Brute Force,73,0.03151589724752638,False,0.9863013698630136
+CIC17,3,trident,Web Attack - SQL Injection,13,,True,0.0
+CIC17,3,trident,Web Attack - XSS,18,0.0,False,1.0
+CIC17,3,memstream,Botnet,616,,True,0.0
+CIC17,3,memstream,DDoS,13650,,True,0.0
+CIC17,3,memstream,Infiltration,36,0.2585075994332631,False,0.08333333333333333
+CIC17,3,memstream,Infiltration - Portscan,10215,0.5501120324929555,False,0.0
+CIC17,3,memstream,Portscan,22611,0.937795978585879,False,0.0
+CIC17,3,memstream,Web Attack - Brute Force,73,,True,0.0
+CIC17,3,memstream,Web Attack - SQL Injection,13,,True,0.0
+CIC17,3,memstream,Web Attack - XSS,18,,True,0.0
+CIC17,3,owad,Botnet,616,0.36038396298885345,False,0.04
+CIC17,3,owad,DDoS,13650,,True,0.0
+CIC17,3,owad,Infiltration,36,0.1584960522254308,False,0.3611111111111111
+CIC17,3,owad,Infiltration - Portscan,10215,0.0,False,0.88
+CIC17,3,owad,Portscan,22611,0.9370388588640425,False,0.37
+CIC17,3,owad,Web Attack - Brute Force,73,,True,0.0
+CIC17,3,owad,Web Attack - SQL Injection,13,,True,0.0
+CIC17,3,owad,Web Attack - XSS,18,,True,0.0
+CIC17,3,knn,Botnet,616,0.0,False,1.0
+CIC17,3,knn,DDoS,13650,0.0,False,1.0
+CIC17,3,knn,Infiltration,36,0.1584960522254308,False,0.9722222222222222
+CIC17,3,knn,Infiltration - Portscan,10215,0.0,False,1.0
+CIC17,3,knn,Portscan,22611,0.0,False,0.94
+CIC17,3,knn,Web Attack - Brute Force,73,0.03151589724752638,False,0.9863013698630136
+CIC17,3,knn,Web Attack - SQL Injection,13,,True,0.0
+CIC17,3,knn,Web Attack - XSS,18,0.0,False,1.0
+CIC17,4,ernp_K5A,Botnet,613,0.0,False,0.03
+CIC17,4,ernp_K5A,DDoS,13558,0.0,False,1.0
+CIC17,4,ernp_K5A,Infiltration,36,0.1584960522254308,False,0.6388888888888888
+CIC17,4,ernp_K5A,Infiltration - Portscan,10200,7.541974385579428e-07,False,0.99
+CIC17,4,ernp_K5A,Portscan,22928,0.006722971399625142,False,0.88
+CIC17,4,ernp_K5A,Web Attack - Brute Force,73,0.0,False,1.0
+CIC17,4,ernp_K5A,Web Attack - SQL Injection,13,0.0,False,0.5384615384615384
+CIC17,4,ernp_K5A,Web Attack - XSS,18,0.0,False,1.0
+CIC17,4,ssf_causal,Botnet,613,,True,0.0
+CIC17,4,ssf_causal,DDoS,13558,0.0,False,0.98
+CIC17,4,ssf_causal,Infiltration,36,0.19183167609903548,False,0.25
+CIC17,4,ssf_causal,Infiltration - Portscan,10200,1.0817274294296901,False,0.0
+CIC17,4,ssf_causal,Portscan,22928,0.3055214814345042,False,0.06
+CIC17,4,ssf_causal,Web Attack - Brute Force,73,0.03151589724752638,False,0.9863013698630136
+CIC17,4,ssf_causal,Web Attack - SQL Injection,13,0.07992547717359332,False,0.38461538461538464
+CIC17,4,ssf_causal,Web Attack - XSS,18,0.0,False,1.0
+CIC17,4,cade,Botnet,613,0.6712854975461959,False,0.0
+CIC17,4,cade,DDoS,13558,0.0,False,1.0
+CIC17,4,cade,Infiltration,36,0.19183167609903548,False,0.5833333333333334
+CIC17,4,cade,Infiltration - Portscan,10200,0.0,False,1.0
+CIC17,4,cade,Portscan,22928,0.0,False,1.0
+CIC17,4,cade,Web Attack - Brute Force,73,0.0,False,1.0
+CIC17,4,cade,Web Attack - SQL Injection,13,0.0,False,1.0
+CIC17,4,cade,Web Attack - XSS,18,0.0,False,1.0
+CIC17,4,trident,Botnet,613,0.0,False,1.0
+CIC17,4,trident,DDoS,13558,0.0,False,1.0
+CIC17,4,trident,Infiltration,36,0.0,False,1.0
+CIC17,4,trident,Infiltration - Portscan,10200,0.0,False,1.0
+CIC17,4,trident,Portscan,22928,0.0,False,1.0
+CIC17,4,trident,Web Attack - Brute Force,73,0.0,False,1.0
+CIC17,4,trident,Web Attack - SQL Injection,13,,True,0.0
+CIC17,4,trident,Web Attack - XSS,18,0.0,False,1.0
+CIC17,4,memstream,Botnet,613,,True,0.0
+CIC17,4,memstream,DDoS,13558,0.027551103830337525,False,0.0
+CIC17,4,memstream,Infiltration,36,0.1584960522254308,False,0.5277777777777778
+CIC17,4,memstream,Infiltration - Portscan,10200,2.8448899586995444e-05,False,0.92
+CIC17,4,memstream,Portscan,22928,0.9332879694302877,False,0.37
+CIC17,4,memstream,Web Attack - Brute Force,73,,True,0.0
+CIC17,4,memstream,Web Attack - SQL Injection,13,,True,0.0
+CIC17,4,memstream,Web Attack - XSS,18,,True,0.0
+CIC17,4,owad,Botnet,613,0.3487616405222151,False,0.06
+CIC17,4,owad,DDoS,13558,,True,0.0
+CIC17,4,owad,Infiltration,36,0.1584960522254308,False,0.3611111111111111
+CIC17,4,owad,Infiltration - Portscan,10200,2.8448899586995444e-05,False,0.91
+CIC17,4,owad,Portscan,22928,0.9332879694302877,False,0.39
+CIC17,4,owad,Web Attack - Brute Force,73,,True,0.0
+CIC17,4,owad,Web Attack - SQL Injection,13,,True,0.0
+CIC17,4,owad,Web Attack - XSS,18,,True,0.0
+CIC17,4,knn,Botnet,613,0.0,False,1.0
+CIC17,4,knn,DDoS,13558,0.0,False,1.0
+CIC17,4,knn,Infiltration,36,0.1584960522254308,False,0.9722222222222222
+CIC17,4,knn,Infiltration - Portscan,10200,0.0,False,1.0
+CIC17,4,knn,Portscan,22928,0.0,False,0.97
+CIC17,4,knn,Web Attack - Brute Force,73,0.03151589724752638,False,0.9863013698630136
+CIC17,4,knn,Web Attack - SQL Injection,13,,True,0.0
+CIC17,4,knn,Web Attack - XSS,18,0.0,False,1.0
+CIC18,0,ernp_K5A,Botnet Ares,846,0.0,False,1.0
+CIC18,0,ernp_K5A,DDoS-HOIC,6887,0.0,False,1.0
+CIC18,0,ernp_K5A,DDoS-LOIC-HTTP,1803,0.0,False,1.0
+CIC18,0,ernp_K5A,DDoS-LOIC-UDP,575,0.0,False,1.0
+CIC18,0,ernp_K5A,Infiltration - Communication Victim Attacker,204,0.03617215341991849,False,0.6
+CIC18,0,ernp_K5A,Infiltration - Dropbox Download,85,0.08411679360601637,False,0.18823529411764706
+CIC18,0,ernp_K5A,Infiltration - NMAP Portscan,643,0.03657860894997915,False,0.92
+CIC18,0,ernp_K5A,Web Attack - Brute Force,131,0.010349207520484925,False,0.99
+CIC18,0,ernp_K5A,Web Attack - SQL,39,0.016658423609203762,False,0.7948717948717948
+CIC18,0,ernp_K5A,Web Attack - XSS,113,0.0,False,1.0
+CIC18,0,ssf_causal,Botnet Ares,846,0.9439869842264388,False,0.0
+CIC18,0,ssf_causal,DDoS-HOIC,6887,0.003053847485118442,False,0.84
+CIC18,0,ssf_causal,DDoS-LOIC-HTTP,1803,0.002077344391081068,False,0.63
+CIC18,0,ssf_causal,DDoS-LOIC-UDP,575,,True,0.0
+CIC18,0,ssf_causal,Infiltration - Communication Victim Attacker,204,,True,0.0
+CIC18,0,ssf_causal,Infiltration - Dropbox Download,85,,True,0.0
+CIC18,0,ssf_causal,Infiltration - NMAP Portscan,643,0.25798603448602886,False,0.02
+CIC18,0,ssf_causal,Web Attack - Brute Force,131,,True,0.0
+CIC18,0,ssf_causal,Web Attack - SQL,39,,True,0.0
+CIC18,0,ssf_causal,Web Attack - XSS,113,,True,0.0
+CIC18,0,cade,Botnet Ares,846,0.0,False,0.86
+CIC18,0,cade,DDoS-HOIC,6887,0.0,False,1.0
+CIC18,0,cade,DDoS-LOIC-HTTP,1803,0.0,False,1.0
+CIC18,0,cade,DDoS-LOIC-UDP,575,0.0,False,1.0
+CIC18,0,cade,Infiltration - Communication Victim Attacker,204,0.0,False,0.86
+CIC18,0,cade,Infiltration - Dropbox Download,85,0.0,False,0.5294117647058824
+CIC18,0,cade,Infiltration - NMAP Portscan,643,0.0,False,0.98
+CIC18,0,cade,Web Attack - Brute Force,131,0.0,False,0.99
+CIC18,0,cade,Web Attack - SQL,39,0.016658423609203762,False,0.5897435897435898
+CIC18,0,cade,Web Attack - XSS,113,0.0,False,0.99
+CIC18,0,trident,Botnet Ares,846,0.0,False,1.0
+CIC18,0,trident,DDoS-HOIC,6887,0.0,False,0.99
+CIC18,0,trident,DDoS-LOIC-HTTP,1803,0.0,False,1.0
+CIC18,0,trident,DDoS-LOIC-UDP,575,0.0,False,1.0
+CIC18,0,trident,Infiltration - Communication Victim Attacker,204,0.0,False,1.0
+CIC18,0,trident,Infiltration - Dropbox Download,85,0.0,False,0.5647058823529412
+CIC18,0,trident,Infiltration - NMAP Portscan,643,0.0,False,0.99
+CIC18,0,trident,Web Attack - Brute Force,131,0.0,False,1.0
+CIC18,0,trident,Web Attack - SQL,39,0.016658423609203762,False,0.4358974358974359
+CIC18,0,trident,Web Attack - XSS,113,0.0,False,0.98
+CIC18,0,memstream,Botnet Ares,846,0.0,False,0.99
+CIC18,0,memstream,DDoS-HOIC,6887,0.09043135113186307,False,0.0
+CIC18,0,memstream,DDoS-LOIC-HTTP,1803,1.0332613471481535,False,0.0
+CIC18,0,memstream,DDoS-LOIC-UDP,575,0.0,False,0.9
+CIC18,0,memstream,Infiltration - Communication Victim Attacker,204,0.0,False,0.97
+CIC18,0,memstream,Infiltration - Dropbox Download,85,0.15082242945830027,False,0.011764705882352941
+CIC18,0,memstream,Infiltration - NMAP Portscan,643,0.03657860894997915,False,0.76
+CIC18,0,memstream,Web Attack - Brute Force,131,,True,0.0
+CIC18,0,memstream,Web Attack - SQL,39,,True,0.0
+CIC18,0,memstream,Web Attack - XSS,113,,True,0.0
+CIC18,0,owad,Botnet Ares,846,0.8329395380947325,False,0.01
+CIC18,0,owad,DDoS-HOIC,6887,,True,0.0
+CIC18,0,owad,DDoS-LOIC-HTTP,1803,,True,0.0
+CIC18,0,owad,DDoS-LOIC-UDP,575,0.0,False,1.0
+CIC18,0,owad,Infiltration - Communication Victim Attacker,204,0.0,False,0.56
+CIC18,0,owad,Infiltration - Dropbox Download,85,0.0,False,0.15294117647058825
+CIC18,0,owad,Infiltration - NMAP Portscan,643,0.22278395228915746,False,0.03
+CIC18,0,owad,Web Attack - Brute Force,131,,True,0.0
+CIC18,0,owad,Web Attack - SQL,39,,True,0.0
+CIC18,0,owad,Web Attack - XSS,113,,True,0.0
+CIC18,0,knn,Botnet Ares,846,0.0,False,0.99
+CIC18,0,knn,DDoS-HOIC,6887,0.0019730075200398763,False,0.9
+CIC18,0,knn,DDoS-LOIC-HTTP,1803,0.0,False,1.0
+CIC18,0,knn,DDoS-LOIC-UDP,575,0.0,False,1.0
+CIC18,0,knn,Infiltration - Communication Victim Attacker,204,0.0,False,1.0
+CIC18,0,knn,Infiltration - Dropbox Download,85,0.0,False,0.24705882352941178
+CIC18,0,knn,Infiltration - NMAP Portscan,643,0.0,False,0.89
+CIC18,0,knn,Web Attack - Brute Force,131,0.010349207520484925,False,0.99
+CIC18,0,knn,Web Attack - SQL,39,,True,0.0
+CIC18,0,knn,Web Attack - XSS,113,0.0,False,1.0
+CIC18,1,ernp_K5A,Botnet Ares,883,0.0,False,1.0
+CIC18,1,ernp_K5A,DDoS-HOIC,6798,0.0,False,1.0
+CIC18,1,ernp_K5A,DDoS-LOIC-HTTP,1863,0.0,False,1.0
+CIC18,1,ernp_K5A,DDoS-LOIC-UDP,639,0.0,False,1.0
+CIC18,1,ernp_K5A,Infiltration - Communication Victim Attacker,204,0.03617215341991849,False,0.52
+CIC18,1,ernp_K5A,Infiltration - Dropbox Download,85,0.08411679360601637,False,0.18823529411764706
+CIC18,1,ernp_K5A,Infiltration - NMAP Portscan,632,0.0,False,0.86
+CIC18,1,ernp_K5A,Web Attack - Brute Force,131,0.04197800113095178,False,0.61
+CIC18,1,ernp_K5A,Web Attack - SQL,39,0.016658423609203762,False,0.7948717948717948
+CIC18,1,ernp_K5A,Web Attack - XSS,113,0.014947559502389697,False,0.88
+CIC18,1,ssf_causal,Botnet Ares,883,0.5010528641276889,False,0.21
+CIC18,1,ssf_causal,DDoS-HOIC,6798,0.0020746786064571804,False,0.74
+CIC18,1,ssf_causal,DDoS-LOIC-HTTP,1863,0.005310632586479187,False,0.65
+CIC18,1,ssf_causal,DDoS-LOIC-UDP,639,,True,0.0
+CIC18,1,ssf_causal,Infiltration - Communication Victim Attacker,204,,True,0.0
+CIC18,1,ssf_causal,Infiltration - Dropbox Download,85,,True,0.0
+CIC18,1,ssf_causal,Infiltration - NMAP Portscan,632,0.40178894089327916,False,0.0
+CIC18,1,ssf_causal,Web Attack - Brute Force,131,,True,0.0
+CIC18,1,ssf_causal,Web Attack - SQL,39,,True,0.0
+CIC18,1,ssf_causal,Web Attack - XSS,113,,True,0.0
+CIC18,1,cade,Botnet Ares,883,0.9086429699924257,False,0.0
+CIC18,1,cade,DDoS-HOIC,6798,0.0,False,0.98
+CIC18,1,cade,DDoS-LOIC-HTTP,1863,0.0,False,1.0
+CIC18,1,cade,DDoS-LOIC-UDP,639,0.0,False,1.0
+CIC18,1,cade,Infiltration - Communication Victim Attacker,204,0.0,False,0.91
+CIC18,1,cade,Infiltration - Dropbox Download,85,0.0,False,0.23529411764705882
+CIC18,1,cade,Infiltration - NMAP Portscan,632,0.030688597758611044,False,0.94
+CIC18,1,cade,Web Attack - Brute Force,131,,True,0.0
+CIC18,1,cade,Web Attack - SQL,39,,True,0.0
+CIC18,1,cade,Web Attack - XSS,113,,True,0.0
+CIC18,1,trident,Botnet Ares,883,0.0,False,1.0
+CIC18,1,trident,DDoS-HOIC,6798,0.0,False,1.0
+CIC18,1,trident,DDoS-LOIC-HTTP,1863,0.0,False,1.0
+CIC18,1,trident,DDoS-LOIC-UDP,639,0.0,False,1.0
+CIC18,1,trident,Infiltration - Communication Victim Attacker,204,0.0,False,1.0
+CIC18,1,trident,Infiltration - Dropbox Download,85,0.0,False,0.5176470588235295
+CIC18,1,trident,Infiltration - NMAP Portscan,632,0.0,False,1.0
+CIC18,1,trident,Web Attack - Brute Force,131,0.010349207520484925,False,0.99
+CIC18,1,trident,Web Attack - SQL,39,0.07328841772344377,False,0.10256410256410256
+CIC18,1,trident,Web Attack - XSS,113,0.0,False,1.0
+CIC18,1,memstream,Botnet Ares,883,0.0,False,1.0
+CIC18,1,memstream,DDoS-HOIC,6798,0.0,False,0.88
+CIC18,1,memstream,DDoS-LOIC-HTTP,1863,0.033842972848150465,False,0.09
+CIC18,1,memstream,DDoS-LOIC-UDP,639,0.0,False,1.0
+CIC18,1,memstream,Infiltration - Communication Victim Attacker,204,0.18998177746931713,False,0.46
+CIC18,1,memstream,Infiltration - Dropbox Download,85,,True,0.0
+CIC18,1,memstream,Infiltration - NMAP Portscan,632,0.0,False,0.71
+CIC18,1,memstream,Web Attack - Brute Force,131,,True,0.0
+CIC18,1,memstream,Web Attack - SQL,39,,True,0.0
+CIC18,1,memstream,Web Attack - XSS,113,,True,0.0
+CIC18,1,owad,Botnet Ares,883,0.9339874574873183,False,0.0
+CIC18,1,owad,DDoS-HOIC,6798,,True,0.0
+CIC18,1,owad,DDoS-LOIC-HTTP,1863,,True,0.0
+CIC18,1,owad,DDoS-LOIC-UDP,639,0.0,False,1.0
+CIC18,1,owad,Infiltration - Communication Victim Attacker,204,0.07268285943402185,False,0.24
+CIC18,1,owad,Infiltration - Dropbox Download,85,0.0,False,0.15294117647058825
+CIC18,1,owad,Infiltration - NMAP Portscan,632,0.1162441994746526,False,0.01
+CIC18,1,owad,Web Attack - Brute Force,131,,True,0.0
+CIC18,1,owad,Web Attack - SQL,39,,True,0.0
+CIC18,1,owad,Web Attack - XSS,113,,True,0.0
+CIC18,1,knn,Botnet Ares,883,0.0,False,1.0
+CIC18,1,knn,DDoS-HOIC,6798,0.0017362538311216566,False,0.85
+CIC18,1,knn,DDoS-LOIC-HTTP,1863,0.0,False,1.0
+CIC18,1,knn,DDoS-LOIC-UDP,639,0.0,False,1.0
+CIC18,1,knn,Infiltration - Communication Victim Attacker,204,0.0,False,1.0
+CIC18,1,knn,Infiltration - Dropbox Download,85,0.0,False,0.3058823529411765
+CIC18,1,knn,Infiltration - NMAP Portscan,632,0.0,False,0.9
+CIC18,1,knn,Web Attack - Brute Force,131,0.010349207520484925,False,0.99
+CIC18,1,knn,Web Attack - SQL,39,,True,0.0
+CIC18,1,knn,Web Attack - XSS,113,0.0,False,1.0
+CIC18,2,ernp_K5A,Botnet Ares,900,0.0,False,1.0
+CIC18,2,ernp_K5A,DDoS-HOIC,6970,0.0,False,1.0
+CIC18,2,ernp_K5A,DDoS-LOIC-HTTP,1930,0.0,False,1.0
+CIC18,2,ernp_K5A,DDoS-LOIC-UDP,598,0.0,False,1.0
+CIC18,2,ernp_K5A,Infiltration - Communication Victim Attacker,204,0.18998177746931713,False,0.31
+CIC18,2,ernp_K5A,Infiltration - Dropbox Download,85,0.08411679360601637,False,0.21176470588235294
+CIC18,2,ernp_K5A,Infiltration - NMAP Portscan,636,0.0,False,0.83
+CIC18,2,ernp_K5A,Web Attack - Brute Force,131,0.02591946972741021,False,0.98
+CIC18,2,ernp_K5A,Web Attack - SQL,39,0.016658423609203762,False,0.5641025641025641
+CIC18,2,ernp_K5A,Web Attack - XSS,113,0.014947559502389697,False,0.97
+CIC18,2,ssf_causal,Botnet Ares,900,0.5679562919669681,False,0.01
+CIC18,2,ssf_causal,DDoS-HOIC,6970,0.0022917219665315415,False,0.78
+CIC18,2,ssf_causal,DDoS-LOIC-HTTP,1930,0.012803607516818576,False,0.49
+CIC18,2,ssf_causal,DDoS-LOIC-UDP,598,,True,0.0
+CIC18,2,ssf_causal,Infiltration - Communication Victim Attacker,204,,True,0.0
+CIC18,2,ssf_causal,Infiltration - Dropbox Download,85,,True,0.0
+CIC18,2,ssf_causal,Infiltration - NMAP Portscan,636,3.363420269224379,False,0.0
+CIC18,2,ssf_causal,Web Attack - Brute Force,131,,True,0.0
+CIC18,2,ssf_causal,Web Attack - SQL,39,,True,0.0
+CIC18,2,ssf_causal,Web Attack - XSS,113,,True,0.0
+CIC18,2,cade,Botnet Ares,900,0.5286052914460501,False,0.18
+CIC18,2,cade,DDoS-HOIC,6970,0.0,False,0.99
+CIC18,2,cade,DDoS-LOIC-HTTP,1930,0.0,False,1.0
+CIC18,2,cade,DDoS-LOIC-UDP,598,0.0,False,1.0
+CIC18,2,cade,Infiltration - Communication Victim Attacker,204,0.0,False,0.91
+CIC18,2,cade,Infiltration - Dropbox Download,85,0.0,False,0.3176470588235294
+CIC18,2,cade,Infiltration - NMAP Portscan,636,0.03215571244557699,False,0.97
+CIC18,2,cade,Web Attack - Brute Force,131,0.010349207520484925,False,0.02
+CIC18,2,cade,Web Attack - SQL,39,0.025957107742627463,False,0.2564102564102564
+CIC18,2,cade,Web Attack - XSS,113,0.0,False,0.04
+CIC18,2,trident,Botnet Ares,900,0.0,False,1.0
+CIC18,2,trident,DDoS-HOIC,6970,0.0,False,0.99
+CIC18,2,trident,DDoS-LOIC-HTTP,1930,0.0,False,1.0
+CIC18,2,trident,DDoS-LOIC-UDP,598,0.0,False,1.0
+CIC18,2,trident,Infiltration - Communication Victim Attacker,204,0.0,False,1.0
+CIC18,2,trident,Infiltration - Dropbox Download,85,0.0,False,0.5411764705882353
+CIC18,2,trident,Infiltration - NMAP Portscan,636,0.0,False,1.0
+CIC18,2,trident,Web Attack - Brute Force,131,0.0,False,1.0
+CIC18,2,trident,Web Attack - SQL,39,0.0,False,0.9487179487179487
+CIC18,2,trident,Web Attack - XSS,113,0.0,False,1.0
+CIC18,2,memstream,Botnet Ares,900,1.155793654786216,False,0.0
+CIC18,2,memstream,DDoS-HOIC,6970,,True,0.0
+CIC18,2,memstream,DDoS-LOIC-HTTP,1930,,True,0.0
+CIC18,2,memstream,DDoS-LOIC-UDP,598,0.0,False,1.0
+CIC18,2,memstream,Infiltration - Communication Victim Attacker,204,24.715994173089662,False,0.01
+CIC18,2,memstream,Infiltration - Dropbox Download,85,,True,0.0
+CIC18,2,memstream,Infiltration - NMAP Portscan,636,0.0,False,0.4
+CIC18,2,memstream,Web Attack - Brute Force,131,,True,0.0
+CIC18,2,memstream,Web Attack - SQL,39,,True,0.0
+CIC18,2,memstream,Web Attack - XSS,113,,True,0.0
+CIC18,2,owad,Botnet Ares,900,5.452640330592791,False,0.0
+CIC18,2,owad,DDoS-HOIC,6970,,True,0.0
+CIC18,2,owad,DDoS-LOIC-HTTP,1930,,True,0.0
+CIC18,2,owad,DDoS-LOIC-UDP,598,0.0,False,1.0
+CIC18,2,owad,Infiltration - Communication Victim Attacker,204,0.0,False,0.53
+CIC18,2,owad,Infiltration - Dropbox Download,85,0.0,False,0.15294117647058825
+CIC18,2,owad,Infiltration - NMAP Portscan,636,0.6901885627375709,False,0.0
+CIC18,2,owad,Web Attack - Brute Force,131,,True,0.0
+CIC18,2,owad,Web Attack - SQL,39,,True,0.0
+CIC18,2,owad,Web Attack - XSS,113,,True,0.0
+CIC18,2,knn,Botnet Ares,900,0.0,False,0.98
+CIC18,2,knn,DDoS-HOIC,6970,0.0022917219665315415,False,0.77
+CIC18,2,knn,DDoS-LOIC-HTTP,1930,0.0,False,1.0
+CIC18,2,knn,DDoS-LOIC-UDP,598,0.0,False,1.0
+CIC18,2,knn,Infiltration - Communication Victim Attacker,204,0.0,False,1.0
+CIC18,2,knn,Infiltration - Dropbox Download,85,0.0,False,0.29411764705882354
+CIC18,2,knn,Infiltration - NMAP Portscan,636,0.0,False,0.81
+CIC18,2,knn,Web Attack - Brute Force,131,0.010349207520484925,False,0.99
+CIC18,2,knn,Web Attack - SQL,39,,True,0.0
+CIC18,2,knn,Web Attack - XSS,113,0.0,False,1.0
+CIC18,3,ernp_K5A,Botnet Ares,958,0.0,False,1.0
+CIC18,3,ernp_K5A,DDoS-HOIC,6989,0.0,False,1.0
+CIC18,3,ernp_K5A,DDoS-LOIC-HTTP,1802,0.0,False,1.0
+CIC18,3,ernp_K5A,DDoS-LOIC-UDP,559,0.0,False,1.0
+CIC18,3,ernp_K5A,Infiltration - Communication Victim Attacker,204,0.11340657134850819,False,0.36
+CIC18,3,ernp_K5A,Infiltration - Dropbox Download,85,0.08411679360601637,False,0.18823529411764706
+CIC18,3,ernp_K5A,Infiltration - NMAP Portscan,572,0.0343835711479187,False,0.86
+CIC18,3,ernp_K5A,Web Attack - Brute Force,131,0.02591946972741021,False,0.98
+CIC18,3,ernp_K5A,Web Attack - SQL,39,0.0052588049570719405,False,0.8974358974358975
+CIC18,3,ernp_K5A,Web Attack - XSS,113,0.014947559502389697,False,0.99
+CIC18,3,ssf_causal,Botnet Ares,958,,True,0.0
+CIC18,3,ssf_causal,DDoS-HOIC,6989,0.0023965191841125487,False,0.76
+CIC18,3,ssf_causal,DDoS-LOIC-HTTP,1802,0.00222127894560496,False,0.57
+CIC18,3,ssf_causal,DDoS-LOIC-UDP,559,,True,0.0
+CIC18,3,ssf_causal,Infiltration - Communication Victim Attacker,204,,True,0.0
+CIC18,3,ssf_causal,Infiltration - Dropbox Download,85,,True,0.0
+CIC18,3,ssf_causal,Infiltration - NMAP Portscan,572,0.294771965874566,False,0.02
+CIC18,3,ssf_causal,Web Attack - Brute Force,131,,True,0.0
+CIC18,3,ssf_causal,Web Attack - SQL,39,,True,0.0
+CIC18,3,ssf_causal,Web Attack - XSS,113,,True,0.0
+CIC18,3,cade,Botnet Ares,958,0.5445975858635372,False,0.05
+CIC18,3,cade,DDoS-HOIC,6989,0.0,False,1.0
+CIC18,3,cade,DDoS-LOIC-HTTP,1802,0.0,False,1.0
+CIC18,3,cade,DDoS-LOIC-UDP,559,0.0,False,1.0
+CIC18,3,cade,Infiltration - Communication Victim Attacker,204,0.0,False,1.0
+CIC18,3,cade,Infiltration - Dropbox Download,85,0.0,False,0.4
+CIC18,3,cade,Infiltration - NMAP Portscan,572,0.0,False,0.96
+CIC18,3,cade,Web Attack - Brute Force,131,0.0,False,0.03
+CIC18,3,cade,Web Attack - SQL,39,,True,0.0
+CIC18,3,cade,Web Attack - XSS,113,0.0,False,0.52
+CIC18,3,trident,Botnet Ares,958,0.0,False,1.0
+CIC18,3,trident,DDoS-HOIC,6989,0.0023965191841125487,False,0.82
+CIC18,3,trident,DDoS-LOIC-HTTP,1802,0.0,False,1.0
+CIC18,3,trident,DDoS-LOIC-UDP,559,0.0,False,1.0
+CIC18,3,trident,Infiltration - Communication Victim Attacker,204,0.0,False,1.0
+CIC18,3,trident,Infiltration - Dropbox Download,85,0.0,False,0.6705882352941176
+CIC18,3,trident,Infiltration - NMAP Portscan,572,0.0,False,0.94
+CIC18,3,trident,Web Attack - Brute Force,131,0.0,False,1.0
+CIC18,3,trident,Web Attack - SQL,39,0.0,False,0.3333333333333333
+CIC18,3,trident,Web Attack - XSS,113,0.0,False,1.0
+CIC18,3,memstream,Botnet Ares,958,,True,0.0
+CIC18,3,memstream,DDoS-HOIC,6989,,True,0.0
+CIC18,3,memstream,DDoS-LOIC-HTTP,1802,,True,0.0
+CIC18,3,memstream,DDoS-LOIC-UDP,559,0.0,False,0.91
+CIC18,3,memstream,Infiltration - Communication Victim Attacker,204,24.715994173089662,False,0.01
+CIC18,3,memstream,Infiltration - Dropbox Download,85,,True,0.0
+CIC18,3,memstream,Infiltration - NMAP Portscan,572,0.03441538916693793,False,0.48
+CIC18,3,memstream,Web Attack - Brute Force,131,,True,0.0
+CIC18,3,memstream,Web Attack - SQL,39,,True,0.0
+CIC18,3,memstream,Web Attack - XSS,113,,True,0.0
+CIC18,3,owad,Botnet Ares,958,1.0389995374944474,False,0.0
+CIC18,3,owad,DDoS-HOIC,6989,,True,0.0
+CIC18,3,owad,DDoS-LOIC-HTTP,1802,,True,0.0
+CIC18,3,owad,DDoS-LOIC-UDP,559,0.0,False,1.0
+CIC18,3,owad,Infiltration - Communication Victim Attacker,204,0.0,False,0.56
+CIC18,3,owad,Infiltration - Dropbox Download,85,0.0,False,0.15294117647058825
+CIC18,3,owad,Infiltration - NMAP Portscan,572,0.35181455890337626,False,0.02
+CIC18,3,owad,Web Attack - Brute Force,131,,True,0.0
+CIC18,3,owad,Web Attack - SQL,39,,True,0.0
+CIC18,3,owad,Web Attack - XSS,113,,True,0.0
+CIC18,3,knn,Botnet Ares,958,0.0,False,0.99
+CIC18,3,knn,DDoS-HOIC,6989,0.001632508635520935,False,0.86
+CIC18,3,knn,DDoS-LOIC-HTTP,1802,0.0,False,1.0
+CIC18,3,knn,DDoS-LOIC-UDP,559,0.0,False,1.0
+CIC18,3,knn,Infiltration - Communication Victim Attacker,204,0.0,False,1.0
+CIC18,3,knn,Infiltration - Dropbox Download,85,0.0,False,0.3058823529411765
+CIC18,3,knn,Infiltration - NMAP Portscan,572,0.0,False,0.86
+CIC18,3,knn,Web Attack - Brute Force,131,0.010349207520484925,False,0.99
+CIC18,3,knn,Web Attack - SQL,39,,True,0.0
+CIC18,3,knn,Web Attack - XSS,113,0.0,False,1.0
+CIC18,4,ernp_K5A,Botnet Ares,907,0.0,False,1.0
+CIC18,4,ernp_K5A,DDoS-HOIC,6817,0.0,False,1.0
+CIC18,4,ernp_K5A,DDoS-LOIC-HTTP,1765,0.0,False,1.0
+CIC18,4,ernp_K5A,DDoS-LOIC-UDP,601,0.0,False,1.0
+CIC18,4,ernp_K5A,Infiltration - Communication Victim Attacker,204,0.11340657134850819,False,0.31
+CIC18,4,ernp_K5A,Infiltration - Dropbox Download,85,0.08411679360601637,False,0.2235294117647059
+CIC18,4,ernp_K5A,Infiltration - NMAP Portscan,617,0.0482810433043374,False,0.89
+CIC18,4,ernp_K5A,Web Attack - Brute Force,131,0.010349207520484925,False,0.99
+CIC18,4,ernp_K5A,Web Attack - SQL,39,0.016658423609203762,False,0.6666666666666666
+CIC18,4,ernp_K5A,Web Attack - XSS,113,0.0,False,1.0
+CIC18,4,ssf_causal,Botnet Ares,907,0.8725830968883302,False,0.0
+CIC18,4,ssf_causal,DDoS-HOIC,6817,0.002360878056950039,False,0.82
+CIC18,4,ssf_causal,DDoS-LOIC-HTTP,1765,0.015018283923467001,False,0.58
+CIC18,4,ssf_causal,DDoS-LOIC-UDP,601,20.909352796342638,False,0.0
+CIC18,4,ssf_causal,Infiltration - Communication Victim Attacker,204,,True,0.0
+CIC18,4,ssf_causal,Infiltration - Dropbox Download,85,,True,0.0
+CIC18,4,ssf_causal,Infiltration - NMAP Portscan,617,0.3099587047100067,False,0.01
+CIC18,4,ssf_causal,Web Attack - Brute Force,131,,True,0.0
+CIC18,4,ssf_causal,Web Attack - SQL,39,,True,0.0
+CIC18,4,ssf_causal,Web Attack - XSS,113,,True,0.0
+CIC18,4,cade,Botnet Ares,907,0.0,False,1.0
+CIC18,4,cade,DDoS-HOIC,6817,0.0,False,1.0
+CIC18,4,cade,DDoS-LOIC-HTTP,1765,0.0,False,1.0
+CIC18,4,cade,DDoS-LOIC-UDP,601,0.0,False,1.0
+CIC18,4,cade,Infiltration - Communication Victim Attacker,204,0.0,False,1.0
+CIC18,4,cade,Infiltration - Dropbox Download,85,0.0,False,0.4470588235294118
+CIC18,4,cade,Infiltration - NMAP Portscan,617,0.017128298017713758,False,0.99
+CIC18,4,cade,Web Attack - Brute Force,131,0.02591946972741021,False,0.98
+CIC18,4,cade,Web Attack - SQL,39,,True,0.0
+CIC18,4,cade,Web Attack - XSS,113,0.0,False,1.0
+CIC18,4,trident,Botnet Ares,907,0.0,False,1.0
+CIC18,4,trident,DDoS-HOIC,6817,0.0,False,1.0
+CIC18,4,trident,DDoS-LOIC-HTTP,1765,0.0,False,1.0
+CIC18,4,trident,DDoS-LOIC-UDP,601,0.0,False,1.0
+CIC18,4,trident,Infiltration - Communication Victim Attacker,204,0.0,False,1.0
+CIC18,4,trident,Infiltration - Dropbox Download,85,0.0,False,0.7294117647058823
+CIC18,4,trident,Infiltration - NMAP Portscan,617,0.0,False,1.0
+CIC18,4,trident,Web Attack - Brute Force,131,0.0,False,1.0
+CIC18,4,trident,Web Attack - SQL,39,0.0,False,1.0
+CIC18,4,trident,Web Attack - XSS,113,0.0,False,1.0
+CIC18,4,memstream,Botnet Ares,907,0.0,False,1.0
+CIC18,4,memstream,DDoS-HOIC,6817,0.004826385246382819,False,0.23
+CIC18,4,memstream,DDoS-LOIC-HTTP,1765,0.061636758049329124,False,0.0
+CIC18,4,memstream,DDoS-LOIC-UDP,601,0.0,False,1.0
+CIC18,4,memstream,Infiltration - Communication Victim Attacker,204,0.18998177746931713,False,0.38
+CIC18,4,memstream,Infiltration - Dropbox Download,85,,True,0.0
+CIC18,4,memstream,Infiltration - NMAP Portscan,617,0.048293816645940145,False,0.59
+CIC18,4,memstream,Web Attack - Brute Force,131,,True,0.0
+CIC18,4,memstream,Web Attack - SQL,39,,True,0.0
+CIC18,4,memstream,Web Attack - XSS,113,,True,0.0
+CIC18,4,owad,Botnet Ares,907,0.8725830968883302,False,0.0
+CIC18,4,owad,DDoS-HOIC,6817,,True,0.0
+CIC18,4,owad,DDoS-LOIC-HTTP,1765,,True,0.0
+CIC18,4,owad,DDoS-LOIC-UDP,601,0.0,False,1.0
+CIC18,4,owad,Infiltration - Communication Victim Attacker,204,0.0,False,0.54
+CIC18,4,owad,Infiltration - Dropbox Download,85,0.0,False,0.15294117647058825
+CIC18,4,owad,Infiltration - NMAP Portscan,617,0.05718869553671943,False,0.02
+CIC18,4,owad,Web Attack - Brute Force,131,,True,0.0
+CIC18,4,owad,Web Attack - SQL,39,,True,0.0
+CIC18,4,owad,Web Attack - XSS,113,,True,0.0
+CIC18,4,knn,Botnet Ares,907,0.0,False,1.0
+CIC18,4,knn,DDoS-HOIC,6817,0.001615991923544142,False,0.88
+CIC18,4,knn,DDoS-LOIC-HTTP,1765,0.0,False,1.0
+CIC18,4,knn,DDoS-LOIC-UDP,601,0.0,False,1.0
+CIC18,4,knn,Infiltration - Communication Victim Attacker,204,0.0,False,1.0
+CIC18,4,knn,Infiltration - Dropbox Download,85,0.0,False,0.3058823529411765
+CIC18,4,knn,Infiltration - NMAP Portscan,617,0.017128298017713758,False,0.87
+CIC18,4,knn,Web Attack - Brute Force,131,0.010349207520484925,False,0.99
+CIC18,4,knn,Web Attack - SQL,39,,True,0.0
+CIC18,4,knn,Web Attack - XSS,113,0.0,False,1.0
+CTU13,0,ernp_K5A,Menti,619,0.0,False,0.97
+CTU13,0,ernp_K5A,Murlo,607,0.3863629142443339,False,0.48
+CTU13,0,ernp_K5A,NSIS.ay,604,0.03207759810818566,False,0.04
+CTU13,0,ernp_K5A,Rbot,2826,0.0,False,0.99
+CTU13,0,ernp_K5A,Sogou,63,0.0,False,0.09523809523809523
+CTU13,0,ernp_K5A,Virut,804,0.05988363418314192,False,0.53
+CTU13,0,ssf_causal,Menti,619,0.005256515542666118,False,0.79
+CTU13,0,ssf_causal,Murlo,607,0.3863629142443339,False,0.44
+CTU13,0,ssf_causal,NSIS.ay,604,,True,0.0
+CTU13,0,ssf_causal,Rbot,2826,0.0,False,0.9
+CTU13,0,ssf_causal,Sogou,63,0.05510464198059506,False,0.015873015873015872
+CTU13,0,ssf_causal,Virut,804,0.49308157444000245,False,0.18
+CTU13,0,cade,Menti,619,0.0,False,0.99
+CTU13,0,cade,Murlo,607,0.06621067225933075,False,0.64
+CTU13,0,cade,NSIS.ay,604,0.0,False,0.55
+CTU13,0,cade,Rbot,2826,0.0,False,0.99
+CTU13,0,cade,Sogou,63,0.0006291469600465563,False,0.5238095238095238
+CTU13,0,cade,Virut,804,0.0,False,0.86
+CTU13,0,trident,Menti,619,0.0,False,0.94
+CTU13,0,trident,Murlo,607,0.3863629142443339,False,0.48
+CTU13,0,trident,NSIS.ay,604,0.013657756116655137,False,0.05
+CTU13,0,trident,Rbot,2826,0.0,False,1.0
+CTU13,0,trident,Sogou,63,0.0006291469600465563,False,0.14285714285714285
+CTU13,0,trident,Virut,804,0.05988363418314192,False,0.71
+CTU13,0,memstream,Menti,619,,True,0.0
+CTU13,0,memstream,Murlo,607,,True,0.0
+CTU13,0,memstream,NSIS.ay,604,,True,0.0
+CTU13,0,memstream,Rbot,2826,,True,0.0
+CTU13,0,memstream,Sogou,63,,True,0.0
+CTU13,0,memstream,Virut,804,,True,0.0
+CTU13,0,owad,Menti,619,,True,0.0
+CTU13,0,owad,Murlo,607,,True,0.0
+CTU13,0,owad,NSIS.ay,604,0.013657756116655137,False,0.02
+CTU13,0,owad,Rbot,2826,110.6947016891506,False,0.0
+CTU13,0,owad,Sogou,63,0.06173854139116075,False,0.015873015873015872
+CTU13,0,owad,Virut,804,0.19942092418670654,False,0.02
+CTU13,0,knn,Menti,619,0.4258639611138238,False,0.0
+CTU13,0,knn,Murlo,607,0.33403455668025545,False,0.08
+CTU13,0,knn,NSIS.ay,604,0.013657756116655137,False,0.15
+CTU13,0,knn,Rbot,2826,24.279067996674115,False,0.03
+CTU13,0,knn,Sogou,63,0.05558609578344557,False,0.07936507936507936
+CTU13,0,knn,Virut,804,0.0,False,0.15
+CTU13,1,ernp_K5A,Menti,566,0.0,False,1.0
+CTU13,1,ernp_K5A,Murlo,588,0.3857715097400877,False,0.53
+CTU13,1,ernp_K5A,NSIS.ay,639,0.010957605838775634,False,0.07
+CTU13,1,ernp_K5A,Rbot,2934,24.880452466607093,False,0.98
+CTU13,1,ernp_K5A,Sogou,63,0.05510464198059506,False,0.09523809523809523
+CTU13,1,ernp_K5A,Virut,851,0.021881720887290106,False,0.71
+CTU13,1,ssf_causal,Menti,566,0.1362796022494634,False,0.78
+CTU13,1,ssf_causal,Murlo,588,0.3858198336760203,False,0.52
+CTU13,1,ssf_causal,NSIS.ay,639,0.13155143221219381,False,0.0
+CTU13,1,ssf_causal,Rbot,2934,24.880452466607093,False,0.98
+CTU13,1,ssf_causal,Sogou,63,0.05510464198059506,False,0.015873015873015872
+CTU13,1,ssf_causal,Virut,851,0.27413423677285514,False,0.2
+CTU13,1,cade,Menti,566,0.13102292776107788,False,0.95
+CTU13,1,cade,Murlo,588,0.0,False,0.72
+CTU13,1,cade,NSIS.ay,639,3.1674570507473414e-06,False,0.24
+CTU13,1,cade,Rbot,2934,0.0,False,1.0
+CTU13,1,cade,Sogou,63,0.0006291469600465563,False,0.6031746031746031
+CTU13,1,cade,Virut,851,0.0,False,0.83
+CTU13,1,trident,Menti,566,0.13102272808551788,False,0.91
+CTU13,1,trident,Murlo,588,0.0,False,0.51
+CTU13,1,trident,NSIS.ay,639,3.1674570507473414e-06,False,0.18
+CTU13,1,trident,Rbot,2934,0.0,False,1.0
+CTU13,1,trident,Sogou,63,0.0006291469600465563,False,0.5079365079365079
+CTU13,1,trident,Virut,851,0.021881720887290106,False,0.61
+CTU13,1,memstream,Menti,566,,True,0.0
+CTU13,1,memstream,Murlo,588,,True,0.0
+CTU13,1,memstream,NSIS.ay,639,,True,0.0
+CTU13,1,memstream,Rbot,2934,137.58709357301393,False,0.0
+CTU13,1,memstream,Sogou,63,,True,0.0
+CTU13,1,memstream,Virut,851,,True,0.0
+CTU13,1,owad,Menti,566,,True,0.0
+CTU13,1,owad,Murlo,588,,True,0.0
+CTU13,1,owad,NSIS.ay,639,0.0006844749715593126,False,0.05
+CTU13,1,owad,Rbot,2934,135.72213864439064,False,0.0
+CTU13,1,owad,Sogou,63,0.06173854139116075,False,0.015873015873015872
+CTU13,1,owad,Virut,851,0.18135867562558916,False,0.01
+CTU13,1,knn,Menti,566,0.1743346924914254,False,0.02
+CTU13,1,knn,Murlo,588,0.3505633178022173,False,0.04
+CTU13,1,knn,NSIS.ay,639,0.0006844749715593126,False,0.15
+CTU13,1,knn,Rbot,2934,0.0,False,0.02
+CTU13,1,knn,Sogou,63,0.0014044897423850166,False,0.015873015873015872
+CTU13,1,knn,Virut,851,0.1665345647599962,False,0.07
+CTU13,2,ernp_K5A,Menti,556,0.13087961355845135,False,0.98
+CTU13,2,ernp_K5A,Murlo,601,0.3650527099768321,False,0.62
+CTU13,2,ernp_K5A,NSIS.ay,605,0.011922258800930447,False,0.05
+CTU13,2,ernp_K5A,Rbot,2911,25.05821260035038,False,0.99
+CTU13,2,ernp_K5A,Sogou,63,0.05510464198059506,False,0.06349206349206349
+CTU13,2,ernp_K5A,Virut,786,0.04095559305614895,False,0.58
+CTU13,2,ssf_causal,Menti,556,0.13623254776000976,False,0.82
+CTU13,2,ssf_causal,Murlo,601,0.4778928811682595,False,0.62
+CTU13,2,ssf_causal,NSIS.ay,605,0.05869664967060089,False,0.0
+CTU13,2,ssf_causal,Rbot,2911,25.05821260035038,False,0.85
+CTU13,2,ssf_causal,Sogou,63,0.05510464198059506,False,0.015873015873015872
+CTU13,2,ssf_causal,Virut,786,0.5054459281100168,False,0.09
+CTU13,2,cade,Menti,556,0.1309757533338335,False,0.92
+CTU13,2,cade,Murlo,601,0.03983530084292094,False,0.65
+CTU13,2,cade,NSIS.ay,605,0.01159406218263838,False,0.02
+CTU13,2,cade,Rbot,2911,25.05821260035038,False,0.99
+CTU13,2,cade,Sogou,63,0.05510464198059506,False,0.09523809523809523
+CTU13,2,cade,Virut,786,0.04095559305614895,False,0.7
+CTU13,2,trident,Menti,556,0.0,False,0.96
+CTU13,2,trident,Murlo,601,0.03983530084292094,False,0.75
+CTU13,2,trident,NSIS.ay,605,0.0006402466032240125,False,0.36
+CTU13,2,trident,Rbot,2911,0.0,False,1.0
+CTU13,2,trident,Sogou,63,0.0006291469600465563,False,0.5714285714285714
+CTU13,2,trident,Virut,786,0.04095559305614895,False,0.49
+CTU13,2,memstream,Menti,556,,True,0.0
+CTU13,2,memstream,Murlo,601,,True,0.0
+CTU13,2,memstream,NSIS.ay,605,,True,0.0
+CTU13,2,memstream,Rbot,2911,136.12479936811658,False,0.0
+CTU13,2,memstream,Sogou,63,,True,0.0
+CTU13,2,memstream,Virut,786,,True,0.0
+CTU13,2,owad,Menti,556,0.13032860027419196,False,0.01
+CTU13,2,owad,Murlo,601,0.09903193195660909,False,0.01
+CTU13,2,owad,NSIS.ay,605,0.012478916115230984,False,0.06
+CTU13,2,owad,Rbot,2911,63.781780505047905,False,0.0
+CTU13,2,owad,Sogou,63,0.06173854139116075,False,0.015873015873015872
+CTU13,2,owad,Virut,786,0.06255043778154586,False,0.02
+CTU13,2,knn,Menti,556,0.35955505192279813,False,0.01
+CTU13,2,knn,Murlo,601,0.42556162582503426,False,0.07
+CTU13,2,knn,NSIS.ay,605,0.01548964023590088,False,0.12
+CTU13,2,knn,Rbot,2911,49.42443775700198,False,0.0
+CTU13,2,knn,Sogou,63,0.05558609578344557,False,0.047619047619047616
+CTU13,2,knn,Virut,786,0.06255043778154586,False,0.07
+CTU13,3,ernp_K5A,Menti,587,0.0,False,0.98
+CTU13,3,ernp_K5A,Murlo,583,0.1344256256024043,False,0.56
+CTU13,3,ernp_K5A,NSIS.ay,566,0.03211385422282749,False,0.05
+CTU13,3,ernp_K5A,Rbot,2909,25.023217749794323,False,0.98
+CTU13,3,ernp_K5A,Sogou,63,0.05510464198059506,False,0.047619047619047616
+CTU13,3,ernp_K5A,Virut,808,0.03602166950702667,False,0.66
+CTU13,3,ssf_causal,Menti,587,0.005256869461801317,False,0.88
+CTU13,3,ssf_causal,Murlo,583,0.44140575501653884,False,0.53
+CTU13,3,ssf_causal,NSIS.ay,566,0.131547975341479,False,0.0
+CTU13,3,ssf_causal,Rbot,2909,25.023217749794323,False,0.91
+CTU13,3,ssf_causal,Sogou,63,0.05510464198059506,False,0.015873015873015872
+CTU13,3,ssf_causal,Virut,808,0.2752787128421995,False,0.26
+CTU13,3,cade,Menti,587,0.0,False,0.98
+CTU13,3,cade,Murlo,583,0.1244952400525411,False,0.57
+CTU13,3,cade,NSIS.ay,566,0.021519513660007053,False,0.03
+CTU13,3,cade,Rbot,2909,25.023217749794323,False,0.99
+CTU13,3,cade,Sogou,63,0.0014044897423850166,False,0.14285714285714285
+CTU13,3,cade,Virut,808,0.03602166950702667,False,0.81
+CTU13,3,trident,Menti,587,0.0,False,0.98
+CTU13,3,trident,Murlo,583,0.12124421861436632,False,0.58
+CTU13,3,trident,NSIS.ay,566,0.0,False,0.27
+CTU13,3,trident,Rbot,2909,25.023217749794323,False,0.99
+CTU13,3,trident,Sogou,63,0.0006291469600465563,False,0.4603174603174603
+CTU13,3,trident,Virut,808,0.03602166950702667,False,0.9
+CTU13,3,memstream,Menti,587,,True,0.0
+CTU13,3,memstream,Murlo,583,,True,0.0
+CTU13,3,memstream,NSIS.ay,566,,True,0.0
+CTU13,3,memstream,Rbot,2909,,True,0.0
+CTU13,3,memstream,Sogou,63,,True,0.0
+CTU13,3,memstream,Virut,808,,True,0.0
+CTU13,3,owad,Menti,587,,True,0.0
+CTU13,3,owad,Murlo,583,,True,0.0
+CTU13,3,owad,NSIS.ay,566,0.014701121714380053,False,0.02
+CTU13,3,owad,Rbot,2909,135.74806294785606,False,0.0
+CTU13,3,owad,Sogou,63,0.06173854139116075,False,0.015873015873015872
+CTU13,3,owad,Virut,808,0.8489919494258032,False,0.01
+CTU13,3,knn,Menti,587,1.2228234816259809,False,0.0
+CTU13,3,knn,Murlo,583,0.1344256256024043,False,0.09
+CTU13,3,knn,NSIS.ay,566,0.0008477028210957846,False,0.2
+CTU13,3,knn,Rbot,2909,49.26735083540281,False,0.03
+CTU13,3,knn,Sogou,63,0.0014044897423850166,False,0.047619047619047616
+CTU13,3,knn,Virut,808,0.06809941973951128,False,0.08
+CTU13,4,ernp_K5A,Menti,632,0.0053529667192035255,False,0.94
+CTU13,4,ernp_K5A,Murlo,613,0.4813309066825443,False,0.61
+CTU13,4,ernp_K5A,NSIS.ay,642,0.011752738025453355,False,0.08
+CTU13,4,ernp_K5A,Rbot,2955,0.0,False,0.99
+CTU13,4,ernp_K5A,Sogou,63,0.05510464198059506,False,0.07936507936507936
+CTU13,4,ernp_K5A,Virut,810,0.015131593876414828,False,0.62
+CTU13,4,ssf_causal,Menti,632,0.0053529667192035255,False,0.85
+CTU13,4,ssf_causal,Murlo,613,0.4813309066825443,False,0.58
+CTU13,4,ssf_causal,NSIS.ay,642,0.1417405335770713,False,0.0
+CTU13,4,ssf_causal,Rbot,2955,0.0,False,0.91
+CTU13,4,ssf_causal,Sogou,63,0.05510464198059506,False,0.015873015873015872
+CTU13,4,ssf_causal,Virut,810,0.015131593876414828,False,0.27
+CTU13,4,cade,Menti,632,2.7000904083251955e-07,False,0.99
+CTU13,4,cade,Murlo,613,0.26335236310958865,False,0.73
+CTU13,4,cade,NSIS.ay,642,0.03358365105258094,False,0.01
+CTU13,4,cade,Rbot,2955,0.0,False,1.0
+CTU13,4,cade,Sogou,63,0.05510464198059506,False,0.06349206349206349
+CTU13,4,cade,Virut,810,0.015131593876414828,False,0.71
+CTU13,4,trident,Menti,632,0.0053529667192035255,False,0.59
+CTU13,4,trident,Murlo,613,,True,0.0
+CTU13,4,trident,NSIS.ay,642,0.015859074725045098,False,0.05
+CTU13,4,trident,Rbot,2955,0.0,False,1.0
+CTU13,4,trident,Sogou,63,0.05510464198059506,False,0.06349206349206349
+CTU13,4,trident,Virut,810,0.015131593876414828,False,0.57
+CTU13,4,memstream,Menti,632,,True,0.0
+CTU13,4,memstream,Murlo,613,,True,0.0
+CTU13,4,memstream,NSIS.ay,642,,True,0.0
+CTU13,4,memstream,Rbot,2955,,True,0.0
+CTU13,4,memstream,Sogou,63,,True,0.0
+CTU13,4,memstream,Virut,810,,True,0.0
+CTU13,4,owad,Menti,632,,True,0.0
+CTU13,4,owad,Murlo,613,0.3298454988665051,False,0.01
+CTU13,4,owad,NSIS.ay,642,0.014689878026644388,False,0.05
+CTU13,4,owad,Rbot,2955,110.80670648607943,False,0.0
+CTU13,4,owad,Sogou,63,0.06173854139116075,False,0.015873015873015872
+CTU13,4,owad,Virut,810,0.08851168526543511,False,0.01
+CTU13,4,knn,Menti,632,0.03222492668363783,False,0.01
+CTU13,4,knn,Murlo,613,0.09943478365739186,False,0.08
+CTU13,4,knn,NSIS.ay,642,0.03394082579347822,False,0.12
+CTU13,4,knn,Rbot,2955,0.4586075008577771,False,0.05
+CTU13,4,knn,Sogou,63,0.0014044897423850166,False,0.031746031746031744
+CTU13,4,knn,Virut,810,0.08851168526543511,False,0.08
+SIMARGL,0,ernp_K5A,DoS RUDY,57388,0.0004533333248562283,False,0.99
+SIMARGL,0,ernp_K5A,DoS Slowloris,21705,0.0,False,1.0
+SIMARGL,0,ernp_K5A,FIN Scan,611,0.0,False,1.0
+SIMARGL,0,ernp_K5A,NULL Scan,586,0.0007283333275053236,False,0.9
+SIMARGL,0,ernp_K5A,UDP Scan,17458,0.0004477777745988634,False,0.94
+SIMARGL,0,ernp_K5A,XMAS Scan,597,0.0,False,1.0
+SIMARGL,0,ssf_causal,DoS RUDY,57388,0.0009411111142900255,False,0.95
+SIMARGL,0,ssf_causal,DoS Slowloris,21705,0.0,False,1.0
+SIMARGL,0,ssf_causal,FIN Scan,611,0.0,False,1.0
+SIMARGL,0,ssf_causal,NULL Scan,586,0.00757361114025116,False,0.63
+SIMARGL,0,ssf_causal,UDP Scan,17458,0.008827222254541186,False,0.0
+SIMARGL,0,ssf_causal,XMAS Scan,597,0.006151944398880005,False,0.5
+SIMARGL,0,cade,DoS RUDY,57388,0.06128944443331824,False,0.0
+SIMARGL,0,cade,DoS Slowloris,21705,,True,0.0
+SIMARGL,0,cade,FIN Scan,611,0.0,False,1.0
+SIMARGL,0,cade,NULL Scan,586,0.0012911111116409302,False,0.96
+SIMARGL,0,cade,UDP Scan,17458,0.0004477777745988634,False,0.01
+SIMARGL,0,cade,XMAS Scan,597,0.0,False,1.0
+SIMARGL,0,trident,DoS RUDY,57388,0.0004533333248562283,False,0.99
+SIMARGL,0,trident,DoS Slowloris,21705,0.0,False,1.0
+SIMARGL,0,trident,FIN Scan,611,0.0,False,1.0
+SIMARGL,0,trident,NULL Scan,586,0.0,False,0.99
+SIMARGL,0,trident,UDP Scan,17458,0.0,False,0.96
+SIMARGL,0,trident,XMAS Scan,597,0.0,False,1.0
+SIMARGL,0,memstream,DoS RUDY,57388,0.017582499980926515,False,0.0
+SIMARGL,0,memstream,DoS Slowloris,21705,0.05024083329571618,False,0.0
+SIMARGL,0,memstream,FIN Scan,611,,True,0.0
+SIMARGL,0,memstream,NULL Scan,586,,True,0.0
+SIMARGL,0,memstream,UDP Scan,17458,0.008827222254541186,False,0.0
+SIMARGL,0,memstream,XMAS Scan,597,,True,0.0
+SIMARGL,0,owad,DoS RUDY,57388,0.06532472219732073,False,0.0
+SIMARGL,0,owad,DoS Slowloris,21705,0.06529888888200124,False,0.0
+SIMARGL,0,owad,FIN Scan,611,,True,0.0
+SIMARGL,0,owad,NULL Scan,586,,True,0.0
+SIMARGL,0,owad,UDP Scan,17458,,True,0.0
+SIMARGL,0,owad,XMAS Scan,597,,True,0.0
+SIMARGL,0,knn,DoS RUDY,57388,0.0037849999798668754,False,0.75
+SIMARGL,0,knn,DoS Slowloris,21705,0.0,False,1.0
+SIMARGL,0,knn,FIN Scan,611,0.0,False,1.0
+SIMARGL,0,knn,NULL Scan,586,0.0012911111116409302,False,0.83
+SIMARGL,0,knn,UDP Scan,17458,0.0019525000121858385,False,0.42
+SIMARGL,0,knn,XMAS Scan,597,0.0,False,0.99
+SIMARGL,1,ernp_K5A,DoS RUDY,57578,0.0,False,1.0
+SIMARGL,1,ernp_K5A,DoS Slowloris,21951,0.0,False,1.0
+SIMARGL,1,ernp_K5A,FIN Scan,589,0.0,False,1.0
+SIMARGL,1,ernp_K5A,NULL Scan,635,0.0,False,0.12
+SIMARGL,1,ernp_K5A,UDP Scan,17549,5.2777926127115886e-06,False,0.99
+SIMARGL,1,ernp_K5A,XMAS Scan,584,0.0,False,0.05
+SIMARGL,1,ssf_causal,DoS RUDY,57578,0.001346388922797309,False,0.86
+SIMARGL,1,ssf_causal,DoS Slowloris,21951,0.0,False,1.0
+SIMARGL,1,ssf_causal,FIN Scan,589,0.0,False,1.0
+SIMARGL,1,ssf_causal,NULL Scan,635,0.0065294444561004635,False,0.58
+SIMARGL,1,ssf_causal,UDP Scan,17549,0.008905555539660983,False,0.0
+SIMARGL,1,ssf_causal,XMAS Scan,584,0.000581666628519694,False,0.52
+SIMARGL,1,cade,DoS RUDY,57578,0.0057658333248562284,False,0.47
+SIMARGL,1,cade,DoS Slowloris,21951,0.0,False,1.0
+SIMARGL,1,cade,FIN Scan,589,0.0,False,1.0
+SIMARGL,1,cade,NULL Scan,635,0.0033627778291702272,False,0.92
+SIMARGL,1,cade,UDP Scan,17549,0.0005033333433998956,False,0.02
+SIMARGL,1,cade,XMAS Scan,584,0.0,False,1.0
+SIMARGL,1,trident,DoS RUDY,57578,0.0,False,1.0
+SIMARGL,1,trident,DoS Slowloris,21951,0.0,False,1.0
+SIMARGL,1,trident,FIN Scan,589,0.0,False,1.0
+SIMARGL,1,trident,NULL Scan,635,0.0,False,0.08
+SIMARGL,1,trident,UDP Scan,17549,0.0,False,0.65
+SIMARGL,1,trident,XMAS Scan,584,0.770568055510521,False,0.0
+SIMARGL,1,memstream,DoS RUDY,57578,0.017438888880941604,False,0.0
+SIMARGL,1,memstream,DoS Slowloris,21951,0.06484694447782305,False,0.0
+SIMARGL,1,memstream,FIN Scan,589,,True,0.0
+SIMARGL,1,memstream,NULL Scan,635,,True,0.0
+SIMARGL,1,memstream,UDP Scan,17549,0.008905555539660983,False,0.0
+SIMARGL,1,memstream,XMAS Scan,584,,True,0.0
+SIMARGL,1,owad,DoS RUDY,57578,0.09012000004450481,False,0.0
+SIMARGL,1,owad,DoS Slowloris,21951,0.06513833337359959,False,0.0
+SIMARGL,1,owad,FIN Scan,589,,True,0.0
+SIMARGL,1,owad,NULL Scan,635,,True,0.0
+SIMARGL,1,owad,UDP Scan,17549,,True,0.0
+SIMARGL,1,owad,XMAS Scan,584,,True,0.0
+SIMARGL,1,knn,DoS RUDY,57578,0.002786111103163825,False,0.41
+SIMARGL,1,knn,DoS Slowloris,21951,0.0,False,1.0
+SIMARGL,1,knn,FIN Scan,589,0.0,False,1.0
+SIMARGL,1,knn,NULL Scan,635,0.0007550000482135349,False,0.61
+SIMARGL,1,knn,UDP Scan,17549,0.0015647221936119927,False,0.48
+SIMARGL,1,knn,XMAS Scan,584,0.000581666628519694,False,0.95
+SIMARGL,2,ernp_K5A,DoS RUDY,57549,0.0,False,1.0
+SIMARGL,2,ernp_K5A,DoS Slowloris,21607,0.0,False,1.0
+SIMARGL,2,ernp_K5A,FIN Scan,585,0.0,False,1.0
+SIMARGL,2,ernp_K5A,NULL Scan,610,0.0006438888443840874,False,0.61
+SIMARGL,2,ernp_K5A,UDP Scan,17337,0.0008377777867847019,False,0.98
+SIMARGL,2,ernp_K5A,XMAS Scan,615,0.0,False,1.0
+SIMARGL,2,ssf_causal,DoS RUDY,57549,0.0011241666475931803,False,0.9
+SIMARGL,2,ssf_causal,DoS Slowloris,21607,0.0,False,1.0
+SIMARGL,2,ssf_causal,FIN Scan,585,0.0,False,1.0
+SIMARGL,2,ssf_causal,NULL Scan,610,0.0037505555152893065,False,0.92
+SIMARGL,2,ssf_causal,UDP Scan,17337,0.005924722221162584,False,0.01
+SIMARGL,2,ssf_causal,XMAS Scan,615,0.0,False,1.0
+SIMARGL,2,cade,DoS RUDY,57549,0.0003413888480928209,False,0.98
+SIMARGL,2,cade,DoS Slowloris,21607,0.0,False,1.0
+SIMARGL,2,cade,FIN Scan,585,0.0,False,1.0
+SIMARGL,2,cade,NULL Scan,610,0.0006438888443840874,False,0.93
+SIMARGL,2,cade,UDP Scan,17337,0.0011758333444595336,False,0.89
+SIMARGL,2,cade,XMAS Scan,615,0.0,False,1.0
+SIMARGL,2,trident,DoS RUDY,57549,0.0,False,1.0
+SIMARGL,2,trident,DoS Slowloris,21607,0.0,False,1.0
+SIMARGL,2,trident,FIN Scan,585,0.0,False,1.0
+SIMARGL,2,trident,NULL Scan,610,0.0,False,1.0
+SIMARGL,2,trident,UDP Scan,17337,0.0,False,0.7
+SIMARGL,2,trident,XMAS Scan,615,0.0,False,1.0
+SIMARGL,2,memstream,DoS RUDY,57549,0.017261388897895812,False,0.0
+SIMARGL,2,memstream,DoS Slowloris,21607,0.030714444451861913,False,0.0
+SIMARGL,2,memstream,FIN Scan,585,0.005064444475703769,False,0.94
+SIMARGL,2,memstream,NULL Scan,610,,True,0.0
+SIMARGL,2,memstream,UDP Scan,17337,0.03446833332379659,False,0.0
+SIMARGL,2,memstream,XMAS Scan,615,,True,0.0
+SIMARGL,2,owad,DoS RUDY,57549,0.08747777773274315,False,0.0
+SIMARGL,2,owad,DoS Slowloris,21607,0.06499749998251597,False,0.0
+SIMARGL,2,owad,FIN Scan,585,,True,0.0
+SIMARGL,2,owad,NULL Scan,610,,True,0.0
+SIMARGL,2,owad,UDP Scan,17337,,True,0.0
+SIMARGL,2,owad,XMAS Scan,615,,True,0.0
+SIMARGL,2,knn,DoS RUDY,57549,0.0020852777693006726,False,0.79
+SIMARGL,2,knn,DoS Slowloris,21607,0.0,False,1.0
+SIMARGL,2,knn,FIN Scan,585,0.0,False,1.0
+SIMARGL,2,knn,NULL Scan,610,0.001342499984635247,False,0.95
+SIMARGL,2,knn,UDP Scan,17337,0.001490277780426873,False,0.73
+SIMARGL,2,knn,XMAS Scan,615,0.0,False,1.0
+SIMARGL,3,ernp_K5A,DoS RUDY,57664,0.0,False,1.0
+SIMARGL,3,ernp_K5A,DoS Slowloris,21787,0.0,False,1.0
+SIMARGL,3,ernp_K5A,FIN Scan,598,0.0,False,1.0
+SIMARGL,3,ernp_K5A,NULL Scan,632,0.010712222192022535,False,0.63
+SIMARGL,3,ernp_K5A,UDP Scan,17766,0.00044305556350284154,False,0.97
+SIMARGL,3,ernp_K5A,XMAS Scan,608,0.004759166638056437,False,0.95
+SIMARGL,3,ssf_causal,DoS RUDY,57664,0.0007452778021494547,False,0.94
+SIMARGL,3,ssf_causal,DoS Slowloris,21787,0.0,False,1.0
+SIMARGL,3,ssf_causal,FIN Scan,598,0.0,False,1.0
+SIMARGL,3,ssf_causal,NULL Scan,632,0.010712222192022535,False,0.95
+SIMARGL,3,ssf_causal,UDP Scan,17766,0.0033277777830759683,False,0.63
+SIMARGL,3,ssf_causal,XMAS Scan,608,0.0,False,1.0
+SIMARGL,3,cade,DoS RUDY,57664,0.014160000019603306,False,0.0
+SIMARGL,3,cade,DoS Slowloris,21787,0.0,False,0.32
+SIMARGL,3,cade,FIN Scan,598,0.0,False,1.0
+SIMARGL,3,cade,NULL Scan,632,0.010712222192022535,False,0.95
+SIMARGL,3,cade,UDP Scan,17766,0.00044305556350284154,False,0.06
+SIMARGL,3,cade,XMAS Scan,608,0.0,False,1.0
+SIMARGL,3,trident,DoS RUDY,57664,0.0,False,1.0
+SIMARGL,3,trident,DoS Slowloris,21787,0.0,False,1.0
+SIMARGL,3,trident,FIN Scan,598,0.0,False,1.0
+SIMARGL,3,trident,NULL Scan,632,0.0,False,1.0
+SIMARGL,3,trident,UDP Scan,17766,0.0,False,1.0
+SIMARGL,3,trident,XMAS Scan,608,0.0,False,1.0
+SIMARGL,3,memstream,DoS RUDY,57664,0.030997222264607747,False,0.0
+SIMARGL,3,memstream,DoS Slowloris,21787,0.06504916667938232,False,0.0
+SIMARGL,3,memstream,FIN Scan,598,,True,0.0
+SIMARGL,3,memstream,NULL Scan,632,,True,0.0
+SIMARGL,3,memstream,UDP Scan,17766,0.016950277752346463,False,0.0
+SIMARGL,3,memstream,XMAS Scan,608,,True,0.0
+SIMARGL,3,owad,DoS RUDY,57664,0.01731388893392351,False,0.0
+SIMARGL,3,owad,DoS Slowloris,21787,0.06504916667938232,False,0.0
+SIMARGL,3,owad,FIN Scan,598,,True,0.0
+SIMARGL,3,owad,NULL Scan,632,,True,0.0
+SIMARGL,3,owad,UDP Scan,17766,,True,0.0
+SIMARGL,3,owad,XMAS Scan,608,,True,0.0
+SIMARGL,3,knn,DoS RUDY,57664,0.0032886111074023777,False,0.7
+SIMARGL,3,knn,DoS Slowloris,21787,0.0,False,1.0
+SIMARGL,3,knn,FIN Scan,598,0.0,False,1.0
+SIMARGL,3,knn,NULL Scan,632,0.0005288889010747273,False,0.92
+SIMARGL,3,knn,UDP Scan,17766,0.0049327777491675485,False,0.22
+SIMARGL,3,knn,XMAS Scan,608,0.000581666628519694,False,0.97
+SIMARGL,4,ernp_K5A,DoS RUDY,57601,0.0,False,1.0
+SIMARGL,4,ernp_K5A,DoS Slowloris,21641,0.0,False,1.0
+SIMARGL,4,ernp_K5A,FIN Scan,569,0.0,False,1.0
+SIMARGL,4,ernp_K5A,NULL Scan,613,0.0006424999899334378,False,0.97
+SIMARGL,4,ernp_K5A,UDP Scan,17721,0.0,False,0.99
+SIMARGL,4,ernp_K5A,XMAS Scan,627,0.0,False,1.0
+SIMARGL,4,ssf_causal,DoS RUDY,57601,0.0009508332941267225,False,0.95
+SIMARGL,4,ssf_causal,DoS Slowloris,21641,0.0,False,1.0
+SIMARGL,4,ssf_causal,FIN Scan,569,0.0,False,1.0
+SIMARGL,4,ssf_causal,NULL Scan,613,,True,0.0
+SIMARGL,4,ssf_causal,UDP Scan,17721,0.01308138887087504,False,0.0
+SIMARGL,4,ssf_causal,XMAS Scan,627,,True,0.0
+SIMARGL,4,cade,DoS RUDY,57601,0.0008172221978505452,False,0.96
+SIMARGL,4,cade,DoS Slowloris,21641,0.0,False,1.0
+SIMARGL,4,cade,FIN Scan,569,0.0,False,1.0
+SIMARGL,4,cade,NULL Scan,613,0.001258055567741394,False,0.94
+SIMARGL,4,cade,UDP Scan,17721,0.0022647222545411853,False,0.55
+SIMARGL,4,cade,XMAS Scan,627,0.0,False,1.0
+SIMARGL,4,trident,DoS RUDY,57601,0.0,False,0.99
+SIMARGL,4,trident,DoS Slowloris,21641,0.0,False,0.98
+SIMARGL,4,trident,FIN Scan,569,0.7628130555815167,False,0.0
+SIMARGL,4,trident,NULL Scan,613,0.0005005555682712131,False,0.05
+SIMARGL,4,trident,UDP Scan,17721,0.0008338889148500231,False,0.8
+SIMARGL,4,trident,XMAS Scan,627,0.769314722220103,False,0.0
+SIMARGL,4,memstream,DoS RUDY,57601,0.01769777774810791,False,0.0
+SIMARGL,4,memstream,DoS Slowloris,21641,0.030717222226990595,False,0.0
+SIMARGL,4,memstream,FIN Scan,569,0.0,False,0.99
+SIMARGL,4,memstream,NULL Scan,613,,True,0.0
+SIMARGL,4,memstream,UDP Scan,17721,0.007873888876703051,False,0.0
+SIMARGL,4,memstream,XMAS Scan,627,,True,0.0
+SIMARGL,4,owad,DoS RUDY,57601,0.05931027776665158,False,0.0
+SIMARGL,4,owad,DoS Slowloris,21641,0.06533388886186811,False,0.0
+SIMARGL,4,owad,FIN Scan,569,,True,0.0
+SIMARGL,4,owad,NULL Scan,613,,True,0.0
+SIMARGL,4,owad,UDP Scan,17721,,True,0.0
+SIMARGL,4,owad,XMAS Scan,627,,True,0.0
+SIMARGL,4,knn,DoS RUDY,57601,0.004174166652891371,False,0.59
+SIMARGL,4,knn,DoS Slowloris,21641,0.0,False,1.0
+SIMARGL,4,knn,FIN Scan,569,0.0,False,1.0
+SIMARGL,4,knn,NULL Scan,613,0.014194444417953492,False,0.81
+SIMARGL,4,knn,UDP Scan,17721,0.0025130555364820694,False,0.43
+SIMARGL,4,knn,XMAS Scan,627,0.0035958333147896662,False,0.98
+APPRAISE,0,ernp_K5A,BruteForce,615,3.0,False,0.43
+APPRAISE,0,ernp_K5A,DDoS,13359,0.0,False,1.0
+APPRAISE,0,ssf_causal,BruteForce,615,3.0,False,0.12
+APPRAISE,0,ssf_causal,DDoS,13359,0.0008333333333333334,False,0.99
+APPRAISE,0,cade,BruteForce,615,0.049444444444444444,False,0.3
+APPRAISE,0,cade,DDoS,13359,0.0,False,1.0
+APPRAISE,0,trident,BruteForce,615,0.0,False,1.0
+APPRAISE,0,trident,DDoS,13359,0.0,False,1.0
+APPRAISE,0,memstream,BruteForce,615,3.0,False,0.04
+APPRAISE,0,memstream,DDoS,13359,0.13,False,0.0
+APPRAISE,0,owad,BruteForce,615,,True,0.0
+APPRAISE,0,owad,DDoS,13359,,True,0.0
+APPRAISE,0,knn,BruteForce,615,0.0,False,0.72
+APPRAISE,0,knn,DDoS,13359,0.0,False,1.0
+APPRAISE,1,ernp_K5A,BruteForce,573,3.0,False,0.51
+APPRAISE,1,ernp_K5A,DDoS,13465,0.0,False,1.0
+APPRAISE,1,ssf_causal,BruteForce,573,111.00083333333333,False,0.33
+APPRAISE,1,ssf_causal,DDoS,13465,0.0,False,1.0
+APPRAISE,1,cade,BruteForce,573,15.0,False,0.07
+APPRAISE,1,cade,DDoS,13465,0.0,False,1.0
+APPRAISE,1,trident,BruteForce,573,0.0,False,0.82
+APPRAISE,1,trident,DDoS,13465,0.0,False,1.0
+APPRAISE,1,memstream,BruteForce,573,3.0,False,0.05
+APPRAISE,1,memstream,DDoS,13465,0.0,False,1.0
+APPRAISE,1,owad,BruteForce,573,,True,0.0
+APPRAISE,1,owad,DDoS,13465,,True,0.0
+APPRAISE,1,knn,BruteForce,573,0.0,False,0.74
+APPRAISE,1,knn,DDoS,13465,0.0,False,1.0
+APPRAISE,2,ernp_K5A,BruteForce,602,3.0,False,0.53
+APPRAISE,2,ernp_K5A,DDoS,13143,0.0,False,1.0
+APPRAISE,2,ssf_causal,BruteForce,602,111.00083333333333,False,0.07
+APPRAISE,2,ssf_causal,DDoS,13143,0.0,False,1.0
+APPRAISE,2,cade,BruteForce,602,0.0,False,0.63
+APPRAISE,2,cade,DDoS,13143,0.0,False,1.0
+APPRAISE,2,trident,BruteForce,602,0.0,False,0.74
+APPRAISE,2,trident,DDoS,13143,0.0,False,1.0
+APPRAISE,2,memstream,BruteForce,602,3.0,False,0.16
+APPRAISE,2,memstream,DDoS,13143,0.0,False,1.0
+APPRAISE,2,owad,BruteForce,602,,True,0.0
+APPRAISE,2,owad,DDoS,13143,,True,0.0
+APPRAISE,2,knn,BruteForce,602,0.0,False,0.77
+APPRAISE,2,knn,DDoS,13143,0.0,False,1.0
+APPRAISE,3,ernp_K5A,BruteForce,618,3.012777777777778,False,0.44
+APPRAISE,3,ernp_K5A,DDoS,13454,0.0,False,1.0
+APPRAISE,3,ssf_causal,BruteForce,618,111.00083333333333,False,0.29
+APPRAISE,3,ssf_causal,DDoS,13454,0.005,False,0.96
+APPRAISE,3,cade,BruteForce,618,,True,0.0
+APPRAISE,3,cade,DDoS,13454,0.0,False,1.0
+APPRAISE,3,trident,BruteForce,618,0.0,False,0.69
+APPRAISE,3,trident,DDoS,13454,0.0,False,1.0
+APPRAISE,3,memstream,BruteForce,618,9.0,False,0.02
+APPRAISE,3,memstream,DDoS,13454,0.005,False,0.97
+APPRAISE,3,owad,BruteForce,618,,True,0.0
+APPRAISE,3,owad,DDoS,13454,,True,0.0
+APPRAISE,3,knn,BruteForce,618,0.0,False,0.69
+APPRAISE,3,knn,DDoS,13454,0.0,False,1.0
+APPRAISE,4,ernp_K5A,BruteForce,599,3.0,False,0.54
+APPRAISE,4,ernp_K5A,DDoS,13167,0.0,False,1.0
+APPRAISE,4,ssf_causal,BruteForce,599,9.0,False,0.05
+APPRAISE,4,ssf_causal,DDoS,13167,0.001388888888888889,False,0.99
+APPRAISE,4,cade,BruteForce,599,0.0,False,0.98
+APPRAISE,4,cade,DDoS,13167,0.0,False,1.0
+APPRAISE,4,trident,BruteForce,599,0.0,False,0.92
+APPRAISE,4,trident,DDoS,13167,0.0,False,1.0
+APPRAISE,4,memstream,BruteForce,599,3.0,False,0.14
+APPRAISE,4,memstream,DDoS,13167,0.0,False,1.0
+APPRAISE,4,owad,BruteForce,599,,True,0.0
+APPRAISE,4,owad,DDoS,13167,,True,0.0
+APPRAISE,4,knn,BruteForce,599,0.0,False,0.73
+APPRAISE,4,knn,DDoS,13167,0.0,False,1.0

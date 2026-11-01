@@ -1,0 +1,32 @@
+L1: past-only daily threshold (days >= 1), mean over 7 datasets
+            past_fpr  past_zd  oracle_zd_later  oracle_zd_01
+method                                                      
+cade           0.025    0.582            0.582         0.395
+ernp_K5A       0.043    0.736            0.762         0.577
+knn            0.012    0.573            0.461         0.095
+memstream      0.013    0.401            0.378         0.160
+owad           0.011    0.085            0.093         0.031
+ssf_causal     0.070    0.620            0.579         0.441
+trident        0.014    0.364            0.357         0.165
+
+L2: per family at own rule; median hours to first alert (detected families), share never alerted, recall on first 100 flows
+             ttd_h  missed  first100
+method                              
+cade         0.054   0.040     0.675
+ernp_K5A     0.279   0.000     0.699
+knn          0.031   0.032     0.650
+memstream   19.780   0.335     0.269
+owad        16.637   0.471     0.121
+ssf_causal   8.066   0.118     0.394
+trident      0.001   0.015     0.843
+
+L3: ERNP, zero-day flows outside the anchor benign range
+           seed      n_zd  share_out  rec_out  rec_in  benign_share_out
+dataset                                                                
+APPRAISE    2.0   13919.0      0.000      NaN   0.995             0.002
+CIC17       2.0   47294.4      0.554    0.999   0.974             0.001
+CIC18       2.0   11410.0      0.445    0.997   0.945             0.002
+CIDDS_ctx   2.0     590.8      0.001    1.000   0.647             0.001
+CTU13       2.0    5583.4      0.003    1.000   0.803             0.003
+SIMARGL     2.0   98672.2      0.987    0.996   0.769             0.091
+ToN_ctx     2.0  103125.6      0.012    0.706   0.616             0.227

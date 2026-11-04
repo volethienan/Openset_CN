@@ -1,7 +1,7 @@
 """Review 30/10 (M5): SSF with ERNP's group feedback channel (ssf_causal_G, ssf_causal_B25_G; run_jobs group `ssfg`)
 against ERNP and SSF with flow labels on the RQ3 datasets.
 
-Rows for ERNP and flow-label SSF come from the K5A RQ3 report (exp_k5a/reports/e2_runs.csv); the _G runs are scored
+Rows for ERNP and flow-label SSF come from the K5A RQ3 report (exp/reports/e2_runs.csv); the _G runs are scored
 here with evaluate.run_metrics, and their decisions and labelled flows per day are read from the run's json
 (group_decisions, group_flows_used: flows that entered SSF's memory; group_labeled_flows: before the memory cap).
 Output: exp/reports/ssfg_runs.csv and exp/reports/ssfg.txt
@@ -29,7 +29,7 @@ for base in DS:
             rows.append(r)
 g = pd.DataFrame(rows)
 if g.empty: sys.exit("no ssf_causal_G runs found")
-e2 = pd.read_csv(os.path.join(ROOT, "exp_k5a", "reports", "e2_runs.csv"))
+e2 = pd.read_csv(os.path.join(ROOT, "exp", "reports", "e2_runs.csv"))
 ref = e2[e2.method.isin(["ernp", "ernp_B25", "ernp_B25_cap200", "abl_evid_rep_B25", "ssf_causal", "ssf_causal_B25"])]
 allr = pd.concat([ref, g], ignore_index=True)
 os.makedirs(os.path.join(EXP, "reports"), exist_ok=True)

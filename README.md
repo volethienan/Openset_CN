@@ -1,56 +1,40 @@
-# ERNP: Evidence-Retracted Novelty Prior
+# ERNP: Evidence-Retracted Novelty Priors
 
-## Current evaluation contract (23 October 2026)
+Code, prepared data streams and per-run results for the manuscript
 
-The Access readiness audit and corrections are documented in [ACCESS_PROTOCOL.md](ACCESS_PROTOCOL.md).
-Use `python exp/access_report.py` to regenerate the current K5 evidence, dataset-level inference, macro-family
-and first-period metrics, and all SIMARGL label-policy panels from saved predictions.
-Canonical revised outputs are in `exp/reports/access/`; older text reports retain their historical status.
-For inference throughput use `python exp/benchmark_k5.py --n-prior 5 --threads 4`; the historical K1 batch numbers
-are not a K5 speed claim. Main model runs explicitly pass `--n_prior 5`.
+> **Evidence-Retracted Novelty Priors for Zero-Day Network Intrusion Detection under Benign Drift**
 
-The current streams replay **complete flow records ordered by flow start time**. Predict-then-update refers to
-model feedback order, not verified feature availability at packet/flow-start time. ROC recall at 1% FPR uses
-evaluation benign labels as a diagnostic; the deployed-rule FPR is reported separately. Whole-stream zero-day
-recall includes post-feedback flows of families absent from the anchor.
-SIMARGL's suspected-label exclusion is a sensitivity policy, not certified corrected ground truth; report both
-filtered and published-label results, plus the six-dataset panel excluding this uncertain dataset.
+ERNP is a network intrusion detector that adapts only through analyst decisions on alert groups. It estimates a
+density ratio between benign evidence and the union of attack evidence and a novelty prior (benign flows with part of
+their features swapped with another benign flow). Benign confirmations retract the prior locally. At most `B` groups
+are labelled per period, and no flow enters the model without an analyst decision on its group.
 
-Code, data streams and results for the manuscript
-
-> **Adapting Network Intrusion Detectors Only Through Trusted Evidence: Evidence-Retracted Novelty Priors for Zero-Day Detection under Benign Drift** (submitted to *Computer Networks*).
-
-ERNP is a network intrusion detector that adapts **only through analyst decisions on alert groups**. It estimates a
-density ratio between benign evidence and the union of attack evidence and a novelty prior (benign flows whose features
-are partially swapped with another benign flow). Benign confirmations retract the prior locally; no flow enters the
-model without an analyst decision on its group, at most `B` decisions per period.
-
-Saved experiment outputs are in `exp/results/`. Revised evidence and statistical definitions are in
-`exp/reports/access/`; the manuscript has not yet been brought into alignment with this audit amendment.
+The configuration reported in the paper is **ERNP K5A**: five prior draws per fit (`--n_prior 5`) and anchored attack
+evidence (`--keep A`). Its runs are stored under the method name `ernp_K5A`. The command-line defaults of
+`exp/ernp.py` (`--n_prior 1`, FIFO evidence) are the earlier development configuration.
 
 ## Repository layout
 
 | Path | Content |
 |---|---|
-| `exp/ernp.py` | The proposed method; main K5 runs explicitly pass `--n_prior 5`. Ablations are command-line options. |
+| `exp/ernp.py` | The proposed method. Ablations are command-line options. |
 | `exp/common.py` | Shared protocol: stream loading, anchor/holdout split per seed, standardisation, 1% FPR threshold, result files. |
-| `exp/baselines/sota.py` | Wrappers around the **official code** of SSF, OWAD, MemStream and Trident (in `sota/`). |
-| `exp/baselines/cade_port.py` | PyTorch port of CADE (the original runs on TensorFlow 1.12), validated against the authors' IDS2018 split. |
-| `exp/baselines/classic.py` | Classical references: kNN, Isolation Forest, autoencoder. |
-| `exp/baselines/sanity.py` | Leakage sanity baseline (`new_ip`). |
-| `exp/data/` | Stream builders (`prepare*.py`) and the controlled injections for RQ2 (`inject.py`, `inject_camo.py`). |
-| `exp/run_jobs.py` | Job runner for all experiment groups (GPU and CPU pools, skips finished runs). |
-| `exp/evaluate.py` | Metrics, aggregation over seeds and statistical tests. |
-| `exp/report_all.sh` | Regenerates every report in `exp/reports/`. |
-| `exp/*analysis*.py`, `exp/diagnose_*.py` | Additional analyses reported in the paper (ToN burst, retraction replay, P2/P3 checks, diagnostics). |
-| `exp/results/` | One `<stream>__<method>__s<seed>.npz` (scores, alerts) and `.json` (configuration, labels used, timing) per run. |
-| `exp/reports/` | Aggregated results (`*_runs.csv`, `*.txt`). |
-| `mock/streams/` | Pre-built input streams (Parquet). The folder name is historical; the streams are real data. |
-| `sota/` | Official code of the baselines, with the authors' own READMEs and licences. |
+| `exp/baselines/sota.py` | Wrappers around the official code of SSF, OWAD, MemStream and Trident (in `sota/`). |
+| `exp/baselines/cade_port.py` | PyTorch port of CADE, validated against the authors' CSE-CIC-IDS2018 split. |
+| `exp/baselines/classic.py` | References: kNN, Isolation Forest, autoencoder. |
+| `exp/data/` | Stream builders (`prepare_*.py`), poisoning and camouflage injection, SIMARGL label audit. |
+| `exp/run_jobs.py` | Job runner for every experiment group (GPU and CPU pools; finished runs are skipped). |
+| `exp/evaluate.py`, `exp/inference.py` | Metrics, aggregation over seeds, paired tests and Holm correction. |
+| `exp/tests/` | Unit tests (`python -m unittest discover -s exp/tests`). |
+| `exp/results/` | One `<stream>__<method>__s<seed>.npz` (scores, alerts) and `.json` (configuration, analyst decisions, timing) per run. |
+| `exp/reports/` | Every result of the paper, aggregated from the runs (see the table below). |
+| `tables_figures/` | Scripts that build every table and data figure of the manuscript from `exp/reports/`. |
+| `mock/streams/` | Prepared input streams (Parquet). The folder name is historical; the streams are real data. |
+| `sota/` | Official code of the baselines, with the authors' READMEs and licences. |
 
 ## Installation
 
-Python 3.12 is used for all results. Large stream files are stored with Git LFS.
+Python 3.12.7 was used for all results. The unsampled CICIDS2017 stream is stored with Git LFS.
 
 ```bash
 git lfs install
@@ -60,98 +44,137 @@ git lfs pull
 pip install -r requirements.txt
 ```
 
-`requirements.txt` pins the exact versions that produced the committed results. Install the PyTorch build that matches
-your CUDA version from https://pytorch.org if needed. ERNP itself runs on CPU only; the deep baselines use a GPU when
-one is available. All paths are derived from the repository location (override with `ERNP_ROOT=/path/to/Openset_CN/`).
+`requirements.txt` pins the versions that produced the committed results. Install the PyTorch build that matches your
+CUDA version from https://pytorch.org if needed. ERNP runs on CPU; the deep baselines use a GPU when one is available.
+Paths are derived from the repository location (override with `ERNP_ROOT=/path/to/Openset_CN/`).
 
 ## Data
 
-| Stream | Source dataset | Role |
+| Stream | Source dataset | Builder |
 |---|---|---|
-| `CIDDS_ctx` | CIDDS-001 (OpenStack, internal traffic) | Main benchmark; base of the RQ2 poisoning streams |
-| `ToN_ctx` | NF-ToN-IoT-v3 | Strong benign drift, sequential zero-day families |
-| `CIC17` | CICIDS2017 (improved version, Distrinet) | Held-out dataset (not used during design) |
-| `CIC18` | CSE-CIC-IDS2018 (improved version, Distrinet) | Main benchmark |
-| `CIC17_full` | CICIDS2017, unsampled (Git LFS) | Scale check |
+| `CIDDS_ctx` | CIDDS-001 (OpenStack, internal traffic) | `exp/data/prepare_ctx.py CIDDS` |
+| `ToN_ctx` | NF-ToN-IoT-v3 | `exp/data/prepare_ctx.py ToN` |
+| `CIC17` | CICIDS2017, improved version (Distrinet) | `exp/data/prepare_cic.py CIC17` |
+| `CIC18` | CSE-CIC-IDS2018, improved version (Distrinet) | `exp/data/prepare_cic.py CIC18` |
+| `CTU13` | CTU-13 | `exp/data/prepare_real.py CTU13` |
+| `SIMARGL`, `SIMARGL_all` | SIMARGL2021 (suspected-label exclusion / published labels) | `exp/data/prepare_real.py SIMARGL` |
+| `APPRAISE` | APPRAISE | `exp/data/prepare_real.py APPRAISE` |
+| `CIC17_full` | CICIDS2017, unsampled (Git LFS) | `exp/data/prepare_cic.py CIC17_full` |
+| `CIDDS_ctx_inj*` | CIDDS-001 with injected slow poisoning (RQ2) | `exp/data/inject.py`, `exp/data/inject_valid.py` |
 
-Seed `k` uses the stream `<name>_s<k>` (seed 0 has no suffix). Streams are time ordered and sub-sampled (300k–400k flows
-per seed), with per-flow features and temporal-context features computed on the full data before sampling.
+Seed `k` uses the stream `<name>_s<k>` (seed 0 has no suffix). Streams are time ordered and sub-sampled per seed;
+per-flow and temporal-context features are computed on the full trace before sampling.
 
-The original datasets are not redistributed here; they are available from their authors. To rebuild the streams, place
-them under `dataraw/` (`CIDDS-001/`, `NF-ToN-IoT-v3/`, `CICIDS2017_improved/`, `CSECICIDS2018_improved/`) and run, for each seed:
+The source datasets are not redistributed; they are available from their providers. To rebuild the streams, place them
+under `dataraw/` and run the builders with `EXP_SEED=<k>`. Two groups of streams are not committed. The
+group-camouflage streams are rebuilt exactly from the committed ones with
+`python exp/data/inject_camo.py <base>` for `<base>` in `CIDDS_ctx`, `CIDDS_ctx_s1`, …, `CIDDS_ctx_s4`.
+CSE-CIC-IDS2018 at 4M flows (about 600 MB per seed) is rebuilt from the source dataset with `exp/data/build_x10.sh`.
 
-```bash
-EXP_SEED=0 python exp/data/prepare_ctx.py CIDDS      # -> CIDDS_ctx
-EXP_SEED=0 python exp/data/prepare_ctx.py ToN        # -> ToN_ctx
-EXP_SEED=0 python exp/data/prepare_cic.py CIC17
-EXP_SEED=0 python exp/data/prepare_cic.py CIC18
-```
+SIMARGL2021 publishes the traffic of host 10.9.3.238 between 04:58:17 and 06:56:06 UTC on 31 May 2021 as normal, and
+this traffic is suspected to be mislabelled. `SIMARGL` excludes it, `SIMARGL_all` keeps the published labels, and both
+are reported. The raw-field audit is
+`python exp/data/audit_simargl.py --raw dataraw/SIMARGL2021/simargl-2021-combined.parquet`.
 
-Derived streams that are not committed are rebuilt deterministically from the committed ones:
-`python exp/data/inject.py CIDDS_ctx [payload] [ramp_days] [rate]` (slow poisoning, RQ2),
-`python exp/data/inject_camo.py CIDDS_ctx` (group camouflage, RQ2), and `exp/data/build_x10.sh`
-(CSE-CIC-IDS2018 at 4M flows; needs `dataraw/`).
+## Reproducing the tables and figures
 
-## Running
-
-All commands are run from `exp/`.
-
-**Single runs**
+**From the committed reports** (no model is run, about one minute):
 
 ```bash
-EXP_SEED=1 python ernp.py CIC18_s1                                         # ERNP, causal protocol, B = 200
-EXP_SEED=1 python ernp.py CIC18_s1 --retraction none --name abl_retr_none  # an ablation (RQ4)
-EXP_SEED=1 python ernp.py ToN_ctx_s1 --budget 25 --name ernp_B25          # analyst budget (RQ3)
-EXP_SEED=1 python baselines/sota.py CIC18_s1 ssf_causal                    # SSF | owad | memstream | trident | cade
-EXP_SEED=1 python baselines/classic.py CIC18_s1 knn                        # knn | iforest | ae_static
+python tables_figures/build_tables.py    # -> tables_figures/tables/*.tex and table_sources.json (SHA-256 of every input)
+python tables_figures/make_figures.py    # -> tables_figures/figures/fig_*.pdf
 ```
 
-**Experiment groups**
+`tables_figures/table_sources.json` lists the hash of each report file the tables are built from, so every table can be
+traced to its exact input.
+
+**From the saved runs** (no model is retrained):
 
 ```bash
-python run_jobs.py rq1 --seeds 0 1 2 3 4 --gpu 2 --cpu 2      # groups can be combined: rq1+rq4
+python exp/k5a_view.py                    # exp_k5a/: hard links to the ernp_K5A runs under the names the report scripts use
+bash exp/report_k5a.sh                    # secondary experiments, copied to exp/reports/
+python exp/access_report.py               # main comparison: main_runs, dataset_means, dataset_tests, cohort_means
+python exp/ablation_report.py             # ablation_runs, ablation_tests
+python exp/footprint_report.py            # footprint_runs
+python exp/naive_report.py                # naive_runs
+python exp/review3_report.py              # review3_prior, review3_retraction_load
+python exp/ssfg_report.py                 # ssfg_runs
+python exp/review30_posthoc.py            # review30_l1, review30_l2, review30_l3
+python exp/review30_prior_check.py        # review30_prior
+python exp/availability_audit.py          # feature_availability.json
+python exp/benchmark_k5.py --n-prior 5 --threads 4   # benchmark_k5.json (run on an idle machine)
 ```
 
-| Group | Paper |
+Every script writes to `exp/reports/`. The view `exp_k5a/` is a working folder and is not versioned.
+
+**Rerunning the experiments.** From `exp/`:
+
+```bash
+EXP_SEED=1 python ernp.py CIC18_s1 --n_prior 5 --keep A --name ernp_K5A     # one ERNP K5A run
+EXP_SEED=1 python baselines/sota.py CIC18_s1 ssf_causal                      # ssf_causal | owad | memstream | trident | cade
+EXP_SEED=1 python baselines/classic.py CIC18_s1 knn                          # knn | iforest | ae_static
+python run_jobs.py rq1+real --seeds 0 1 2 3 4 --gpu 2 --cpu 2                # baselines on all seven datasets
+python run_jobs.py k5a --seeds 0 1 2 3 4 --cpu 4                             # every ERNP K5A run of the paper
+python run_jobs.py k5afill+naive+prior_replay+ssfg --seeds 0 1 2 3 4         # remaining K5A variants and analyses
+```
+
+`--gpu`/`--cpu` set the number of concurrent jobs and `--threads` the threads per job. Runs that already exist are
+skipped. When the attack evidence of a run never exceeds the FIFO window, `--keep A` changes nothing; such runs were
+computed once without it and copied to the K5A name (`exp/k5a_copy.py`; field `k5a_copied_from` in the `.json`).
+
+**Determinism check.** Re-running a committed job into a separate folder reproduces its alerts:
+
+```bash
+cd exp
+EXP_SEED=0 EXP_RESULTS=/tmp/check/ python ernp.py CIDDS_ctx --n_prior 5 --keep A --name ernp_K5A
+python -c "import numpy as np; a=np.load('/tmp/check/CIDDS_ctx__ernp_K5A__s0.npz'); b=np.load('results/CIDDS_ctx__ernp_K5A__s0.npz'); print(np.array_equal(a['flag'], b['flag']))"
+```
+
+## Where each result comes from
+
+All files are in `exp/reports/` unless a path is given.
+
+| Manuscript item | Source |
 |---|---|
-| `rq1`, `ext`, `ext1`, `opf`, `scale`, `x10`, `cad`, `t1` | RQ1: detection, references, best configurations, scale, update cadence, common operating point |
-| `rq2`, `rq2lb`, `rq2rep`, `rq2gate`, `camo` | RQ2: slow poisoning, small budgets, evidence-gated variants, group camouflage |
-| `rq3` | RQ3: analyst budget |
-| `rq4`, `scarf`, `audit`, `diam` | RQ4: ablations, independent-donor prior, group-label audit and footprint |
-| `rq5`, `noise` | RQ5: sensitivity and analyst label noise |
+| Main comparison (F1, MCC, AUROC, zero-day recall at 1% FPR), label-policy cohorts, ERNP per-dataset detail, paired-comparison figure, Pareto figure | `main_runs.csv`, `dataset_means.csv`, `dataset_tests.csv`, `cohort_means.csv` |
+| Ablation table and figure | `ablation_runs.csv`, `ablation_tests.csv` |
+| Scoring cost | `benchmark_k5.json` |
+| Retraction mechanism (retraction load, replay without the prior, FPR by distance) | `review3_retraction_load.csv`, `review3_prior.csv`, `e3_regions.csv` |
+| Analyst budget in two units | `e2_runs.csv`, `ssfg_runs.csv` |
+| Slow poisoning with protocol-valid records; analyst who accepts the ramp | `e4_runs.csv`, `fig_rq2_timeline.csv`, `naive_runs.csv` |
+| Group camouflage | `camo_runs.csv`, `rq2gate_runs.csv` |
+| Budget and label-noise figure, label-noise table | `rq1_runs.csv`, `rq2_runs.csv`, `rq3_runs.csv`, `rq4_runs.csv`, `noise_runs.csv` |
+| Update cadence, label delay | `cadence_runs.csv`, `e5_runs.csv` |
+| Sensitivity | `rq5_runs.csv` |
+| Unsampled CICIDS2017, CSE-CIC-IDS2018 at 4M flows | `scale_runs.csv`, `x10_runs.csv` |
+| Distance-to-evidence figure | `p3_*.csv` |
+| ToN timeline and gateway burst | `fig_ton_timeline.csv`, `ton_burst_analysis.csv` |
+| Zero-day families, alert-group purity and footprint | `family_recall.csv`, `group_audit.csv`, `group_footprint.csv`, `footprint_runs.csv` |
+| Past-only thresholds, time to detection, out-of-range zero-days | `review30_*.csv` |
+| Feature availability, SIMARGL label audit | `feature_availability.json`, `simargl_raw_audit.json` |
+| Dataset table | `tables_figures/evidence/datasets.tex` |
 
-`--gpu`/`--cpu` set the number of concurrent jobs, `--threads` the threads per job, and `MAX_GPU_PROCS` caps
-concurrent GPU jobs machine-wide. Finished runs are skipped, so the runner can be restarted at any time.
+## Method names
 
-**Reports**
-
-```bash
-bash report_all.sh                       # exp/reports/*_runs.csv and *.txt
-python ton_burst_analysis.py             # ToN gateway-burst sensitivity
-python retraction_time_analysis.py       # where retraction acts (replays the evidence from saved decisions)
-python retraction_time_report.py
-```
-
-**Reproducibility check.** Re-running a committed job into a separate folder reproduces its decisions:
-
-```bash
-EXP_SEED=0 EXP_RESULTS=/tmp/check/ python ernp.py CIC17
-python -c "import numpy as np; a=np.load('/tmp/check/CIC17__ernp__s0.npz'); b=np.load('results/CIC17__ernp__s0.npz'); print(np.array_equal(a['flag'], b['flag']))"
-```
+| Name | Meaning |
+|---|---|
+| `ernp_K5A` | ERNP, final configuration |
+| `ernp_B0_K5A`, `abl_evid_rep_K5A`, `abl_retr_none_K5A`, `abl_prior_scarf_K5A`, `abl_prior_none_K5A` | Ablations: no online labels, representative-only labels, no retraction, SCARF prior, no prior (GBM with active learning) |
+| `ernp_B<n>_K5A`, `ernp_N<p>_K5A`, `ernp_P<h>_K5A`, `ernp_D<d>_K5A` | Budget of `n` groups per day, `p`% label noise, `h`-hour periods, labels delayed by `d` days |
+| `ssf_causal`, `owad`, `memstream`, `trident`, `cade` | Baselines, with the same suffixes where applicable |
 
 ## Protocol notes
 
-- **Anchor and stream.** The first day(s) of each dataset form the anchor period (CIDDS-001: 2 days, ToN: 1 day,
-  CICIDS2017: before 2017-07-06, CSE-CIC-IDS2018: before 2018-02-17). Anchor benign flows are split 80/20 into reference
+- **Anchor.** The first period(s) of each dataset form the anchor. Anchor benign flows are split 80/20 into reference
   and holdout per seed. Zero-day families are the attack families absent from the anchor.
-- **Causal order.** Every period is first scored, then used for the update (predict-then-learn).
-- **Threshold.** Every score-based detector alerts at 1% FPR on the anchor holdout; the threshold is never re-tuned.
+- **Order.** Each period is scored before its labels are used (predict-then-update). Streams contain complete-flow
+  records ordered by flow start time.
+- **Threshold.** Every score-based detector alerts at 1% FPR on the anchor holdout; the threshold is not re-tuned.
 - **Baselines.** SSF, OWAD, MemStream and Trident run the authors' code from `sota/`. Trident is run update-free,
   because its demo retrains on ground-truth labels of the whole stream. MemStream uses the authors' memory-admission
-  `beta = 0.1`; earlier runs with an adaptive `beta` are kept as the variant `memstream_adapt`. Deviations are listed in
-  the paper (Table "Baselines").
+  `beta = 0.1`. Deviations from the original setups are listed in the paper.
 
 ## Licence and third-party code
 
-The code in `exp/` is released for the review and reproduction of the paper. The code in `sota/` belongs to the
-respective authors and keeps their licences. The source datasets are subject to their providers' terms of use.
+The code in `exp/` and `tables_figures/` is released for the review and reproduction of the paper. The code in `sota/`
+belongs to its authors and keeps their licences. The source datasets are subject to their providers' terms of use.

@@ -1,13 +1,22 @@
 dataraw/
 __pycache__/
 *.pyc
-exp/logs/
-exp/results_superseded/
+.pytest_cache/
 .ipynb_checkpoints/
+logs/
+exp/logs/
 paper/
+Huong_dan_*.docx
 mock/streams/*_x10*.parquet
 mock/streams/*injcamo*.parquet
-logs/
 mock/streams/_raw_cache*.pkl
-Huong_dan_*.docx
+
+# result view rebuilt by exp/k5a_view.py (hard links into exp/results); its reports are copied to exp/reports
 exp_k5/
+exp_k5a/
+
+# manuscript (local only) and the outputs of tables_figures/
+IEEE_ACCESS/
+IEEE_ACCESS.zip
+tables_figures/tables/
+tables_figures/figures/

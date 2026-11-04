@@ -79,7 +79,7 @@ class ScheduleTests(unittest.TestCase):
 
 class SotaSuffixTests(unittest.TestCase):
     def test_existing_names_parse_as_before(self):
-        rx = sota_regex(); old = rx.replace(r"(?:_R(\d+))?", "")
+        rx = sota_regex(); old = rx.replace(r"(?:_R(\d+))?", "").replace("(_G)?", "")
         names = ["ssf_causal", "ssf", "owad", "owad_lr3", "memstream", "memstream_fn", "trident", "cade", "trident_t1",
                  "cade_t1", "ssf_causal_D1", "owad_D1", "ssf_causal_N10", "owad_P1", "owad_B100", "ssf_causal_W20000",
                  "ssf_causal_E180", "ssf_causal_P4", "owad_P4", "ssf_causal_B25", "owad_B25"]

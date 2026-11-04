@@ -1,0 +1,14 @@
+{
+  "method": "ernp_K5A",
+  "expected_runs": 280,
+  "collected_runs": 280,
+  "missing": [],
+  "inferential_unit": "dataset (seeds and scenarios averaged within a dataset)",
+  "correction": "Holm over the five baselines within each metric",
+  "code_hashes": {
+    "evaluate.py": "c7e89f81284914ba6dcffc52f928fb1c24235634301e18b074cb70db1d6fe661",
+    "inference.py": "25d25be4dd4c264b5b448fcedae49713642e703ed00f0dbcc23167c379b0bd8d",
+    "ernp.py": "e3f14e3d5f5ad7b2e1e69dd6c10235087240723bcfbc5c2138cd1cda24a4e2d7",
+    "access_report.py": "02d5eaaedd2c855bb4f5c79d53ac60c1a3c7ff181e3920850891c190ef238b07"
+  }
+}

@@ -12,7 +12,7 @@ def main():
     ap.add_argument('--batch-size', type=int, default=100_000)
     ap.add_argument('--repeats', type=int, default=5)
     ap.add_argument('--seed', type=int, default=0)
-    ap.add_argument('--out', type=Path, default=Path(__file__).parent / 'reports/access/benchmark_k5.json')
+    ap.add_argument('--out', type=Path, default=Path(__file__).parent / 'reports/benchmark_k5.json')
     a = ap.parse_args()
     if min(a.n_prior, a.threads, a.batch_size, a.repeats) < 1:
         ap.error('K, threads, batch size and repeats must be positive')

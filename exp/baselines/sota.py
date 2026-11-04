@@ -65,7 +65,7 @@ def run_memstream(ds, memlen=2048, epochs=5000, lr=1e-2, fixnorm=False, beta=0.1
     CICIDS-DoS all use beta = 0.1, memlen 2048). The alert threshold is separate: 1% FPR on the anchor holdout, as for
     every method. (Before 05/10/2026 the wrapper used the alert threshold as beta, 100-900x the authors' value on our
     feature scale; memory then admitted most attacks: CIDDS-001 seed 0 AUROC 0.26 vs 0.998 with beta = 0.1, see
-    diagnose_memstream_beta.py. Earlier runs: exp/results_superseded/.)"""
+    diagnose_memstream_beta.py.)"""
     df, X, src, dst, tr, ho, s_idx, anc = load(ds)
     code = open(SOTA + "MemStream/code/memstream.py").read()
     cls = code[code.index("class MemStream"): code.index("if args.dataset in")]
@@ -113,7 +113,7 @@ def run_owad(ds, ae_lr=None):
     # Input: the shared standardised features, as for every other method. (Before 05/10/2026 the wrapper applied the
     # min-max scaling of OWAD's Kyoto demo on top of them; on features already standardised and clipped at +-10 sd this
     # squeezes most flows into a narrow band and broke OWAD's AE on the CIC datasets: initial-model AUROC on CIC-IDS2017
-    # 0.68 with min-max vs 0.96 without, see diagnose_owad_scaling.py. Earlier OWAD runs: exp/results_superseded/.)
+    # 0.68 with min-max vs 0.96 without, see diagnose_owad_scaling.py.)
     Z = (X if os.environ.get("OWAD_MINMAX", "0") != "1" else MinMaxScaler().fit(X[tr]).transform(X)).astype(np.float32)
     t0 = _now(); model, _ = (AE.train(Z[tr], Z.shape[1]) if ae_lr is None else AE.train(Z[tr], Z.shape[1], lr=ae_lr))
     TIMING["init_s"] += _now() - t0

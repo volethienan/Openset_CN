@@ -1,0 +1,47 @@
+{
+  "protocol": "retrospective_complete_flow_start_order",
+  "packet_causal_verified": false,
+  "rows": [
+    {
+      "dataset": "CIDDS_ctx",
+      "rows": 301164,
+      "duration_seconds_per_original_unit": 1.0,
+      "positive_duration": 143678,
+      "max_duration_s": 134.49801686732013,
+      "anchor_flows_completing_after_split": 0,
+      "rows_with_prior_record_not_completed_at_start": 26485,
+      "scope": "overlap_diagnostic_not_measured_metric_inflation_or_export_order"
+    },
+    {
+      "dataset": "CTU13",
+      "rows": 402044,
+      "duration_seconds_per_original_unit": 1.0,
+      "positive_duration": 388130,
+      "max_duration_s": 3631.9513329133783,
+      "anchor_flows_completing_after_split": 0,
+      "rows_with_prior_record_not_completed_at_start": 402021,
+      "scope": "overlap_diagnostic_not_measured_metric_inflation_or_export_order"
+    },
+    {
+      "dataset": "SIMARGL",
+      "rows": 401477,
+      "duration_seconds_per_original_unit": 0.001,
+      "positive_duration": 241340,
+      "max_duration_s": 119.99896096496454,
+      "anchor_flows_completing_after_split": 1,
+      "rows_with_prior_record_not_completed_at_start": 400473,
+      "scope": "overlap_diagnostic_not_measured_metric_inflation_or_export_order"
+    },
+    {
+      "dataset": "APPRAISE",
+      "rows": 400195,
+      "duration_seconds_per_original_unit": 1.0,
+      "positive_duration": 180560,
+      "max_duration_s": 120.00001533136708,
+      "anchor_flows_completing_after_split": 4,
+      "rows_with_prior_record_not_completed_at_start": 357776,
+      "scope": "overlap_diagnostic_not_measured_metric_inflation_or_export_order"
+    }
+  ],
+  "other_datasets": "duration_units_not_inferred_in_this_audit"
+}

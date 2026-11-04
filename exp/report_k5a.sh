@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Every report of the manuscript on the K5 view (ERNP = --n_prior 5). Build the view first: python exp/k5a_view.py
-# Runs inside exp_k5a/ and writes exp_k5a/reports/; the paper scripts read it with ERNP_REP=exp_k5a/reports.
-# usage: bash exp/report_k5.sh [stage]    (stage: eval | analysis | all; default all)
+# Every report of the manuscript on the K5A view (ERNP = --n_prior 5 --keep A). Build the view first: python exp/k5a_view.py
+# Runs inside exp_k5a/ (the view) and copies the reports to exp/reports/, where the paper scripts read them.
+# usage: bash exp/report_k5a.sh [stage]    (stage: eval | analysis | all; default all)
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"; cd "$ROOT/exp_k5a" || exit 1
 export PYTHONIOENCODING=utf-8 EXP_RESULTS="$ROOT/exp_k5a/results/"; mkdir -p reports logs_k5a
@@ -52,4 +52,5 @@ if [ "$STAGE" = analysis ] || [ "$STAGE" = all ]; then
   wait
   run x10r python scale_x10_report.py
 fi
+cp -p reports/* "$ROOT/exp/reports/"
 echo REPORT_K5A_DONE

@@ -59,5 +59,5 @@ def audit(path, output):
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('--raw', type=Path, required=True)
-    ap.add_argument('--out', type=Path, default=Path(__file__).parents[1] / 'reports/access/simargl_raw_audit.json')
+    ap.add_argument('--out', type=Path, default=Path(__file__).parents[1] / 'reports/simargl_raw_audit.json')
     a = ap.parse_args(); audit(a.raw, a.out)

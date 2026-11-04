@@ -164,7 +164,7 @@ def sim_chunks():
 # covering 65,535 destination ports and 32 destinations. TCP/flags=21: 24,412,910 records with IN/OUT_PKTS=1/1,
 # 5,705 with 2/2; TCP/flags=1: 318 records with 1/0. Do not describe every record as a single-packet attack.
 # The bounded original-label/time mask below is identical on ALL 40,263,811 raw records to the old host/whole-day
-# rule (exp/reports/access/simargl_raw_audit.json). No old stream or predictions need replacement for this change.
+# rule (exp/reports/simargl_raw_audit.json). No old stream or predictions need replacement for this change.
 # Both the filtered cohort and SIMARGL_all (published labels) MUST be reported; excluded records still affect context.
 SIM_SCAN_HOST = "10.9.3.238"
 SIM_SCAN_FROM_MS, SIM_SCAN_TO_MS = 1622437097000, 1622444166000  # [04:58:17, 06:56:06) in dataset epoch time

@@ -1,3 +1,0 @@
-CIDDS_ctx: fit 3.0s | scoring 100000 flows in 0.329s -> 303,673 flows/s (CPU, 12 threads)
-ToN_ctx: fit 6.9s | scoring 100000 flows in 0.502s -> 199,141 flows/s (CPU, 12 threads)
-CIC18: fit 14.3s | scoring 100000 flows in 0.895s -> 111,706 flows/s (CPU, 12 threads)

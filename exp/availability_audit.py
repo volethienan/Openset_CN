@@ -22,7 +22,7 @@ def main():
                          anchor_flows_completing_after_split=int(((start < cut) & (end >= cut)).sum()),
                          rows_with_prior_record_not_completed_at_start=int(overlaps.sum()),
                          scope='overlap_diagnostic_not_measured_metric_inflation_or_export_order'))
-    out = Path(__file__).parent / 'reports/access/feature_availability.json'
+    out = Path(__file__).parent / 'reports/feature_availability.json'
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(dict(protocol='retrospective_complete_flow_start_order', packet_causal_verified=False,
                                     rows=rows, other_datasets='duration_units_not_inferred_in_this_audit'), indent=2), encoding='utf-8')

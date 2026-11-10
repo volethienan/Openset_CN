@@ -1,7 +1,7 @@
 {
   "title": "ERNP: code, prepared streams and per-run results for \"Evidence-Retracted Novelty Priors for Zero-Day Network Intrusion Detection under Benign Drift\"",
   "upload_type": "software",
-  "version": "v1.0.0",
+  "version": "v1.0.1",
   "access_right": "open",
   "license": "MIT",
   "description": "<p>Code, prepared data streams and per-run results for the manuscript <em>Evidence-Retracted Novelty Priors for Zero-Day Network Intrusion Detection under Benign Drift</em>.</p><p>ERNP (Evidence-Retracted Novelty Prior) is a network intrusion detector that adapts only through analyst decisions on alert groups. It estimates a density ratio between benign evidence and the union of attack evidence and a novelty prior of feature-swapped benign flows; benign confirmations retract the prior locally. The archive contains the implementation (exp/), the wrappers and official code of the compared detectors (exp/baselines/, sota/), the prepared streams of the seven datasets (mock/streams/), one result file per run (exp/results/), the aggregated reports (exp/reports/) and the scripts that rebuild every table and figure of the manuscript (tables_figures/). See README.md for the reproduction commands.</p><p>The MIT licence covers the code in exp/ and tables_figures/ and the result files. The code in sota/ keeps the licences of its authors. The prepared streams are derived from CIDDS-001, NF-ToN-IoT-v3, CIC-IDS2017, CSE-CIC-IDS2018, CTU-13, RoEduNet-SIMARGL2021 and APPRAISE H2020 and remain subject to the terms of use of their providers.</p>",
